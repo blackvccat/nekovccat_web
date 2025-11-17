@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:16-alpine
+    container_name: nekovccat-postgres
+    restart: unless-stopped
+    environment: 
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: nekovccat_app
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nekovccat-network
+
+  # Python 后端 API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nekovccat-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-changeme}@postgres:5432/nekovccat_app
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DEBUG=${DEBUG:-true}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - backend_cache:/app/.cache
+    networks:
+      - nekovccat-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Next.js 前端（可选，也可以本地运行）
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: nekovccat-frontend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${FRONTEND_PORT:-3000}:3000"
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://localhost:${BACKEND_PORT:-8000}
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - nekovccat-network
+
+volumes:
+  postgres_data:
+  backend_cache:
+
+networks:
+  nekovccat-network:
+    driver: bridge
+

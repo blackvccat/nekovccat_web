@@ -1,0 +1,25 @@
+# FastAPI 核心
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+
+# 数据库
+sqlalchemy==2.0.25
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+
+# 数据验证
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# 工具
+python-dotenv==1.0.0
+httpx==0.26.0
+
+# AI 服务（根据需要选择）
+# openai==1.10.0
+# anthropic==0.18.1
+google-genai>=0.2.0
+
+# 日志
+python-json-logger==2.0.7
+

@@ -1,0 +1,57 @@
+// Prisma Schema - Supabase PostgreSQL 数据库
+// Supabase 是基于 PostgreSQL 的云数据库平台
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // Supabase 使用标准 PostgreSQL 连接
+  // 支持 Transaction Mode (连接池) 和 Session Mode (直接连接)
+}
+
+// 用户模型示例
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chatSessions ChatSession[]
+
+  @@map("users")
+}
+
+// 聊天会话
+model ChatSession {
+  id        String   @id @default(cuid())
+  userId    String?  // 可选，如果未来需要用户系统
+  title     String?  // 会话标题（可以从第一条消息生成）
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@map("chat_sessions")
+  @@index([userId])
+}
+
+// 聊天消息
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  role      String   // 'user' | 'assistant'
+  content   String   @db.Text
+  timestamp DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+  @@index([sessionId])
+  @@index([timestamp])
+}
+
