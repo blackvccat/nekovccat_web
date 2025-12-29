@@ -108,6 +108,7 @@ DEBUG=true
 
 - [前端文档](./frontend/README.md) - Next.js 前端说明
 - [后端文档](./backend/README.md) - Python 后端说明
+- [GitHub Pages 部署指南](./frontend/docs/github-pages-deployment.md) - 前端部署到 GitHub Pages
 - [项目结构提案](./PROJECT_STRUCTURE_PROPOSAL.md) - 结构重组说明
 
 ## 🛠️ 技术栈
@@ -180,6 +181,22 @@ export default function Page() {
 - 各向异性过滤优化
 - 按需加载和 Suspense 边界
 
+## 🌐 部署
+
+### GitHub Pages（前端）
+
+前端应用可以自动部署到 GitHub Pages：
+
+1. 在 GitHub 仓库设置中启用 GitHub Pages（Source: GitHub Actions）
+2. 推送到 `main` 分支会自动触发部署
+3. 部署完成后访问：`https://blackvccat.github.io/nekovccat_web`
+
+详细说明请查看：[GitHub Pages 部署指南](./frontend/docs/github-pages-deployment.md)
+
+### 自托管服务器
+
+后端和前端也可以部署到自托管服务器，详见各模块的 README。
+
 ## 📝 项目状态
 
 ### 已完成功能
@@ -193,6 +210,7 @@ export default function Page() {
 - ✅ 流式响应支持
 - ✅ 数据库配置（Prisma + Supabase）
 - ✅ Docker 开发环境
+- ✅ GitHub Pages 自动部署配置
 
 ### 计划功能
 

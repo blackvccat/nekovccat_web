@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:github": "GITHUB_PAGES=true BASE_PATH=/nekovccat_web ASSET_PREFIX=/nekovccat_web next build",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import PageLayout from '@/components/layout/page-layout'
 import RetroComputer, { RetroMessage } from '@/components/my-world/retro-computer'
+import { getChatApiUrl } from '@/lib/api/client'
 
 const STORAGE_KEY = 'my-world-conversation'
 
@@ -101,7 +102,7 @@ export default function MyWorld() {
       }
 
       // Call API with streaming
-      const response = await fetch('/api/chat?stream=true', {
+      const response = await fetch(getChatApiUrl(true), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
