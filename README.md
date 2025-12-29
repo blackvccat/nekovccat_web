@@ -9,7 +9,11 @@
 - 🎮 **交互式体验** - 第一人称视角控制和全景背景
 - 🚀 **现代化技术栈** - Next.js 16、TypeScript、FastAPI
 
-## 📁 项目结构
+## 📁 项目结构!
+[bcab448657077151f13701f01ca1fe78](https://github.com/user-attachments/assets/3d7d7cd6-7119-4bc1-9e89-5473b5edde78)
+![171349c3640ad27c667498e77986daa7](https://github.com/user-attachments/assets/06294f56-40df-4296-b7d8-5da70427f041)
+![f4c000286dcc35e0d3c9cb0547573f8e](https://github.com/user-attachments/assets/a82a06e2-2024-43df-b254-bdfba9a59b77)
+
 
 ```
 nexttest/
