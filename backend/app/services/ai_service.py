@@ -70,8 +70,16 @@ class AIService:
                 
         except Exception as e:
             # 如果 API 调用失败，返回错误信息和模拟响应
-            print(f"Gemini API 调用失败: {str(e)}")
-            return self._get_mock_response(messages)
+            error_msg = str(e)
+            print(f"Gemini API 调用失败: {error_msg}")
+            
+            # 检查是否是地理位置限制
+            if "location is not supported" in error_msg or "FAILED_PRECONDITION" in error_msg:
+                return f"[系统提示: Gemini API 在您当前地区不可用，使用模拟响应]\n\n{self._get_mock_response(messages)}"
+            elif "API key" in error_msg.lower() or "unauthorized" in error_msg.lower():
+                return f"[系统提示: API Key 验证失败，使用模拟响应]\n\n{self._get_mock_response(messages)}"
+            else:
+                return f"[系统提示: API 调用失败 ({error_msg[:50]}...)，使用模拟响应]\n\n{self._get_mock_response(messages)}"
     
     def _get_mock_response(self, messages: List[ChatMessage]) -> str:
         """获取模拟响应（当 API 不可用时）"""

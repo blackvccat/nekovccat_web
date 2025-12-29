@@ -5,8 +5,11 @@
 ## 📚 技术栈
 
 - **Next.js 16.0.1** - React 全栈框架（App Router）
-- **React 19.2.0** - UI 库
+- **React 18.3.1** - UI 库
 - **TypeScript 5** - 类型安全的 JavaScript
+- **Three.js 0.181.0** - 3D 图形库
+- **@react-three/fiber 9.4.0** - React 的 Three.js 渲染器
+- **@react-three/drei 10.7.6** - Three.js 实用工具库
 - **Supabase** - 开源 PostgreSQL 云数据库（基于 PostgreSQL）
 - **Prisma 5.20.0** - 类型安全的 ORM
 - **Tailwind CSS 4** - 实用优先的 CSS 框架
@@ -136,10 +139,17 @@ frontend/
 │   ├── ui/                      # 基础 UI 组件
 │   │   ├── button.tsx
 │   │   └── index.ts
+│   ├── 3d/                      # 3D 场景组件
+│   │   ├── city-scene.tsx       # 城市 3D 场景
+│   │   ├── first-person-controls.tsx # 第一人称控制器
+│   │   └── controls-hint.tsx    # 控制提示
 │   ├── layout/                  # 布局组件
 │   │   ├── header.tsx
-│   │   └── footer.tsx
-│   ├── features/                # 功能模块组件（按需创建）
+│   │   ├── footer.tsx
+│   │   ├── panorama-background.tsx # 全景背景（3D）
+│   │   └── page-layout.tsx
+│   ├── my-world/                # My World 功能组件
+│   │   └── retro-computer.tsx   # 复古终端界面
 │   └── shared/                  # 共享组件
 │       ├── loading.tsx
 │       └── error-boundary.tsx
@@ -158,10 +168,16 @@ frontend/
 ├── types/                        # TypeScript 类型定义
 │   └── index.ts                 # 全局类型导出
 │
+├── models/                       # 3D 模型组件
+│   └── city.jsx                 # 城市 GLB 模型加载器
+│
 ├── prisma/                       # Prisma 配置
 │   └── schema.prisma            # 数据库模式
 │
 ├── public/                       # 静态资源
+│   ├── city.glb                 # 3D 城市模型文件
+│   └── env/                     # 环境贴图（HDR/EXR）
+│       └── autumn_field_puresky_4k.exr
 │
 ├── docker-compose.yml            # Docker 配置（PostgreSQL）
 ├── .env.example                  # 环境变量示例
@@ -295,6 +311,64 @@ npm run docker:up
 ```
 然后在 `.env.local` 中使用本地数据库连接字符串。
 
+## 🎮 Three.js 3D 功能
+
+本项目集成了 **Three.js** 用于创建沉浸式 3D 体验。
+
+### 核心 3D 组件
+
+#### 1. 城市 3D 场景 (`components/3d/city-scene.tsx`)
+
+完整的 3D 城市场景，包含：
+- GLB 模型加载（`city.glb`）
+- 体积雾效果（FogExp2）
+- 环境光照和阴影
+- 第一人称控制器集成
+
+```typescript
+import CityScene from '@/components/3d/city-scene'
+
+export default function Page() {
+  return <CityScene />
+}
+```
+
+#### 2. 第一人称控制器 (`components/3d/first-person-controls.tsx`)
+
+提供流畅的第一人称视角控制：
+- **W/A/S/D**: 前后左右移动
+- **Space/Shift**: 上下移动
+- **鼠标移动**: 控制视角（指针锁定）
+- **自动旋转**: 可选的自动旋转功能
+
+#### 3. 全景背景 (`components/layout/panorama-background.tsx`)
+
+360° 全景背景渲染：
+- 支持 EXR/HDR 格式
+- 纹理优化和缓存
+- 自动尺寸限制（最大 4096x4096）
+
+### 3D 资源管理
+
+- **模型文件**: 放置在 `public/` 目录
+- **GLB 格式**: 推荐使用 GLB（二进制 GLTF）格式
+- **环境贴图**: 支持 EXR、HDR 格式的环境贴图
+
+### 性能优化
+
+- ✅ 纹理缓存机制
+- ✅ 自动 Mipmap 生成
+- ✅ 纹理尺寸限制
+- ✅ Suspense 边界和按需加载
+- ✅ 各向异性过滤优化
+
+### 使用 Three.js 的最佳实践
+
+1. **使用 Suspense**: 3D 组件应包裹在 Suspense 中
+2. **纹理优化**: 大纹理自动缩放，避免内存溢出
+3. **按需加载**: 使用动态导入减少初始包大小
+4. **错误处理**: 3D 资源加载失败时的降级方案
+
 ## 🎯 核心概念
 
 ### App Router
@@ -315,6 +389,8 @@ Next.js 16 使用 App Router 架构，基于 React Server Components：
 - ✅ 更好的 SEO 和初始加载性能
 
 需要交互时使用 `"use client"` 指令创建客户端组件。
+
+**注意**: Three.js 组件必须使用 `"use client"`，因为它们需要浏览器 API。
 
 ### Prisma ORM
 
@@ -636,22 +712,45 @@ volumes:
 
 ## 📚 学习资源
 
+### 核心框架
 - [Next.js 官方文档](https://nextjs.org/docs)
+- [React 官方文档](https://react.dev)
+- [TypeScript 文档](https://www.typescriptlang.org/docs/)
+
+### 3D 开发
+- [Three.js 官方文档](https://threejs.org/docs/)
+- [React Three Fiber 文档](https://docs.pmnd.rs/react-three-fiber)
+- [React Three Drei 文档](https://github.com/pmndrs/drei)
+- [Three.js 示例](https://threejs.org/examples/)
+
+### 数据库和工具
 - [Supabase 官方文档](https://supabase.com/docs)
 - [Prisma 文档](https://www.prisma.io/docs)
 - [PostgreSQL 文档](https://www.postgresql.org/docs/)
-- [TypeScript 文档](https://www.typescriptlang.org/docs/)
 - [Tailwind CSS 文档](https://tailwindcss.com/docs)
 
 ## 📝 项目状态
 
+### 已完成功能
+
 - [x] 项目结构搭建
+- [x] Three.js 3D 场景集成
+- [x] 城市 3D 模型加载和渲染
+- [x] 第一人称控制器实现
+- [x] 全景背景系统
 - [x] Supabase + Prisma 配置
 - [x] 基础组件库
 - [x] 类型定义
 - [x] 错误处理和加载状态
 - [x] Docker 配置
+- [x] AI 聊天功能集成
+
+### 计划功能
+
 - [ ] 认证系统（NextAuth.js）
+- [ ] 更多 3D 场景和交互
+- [ ] 3D 模型编辑器
+- [ ] 性能监控和优化
 - [ ] 单元测试
 - [ ] E2E 测试
 - [ ] CI/CD 配置
