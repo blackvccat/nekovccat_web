@@ -1,5 +1,5 @@
 # Nekovccat · My World
-
+https://neko.origin.kim/
 Next.js + FastAPI 的个人网站。Home 的右下角提供 **NEKO 站内助手**；About 与 Contact 合并进 My World 的 **NEKO Browser**。`/my-world` 是一台可交互的像素风复古电脑，内置 DeepSeek Harness 站内 Agent、音乐软件、站点导航、便签与外观设置。
 
 ## 全站助手
