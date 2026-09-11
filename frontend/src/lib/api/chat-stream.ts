@@ -1,0 +1,139 @@
+export interface ChatToolEvent {
+  event: 'tool'
+  name: string
+  status: string
+  message: string
+}
+
+export interface ChatDesktopEvent {
+  event: 'desktop'
+  action: 'unlock-girlfriend'
+  proof: string
+}
+
+interface ChatStreamHandlers {
+  onContent: (content: string) => void
+  onTool?: (event: ChatToolEvent) => void
+  onDesktop?: (event: ChatDesktopEvent) => void
+}
+
+const interruptedMessage = '回复连接已中断，已保留收到的内容，请重新发送。'
+
+/** Network chunks can end inside a UTF-8 character, an SSE line, or a JSON event. */
+class EventDecoder {
+  private decoder = new TextDecoder('utf-8', { fatal: true })
+  private buffer = ''
+  private data: string[] = []
+
+  constructor(private onData: (data: unknown) => void) {}
+
+  push(chunk: Uint8Array) {
+    this.buffer += this.decoder.decode(chunk, { stream: true })
+    this.drain(false)
+  }
+
+  finish() {
+    this.buffer += this.decoder.decode()
+    this.drain(true)
+    // An event without its terminating blank line is incomplete at EOF.
+  }
+
+  private drain(atEnd: boolean) {
+    while (true) {
+      const end = this.buffer.search(/[\r\n]/)
+      if (end < 0) return
+      if (!atEnd && this.buffer[end] === '\r' && end === this.buffer.length - 1) return
+
+      const line = this.buffer.slice(0, end)
+      const separatorLength = this.buffer.slice(end, end + 2) === '\r\n' ? 2 : 1
+      this.buffer = this.buffer.slice(end + separatorLength)
+
+      if (line === '') {
+        if (this.data.length) {
+          const value = this.data.join('\n')
+          this.data = []
+          let parsed: unknown
+          try {
+            parsed = JSON.parse(value)
+          } catch {
+            throw new Error('聊天服务返回了无法解析的数据，请重新发送。')
+          }
+          this.onData(parsed)
+        }
+      } else if (line.startsWith('data:')) {
+        const value = line.slice(5)
+        this.data.push(value.startsWith(' ') ? value.slice(1) : value)
+      }
+      // Comments/heartbeats and other SSE fields do not contain chat content.
+    }
+  }
+}
+
+/** Consume the site's SSE protocol and require an explicit successful done event. */
+export async function consumeChatStream(
+  body: ReadableStream<Uint8Array>,
+  handlers: ChatStreamHandlers,
+  signal?: AbortSignal,
+): Promise<string> {
+  const reader = body.getReader()
+  let complete = false
+  let content = ''
+  let desktopEvent: ChatDesktopEvent | undefined
+  const decoder = new EventDecoder((value) => {
+    if (complete) return
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new Error('聊天服务返回了无效的消息。')
+    }
+    const data = value as Record<string, unknown>
+    if (typeof data.error === 'string' && data.error) throw new Error(data.error)
+
+    if (data.event === 'desktop') {
+      if (data.action !== 'unlock-girlfriend') throw new Error('聊天服务返回了无效的桌面操作。')
+      if (typeof data.proof !== 'string' || !/^v1\.[a-f0-9]{48}\.\d{10}\.[a-f0-9]{64}$/.test(data.proof)) throw new Error('聊天服务返回了无效的解锁凭证。')
+      desktopEvent = { event: 'desktop', action: 'unlock-girlfriend', proof: data.proof }
+      return
+    }
+
+    if (data.event === 'tool') {
+      if (typeof data.name !== 'string' || typeof data.status !== 'string') {
+        throw new Error('聊天服务返回了无效的工具状态。')
+      }
+      handlers.onTool?.({
+        event: 'tool',
+        name: data.name,
+        status: data.status,
+        message: typeof data.message === 'string' ? data.message : '',
+      })
+      return
+    }
+
+    if (typeof data.content === 'string') {
+      content += data.content
+      handlers.onContent(content)
+    }
+    if (data.done === true) complete = true
+  })
+  const abort = () => { void reader.cancel().catch(() => {}) }
+  signal?.addEventListener('abort', abort, { once: true })
+
+  try {
+    if (signal?.aborted) throw new DOMException('请求已取消', 'AbortError')
+    while (!complete) {
+      const { done, value } = await reader.read()
+      if (signal?.aborted) throw new DOMException('请求已取消', 'AbortError')
+      if (done) {
+        decoder.finish()
+        break
+      }
+      decoder.push(value)
+    }
+    if (!complete) throw new Error(interruptedMessage)
+    // Failed, empty, aborted or incomplete replies must never change the desktop.
+    if (desktopEvent && content.trim() && !signal?.aborted) handlers.onDesktop?.(desktopEvent)
+    return content
+  } finally {
+    signal?.removeEventListener('abort', abort)
+    await reader.cancel().catch(() => {})
+    reader.releaseLock()
+  }
+}

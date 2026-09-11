@@ -1,0 +1,19 @@
+[Unit]
+Description=NEKO website private Cloudflare connector
+Wants=network-online.target nekoweb-frontend.service
+After=network-online.target nekoweb-frontend.service
+
+[Service]
+Type=simple
+User=nekoweb-tunnel
+Group=nekoweb-tunnel
+EnvironmentFile=/etc/nekoweb/tunnel.env
+ExecStart=/srv/nekoweb/tools/cloudflared tunnel --no-autoupdate --metrics 127.0.0.1:20241 run
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

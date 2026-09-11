@@ -1,27 +1,33 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
-import FontLoader from "@/components/shared/font-loader";
 import DevToolsErrorSuppressor from "@/components/shared/devtools-error-suppressor";
+import { MusicSessionProvider } from "@/components/music/music-session";
+import SiteMusic from "@/components/music/site-music";
+import { AgentSessionProvider } from "@/components/agent/agent-session";
+import { RelationshipModeProvider } from "@/components/relationship/relationship-mode";
 
-const geistSans = Geist({
+const geistSans = localFont({
+  src: "../../public/fonts/geist-latin-wght-normal.woff2",
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: "../../public/fonts/geist-mono-latin-wght-normal.woff2",
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
 });
-
-// Jersey 25 字体 - 使用 Next.js 字体优化
-// 注意：如果 next/font/google 不支持此字体，将使用 CSS 导入
 
 export const metadata: Metadata = {
   title: "Nekovccat web work",
   description: "基于 Next.js 的 Nekovccat 网站",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://nekovccat.origin.kim'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://origin.kim'),
   other: {},
 };
 
@@ -36,12 +42,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <DevToolsErrorSuppressor />
-        <FontLoader />
+        <MusicSessionProvider>
+        <RelationshipModeProvider>
+        <AgentSessionProvider>
         <main className="min-h-screen bg-white flex flex-col">
           <div className="flex-1 relative">
             {children}
           </div>
         </main>
+        <SiteMusic />
+        </AgentSessionProvider>
+        </RelationshipModeProvider>
+        </MusicSessionProvider>
       </body>
     </html>
   );

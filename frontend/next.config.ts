@@ -1,45 +1,42 @@
 import type { NextConfig } from "next";
 
-// 检测是否为 GitHub Pages 部署
-const isGitHubPages = process.env.GITHUB_PAGES === 'true';
-
 const nextConfig: NextConfig = {
-  // 生产环境配置
-  // GitHub Pages 需要静态导出，其他情况使用 standalone
-  output: isGitHubPages ? 'export' : 'standalone',
-  
-  // GitHub Pages 需要设置 basePath 和 assetPrefix
-  ...(isGitHubPages && {
-    basePath: process.env.BASE_PATH || '/nekovccat_web',
-    assetPrefix: process.env.ASSET_PREFIX || '/nekovccat_web',
-    images: {
-      unoptimized: true, // GitHub Pages 不支持 Next.js 图片优化
-    },
-  }),
-  
-  // 非 GitHub Pages 的图片优化配置
-  ...(!isGitHubPages && {
-    images: {
-      remotePatterns: [
-        {
-          protocol: 'https',
-          hostname: 'nekovccat.origin.kim',
-        },
-      ],
-    },
-  }),
+  // Keep framework upgrades from generating project instruction files.
+  agentRules: false,
+  output: 'standalone',
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'nekovccat.origin.kim',
+      },
+    ],
+  },
   
   poweredByHeader: false, // 移除 X-Powered-By 响应头（安全最佳实践）
 
+  async headers() {
+    const production = process.env.NODE_ENV === 'production'
+    const csp = [
+      "default-src 'self'", `script-src 'self' 'unsafe-inline'${production ? '' : " 'unsafe-eval'"}`,
+      "style-src 'self' 'unsafe-inline'", "img-src 'self' data: blob:", "font-src 'self'",
+      "connect-src 'self'", "frame-src https://music.163.com https://open.spotify.com",
+      "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'",
+      ...(production ? ['upgrade-insecure-requests'] : []),
+    ].join('; ')
+    return [{ source: '/:path*', headers: [
+      { key: 'Content-Security-Policy', value: csp }, { key: 'X-Frame-Options', value: 'DENY' },
+      { key: 'X-Content-Type-Options', value: 'nosniff' }, { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+      { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+      ...(production ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000' }] : []),
+    ] }]
+  },
+
   // 环境变量配置
   env: {
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'https://nekovccat.origin.kim',
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'https://neko.origin.kim',
   },
-  
-  // 静态导出配置
-  ...(isGitHubPages && {
-    trailingSlash: true,
-  }),
 };
 
 export default nextConfig;

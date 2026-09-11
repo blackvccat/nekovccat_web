@@ -1,0 +1,27 @@
+# Apply above the official sdk-minimal profile; it is independent of dsh-base.
+# Keep session-projection: it is a required dependency of the official agent loop.
+- id: persistent-bash
+  disabled: true
+- id: persistent-pwsh
+  disabled: true
+- id: terminal-bash
+  disabled: true
+- id: terminal-pwsh
+  disabled: true
+- id: pty
+  disabled: true
+- id: subprocess
+  disabled: true
+- id: sandbox-policy
+  disabled: true
+- id: sandbox
+  disabled: true
+- id: jobs
+  disabled: true
+- id: tools
+  config:
+    mode: native
+- insert:
+    - id: nekovccat-website-tools
+      # Backend resolves this token to a quoted absolute module path at runtime.
+      name: __WEBSITE_TOOLS_MODULE__

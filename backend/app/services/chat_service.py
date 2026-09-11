@@ -1,5 +1,5 @@
 """聊天服务"""
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,6 +14,15 @@ class ChatService:
         self.db = db  # 数据库会话（可选，当前未使用）
         self.ai_service = AIService()
     
+    def validate_messages(self, messages: list[ChatMessage]) -> None:
+        if not messages:
+            raise ValueError("消息列表不能为空")
+        if sum(len(message.content) for message in messages) > 24000:
+            raise ValueError("对话较长，请开启新对话。")
+        if messages[-1].role != "user":
+            raise ValueError("最后一条消息必须是用户消息")
+        self.ai_service.check_configuration()
+
     async def process_message(
         self, 
         messages: list[ChatMessage]
@@ -27,23 +36,16 @@ class ChatService:
         Returns:
             ChatResponse: AI 响应
         """
-        # 验证消息格式
-        if not messages:
-            raise ValueError("消息列表不能为空")
-        
-        # 获取最后一条用户消息
-        last_message = messages[-1]
-        if last_message.role != "user":
-            raise ValueError("最后一条消息必须是用户消息")
+        self.validate_messages(messages)
         
         # 调用 AI 服务生成响应
         # 这里可以添加消息历史存储逻辑
-        ai_response = await self.ai_service.generate_response(messages)
+        ai_response = await self.ai_service.generate_reply(messages)
         
         # 返回响应
         return ChatResponse(
             role="assistant",
-            content=ai_response,
-            timestamp=datetime.utcnow().isoformat()
+            content=ai_response["content"],
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            desktop_action=ai_response.get("desktop_action"),
         )
-

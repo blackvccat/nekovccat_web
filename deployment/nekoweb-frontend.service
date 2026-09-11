@@ -1,0 +1,26 @@
+[Unit]
+Description=NEKO website Next.js frontend
+Wants=network-online.target nekoweb-backend.service
+After=network-online.target nekoweb-backend.service
+
+[Service]
+Type=simple
+User=nekoweb
+Group=nekoweb
+WorkingDirectory=/srv/nekoweb/current/frontend/.next/standalone
+Environment=NODE_ENV=production
+Environment=HOSTNAME=127.0.0.1
+EnvironmentFile=/etc/nekoweb/frontend.env
+Environment=PORT=3010
+Environment=PYTHON_API_URL=http://127.0.0.1:8010
+Environment=NEXT_TELEMETRY_DISABLED=1
+ExecStart=/srv/nekoweb/tools/node/bin/node /srv/nekoweb/current/frontend/.next/standalone/server.js
+Restart=on-failure
+RestartSec=3
+KillMode=control-group
+TimeoutStopSec=30
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

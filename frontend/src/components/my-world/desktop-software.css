@@ -1,0 +1,111 @@
+.neko-browser { display: flex; flex-direction: column; height: 100%; min-height: 0; background: #e9e8d9; color: #3f4c40; }
+.browser-menubar { display: flex; gap: 17px; padding: 5px 11px; font-size: 9px; border-bottom: 1px solid #b7bea9; }
+.browser-menubar span:last-child { margin-left: auto; color: #7b856d; }
+.browser-toolbar { display: flex; gap: 6px; align-items: center; padding: 8px; }
+.browser-toolbar button { width: 29px; height: 25px; padding: 0; }
+.browser-address { flex: 1; min-width: 0; padding: 5px 10px; background: #faf9ed; font: 11px monospace; }
+.browser-online { color: #728760; padding: 0 6px; }
+.browser-tabs { display: flex; gap: 3px; padding: 0 8px; border-bottom: 1px solid #929e83; }
+.browser-tabs button { flex: 1; padding: 8px 4px; font-size: 11px; background: #dbdfcf; border: 1px solid #b3baa5; border-bottom: 0; }
+.browser-tabs button[aria-current] { background: #faf7eb; color: #344b37; border-color: #929e83; box-shadow: 0 1px #faf7eb; font-weight: 600; }
+.browser-document { flex: 1; min-height: 0; overflow: auto; padding: 26px 29px 15px; background: #faf7eb; scrollbar-width: thin; scrollbar-color: #aab59a #e9e8d9; }
+.browser-document article { max-width: 880px; margin: auto; }
+.browser-kicker { font-size: 8px; letter-spacing: 1.4px; color: #839176; }
+.browser-document h1 { font-size: 30px; font-weight: 500; margin: 11px 0 17px; letter-spacing: -1px; line-height: 1.35; }
+.document-subtitle { display: block; font-size: 11px; line-height: 1.8; letter-spacing: 0; color: #7c896e; margin-top: 9px; font-weight: 400; }
+.browser-document p { font-size: 12px; line-height: 1.9; }
+.profile-hero { display: flex; align-items: center; gap: 22px; margin-top: 19px; }
+.profile-stamp { width: 87px; height: 93px; border: 1px solid #8e9d7c; outline: 3px double #d0d5bc; background: #dce4ca; font: 64px/1.1 'Jersey 25',monospace; text-align: center; color: #567053; flex-shrink: 0; padding-top: 2px; }
+.profile-stamp span { display: block; font: 8px monospace; border-top: 1px solid #96a482; padding-top: 5px; }
+.profile-alias { color: #8b8f72; font: 9px monospace !important; margin: 0; letter-spacing: 2px; }
+.profile-hero h1 { font: 53px/1.05 'Jersey 25',monospace; margin: 5px 0; }
+.profile-hero h1 span { font: 13px sans-serif; padding-left: 13px; }
+.profile-hero p:last-child { margin: 4px 0; font-size: 11px; }
+.profile-intro { margin: 24px 0 19px; }
+.profile-callout { background: #e9eddb; border-left: 2px solid #8a9b79; padding: 14px 16px; font-size: 11px; line-height: 1.9; margin: 17px 0; }
+.profile-directory { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 25px 0; }
+.profile-directory button { border: 1px solid #bbc2ac; background: #f4f0df; padding: 15px; text-align: left; }
+.profile-directory button:hover { background: #e8ecdc; }
+.profile-directory span,.profile-directory small { display: block; font-size: 9px; color: #89947b; }
+.profile-directory strong { display: block; font-size: 14px; margin: 12px 0 7px; font-weight: 500; }
+.browser-section { margin: 25px 0; }
+.browser-section h2,.sponsor-wallet h2 { font-size: 15px; font-weight: 500; border-bottom: 1px solid #b8c2a9; padding-bottom: 9px; }
+.browser-section h2 small,.sponsor-wallet h2 small { font-size: 8px; margin-left: 7px; color: #8b947f; letter-spacing: .8px; }
+.profile-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.profile-tags span { border: 1px solid #d1d6c1; padding: 4px 7px; font-size: 10px; color: #66775b; background: #eef0e3; }
+.profile-education { color: #7a896b; font-size: 10px !important; border-top: 1px dotted #aebba0; padding-top: 14px; margin-top: 20px; }
+.profile-job { border-left: 1px solid #a9b798; margin: 17px 0 25px; padding-left: 17px; }
+.profile-job time { font: 10px monospace; color: #8b927b; }
+.profile-job h3,.profile-project h3 { font-size: 15px; margin: 7px 0; font-weight: 500; }
+.profile-job .job-role { color: #81916e; font-size: 10px; margin: 3px 0; }
+.profile-project { border: 1px solid #c5cbb5; padding: 14px 17px; margin: 13px 0; }
+.profile-project small { display: block; color: #869676; font-size: 10px; }
+.profile-project a { display: inline-block; font-size: 11px; color: #536f54; margin-top: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.gallery-filters { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; padding: 10px 0 16px; }
+.gallery-filters button { font-size: 10px; padding: 5px 8px; }
+.gallery-filters button[aria-pressed=true] { background: #c8d4b8; box-shadow: inset 1px 1px #7e8c72; }
+.gallery-filters small { margin-left: auto; font-size: 9px; color: #8a997c; }
+.minecraft-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+.minecraft-photo { padding: 5px; border: 1px solid #c8c5af; box-shadow: 2px 2px #d9d9c8; background: #fffdf5; text-align: left; min-width: 0; }
+.minecraft-photo:hover { border-color: #899c76; }
+.minecraft-photo img { width: 100%; height: 130px; object-fit: cover; object-position: center; }
+.minecraft-photo span { display: flex; justify-content: space-between; padding: 8px 4px 4px; color: #7c886b; font-size: 10px; }
+.minecraft-photo b { font-weight: 400; }
+.gallery-viewer { border: 1px solid #a6b492; padding: 8px; margin-bottom: 18px; }
+.gallery-viewer img { width: 100%; height: auto; max-height: 600px; object-fit: contain; background: #353c33; margin-top: 8px; }
+.gallery-viewer p { margin: 6px; font-size: 10px; }
+.gallery-note { font-size: 10px !important; color: #8a957c; margin-top: 21px; }
+.contact-card { border: 1px solid #c1c9b0; padding: 17px; margin: 17px 0; background: #f4f3e5; }
+.contact-card > span { display: block; font-size: 9px; color: #89977b; letter-spacing: 1.1px; }
+.contact-card strong { display: block; font-size: 16px; font-weight: 400; margin: 12px 0 16px; overflow-wrap: anywhere; }
+.contact-card .pixel-button { display: inline-block; font-size: 11px; margin-right: 10px; }
+.browser-page-footer { max-width: 880px; margin: 31px auto 0; padding-top: 10px; border-top: 1px solid #d8dcc9; font-size: 7px; letter-spacing: .8px; color: #95a188; display: flex; justify-content: space-between; gap: 10px; }
+.browser-status { display: flex; justify-content: space-between; border-top: 1px solid #b7c1a7; padding: 4px 10px; font-size: 8px; color: #7d8a70; }
+.sponsor-app { height: 100%; overflow: auto; padding: 22px 23px; color: #4e6049; background: #f5f1df; scrollbar-width: thin; }
+.sponsor-heading { display: flex; gap: 12px; align-items: center; }
+.sponsor-heading h1 { font-size: 26px; font-weight: 400; margin: 5px 0; }
+.sponsor-heading .browser-kicker { font-size: 7px; }
+.sponsor-intro { font-size: 12px; line-height: 1.9; margin: 18px 0; }
+.sponsor-network { background: #dce5cf; border: 1px solid #9fab8d; padding: 9px 10px; font-size: 10px; display: flex; justify-content: space-between; }
+.sponsor-network span { font-size: 9px; }
+.sponsor-receiver { display: flex; align-items: center; gap: 16px; padding: 18px 0 9px; }
+.sponsor-receiver img { width: 134px; height: 134px; flex-shrink: 0; border: 5px solid #fff; image-rendering: pixelated; }
+.sponsor-receiver > div { min-width: 0; }
+.sponsor-receiver span { font-size: 10px; }
+.sponsor-app code { display: block; font-size: 10px; line-height: 1.8; word-break: break-all; padding: 6px 0; user-select: all; }
+.sponsor-receiver a,.sponsor-transfer a { display: block; font-size: 10px; color: #657c53; margin: 11px 0 4px; text-decoration: underline; }
+.sponsor-app .pixel-button { font-size: 11px; padding: 6px 10px; }
+.sponsor-help { color: #8d8067; font-size: 10px; line-height: 1.8; }
+.sponsor-wallet { margin-top: 22px; }
+.sponsor-wallet p { font-size: 11px; line-height: 1.8; }
+.sponsor-wallet > button { margin: 3px 6px 8px 0; }
+.wallet-empty { background: #e7e9d9; padding: 12px; }
+.connected-wallet { border: 1px dashed #a6b497; padding: 11px; margin: 11px 0; }
+.connected-wallet > span { font-size: 10px; }
+.sponsor-wallet label { font-size: 11px; display: block; margin: 17px 0 7px; }
+.sponsor-amount-row { display: flex; gap: 7px; }
+.sponsor-amount-row input { min-width: 0; flex: 1; background: #fffdf2; border: 1px solid #9da98d; padding: 7px; font: 15px monospace; }
+.sponsor-presets { display: flex; gap: 8px; margin-top: 7px; }
+.sponsor-presets button { font-size: 10px; background: #e5e9d8; border: 1px solid #bfc8ae; padding: 4px 8px; }
+.sponsor-review,.sponsor-transfer { margin: 16px 0; padding: 14px; border: 1px solid #93a77e; background: #e6edda; }
+.sponsor-review strong,.sponsor-transfer strong { font-size: 12px; font-weight: 500; }
+.sponsor-review .text-button { margin-left: 8px; }
+.software-feedback { color: #8b684c; }
+.sponsor-footer { margin-top: 25px; border-top: 1px solid #cbd2bb; padding-top: 15px; font-size: 10px; color: #94a083; }
+.music-account-entry { margin: 13px 0 16px; border: 1px solid #bec6af; padding: 11px; background: #e8eddf; }
+.music-account-entry a { display: inline-block; font-size: 11px; }
+.music-account-entry p { font-size: 9px; line-height: 1.8; color: #7e8a72; margin: 8px 0 0; }
+@media(max-width:600px) {
+  .browser-document { padding: 20px 15px 12px; }
+  .browser-tabs button { font-size: 10px; }
+  .profile-hero { gap: 15px; }
+  .profile-directory { gap: 8px; }
+  .profile-directory button { padding: 11px; }
+  .profile-directory strong { font-size: 12px; }
+  .minecraft-grid { gap: 9px; }
+  .minecraft-photo img { height: 92px; }
+  .sponsor-app { padding: 20px 15px; }
+  .sponsor-receiver { gap: 11px; }
+  .sponsor-receiver img { width: 110px; height: 110px; }
+  .browser-menubar span:last-child { font-size: 7px; }
+}

@@ -46,7 +46,7 @@ async def get_db():
                 await session.close()
     except Exception as e:
         # 如果数据库不可用，返回 None（聊天服务实际上不使用数据库）
-        print(f"警告: 数据库会话创建失败: {str(e)}")
+        print(f"警告: 数据库会话创建失败: {type(e).__name__}")
         yield None
 
 
@@ -57,11 +57,10 @@ async def init_db():
             await conn.run_sync(Base.metadata.create_all)
         print("数据库初始化成功")
     except Exception as e:
-        print(f"警告: 数据库连接失败，将使用无数据库模式: {str(e)}")
-        print("提示: Gemini API 功能不需要数据库，服务将继续运行")
+        print(f"警告: 数据库连接失败，将使用无数据库模式: {type(e).__name__}")
+        print("提示: 站内 Agent 功能不需要数据库，服务将继续运行")
 
 
 async def close_db():
     """关闭数据库连接"""
     await engine.dispose()
-

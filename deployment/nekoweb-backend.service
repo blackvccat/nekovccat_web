@@ -1,0 +1,28 @@
+[Unit]
+Description=NEKO website Agent backend
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=nekoweb
+Group=nekoweb
+WorkingDirectory=/srv/nekoweb/current/backend
+EnvironmentFile=/etc/nekoweb/backend.env
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=DSH_HOME=/var/lib/nekoweb-harness
+Environment=DSH_PATCH_PATH=/srv/nekoweb/current/agent/website.patch.yml
+StateDirectory=nekoweb-harness
+StateDirectoryMode=0700
+UMask=0077
+ExecStart=/srv/nekoweb/current/backend/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8010 --workers 1 --timeout-graceful-shutdown 15
+Restart=on-failure
+RestartSec=3
+KillMode=control-group
+TimeoutStopSec=30
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

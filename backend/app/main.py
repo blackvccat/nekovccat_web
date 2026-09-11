@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.config import settings
+from app.security import ChatProtectionMiddleware
 from app.database import init_db, close_db
 from app.api.routes import chat, health
 
@@ -12,11 +13,12 @@ from app.api.routes import chat, health
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
     # 启动时执行
-    if settings.ENVIRONMENT != "test":
+    if settings.DATABASE_ENABLED and settings.ENVIRONMENT != "test":
         await init_db()
     yield
     # 关闭时执行
-    await close_db()
+    if settings.DATABASE_ENABLED:
+        await close_db()
 
 
 # 创建 FastAPI 应用
@@ -38,6 +40,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(ChatProtectionMiddleware)
+
 # 注册路由
 app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
@@ -57,4 +61,3 @@ async def root():
 async def health_check():
     """健康检查"""
     return {"status": "ok", "service": "backend"}
-

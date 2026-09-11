@@ -27,9 +27,7 @@ interface PageLayoutProps {
 // 导航项常量，避免每次渲染都创建
 const NAV_ITEMS = [
   { href: '/', label: 'Home' },
-  { href: '/about', label: 'About' },
   { href: '/my-world', label: 'My World' },
-  { href: '/contact', label: 'Contact' },
 ] as const
 
 // 记忆化Header组件，减少重渲染

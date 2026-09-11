@@ -1,49 +1,36 @@
-"""应用配置管理"""
-from pydantic_settings import BaseSettings
-from typing import List
-import json
+"""Application configuration; credentials never appear in model repr output."""
+from pathlib import Path
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
-    """应用配置"""
-    
-    # 数据库
+    DATABASE_ENABLED: bool = False
     DATABASE_URL: str = "postgresql://postgres:changeme@localhost:5432/nekovccat_app"
-    
-    # CORS 配置
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001"]
-    
-    # AI API Keys
-    OPENAI_API_KEY: str | None = None
-    ANTHROPIC_API_KEY: str | None = None
-    GEMINI_API_KEY: str | None = None
-    
-    # 应用配置
+    CORS_ORIGINS: list[str] = ["http://localhost:3010", "http://127.0.0.1:3010"]
+
+    DEEPSEEK_API_KEY: str | None = Field(default=None, repr=False)
+    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com"
+    DEEPSEEK_MODEL: str = "deepseek-v4-pro"
+    DEEPSEEK_REASONING_EFFORT: str = "low"
+    DSH_HOME: str = str(PROJECT_ROOT / "work/deepseek-harness-home")
+    DSH_PATCH_PATH: str = str(PROJECT_ROOT / "agent/website.patch.yml")
+    DSH_REQUEST_TIMEOUT_SECONDS: float = Field(default=180.0, gt=0)
+    DSH_MAX_TOKENS: int = Field(default=4096, gt=0)
+    RELATIONSHIP_PRIVATE_PATH: str = str(PROJECT_ROOT / "work/relationship-private.json")
+
+    INTERNAL_API_TOKEN: str | None = Field(default=None, repr=False)
+    CHAT_LIMIT_DB: str = str(PROJECT_ROOT / "work/chat-limits.sqlite")
+    CHAT_DAILY_LIMIT: int = Field(default=400, gt=0)
+
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
-    
-    # 服务器配置
-    HOST: str = "0.0.0.0"
-    PORT: int = 8000
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    HOST: str = "127.0.0.1"
+    PORT: int = 8010
 
-
-# 解析 CORS_ORIGINS（支持 JSON 字符串格式）
-def get_cors_origins() -> List[str]:
-    """获取 CORS 允许的来源列表"""
-    import os
-    cors_origins = os.getenv("CORS_ORIGINS", '["http://localhost:3000"]')
-    try:
-        # 尝试解析 JSON
-        return json.loads(cors_origins)
-    except (json.JSONDecodeError, TypeError):
-        # 如果不是 JSON，按逗号分割
-        return [origin.strip() for origin in cors_origins.split(",")]
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
 
 settings = Settings()
-settings.CORS_ORIGINS = get_cors_origins()
-

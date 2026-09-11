@@ -2,7 +2,7 @@
 
 import { Suspense, useRef, useEffect, useState, useMemo, memo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { useTexture, PerspectiveCamera } from '@react-three/drei'
+import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 
 // 全局纹理缓存和加载状态缓存
@@ -17,6 +17,7 @@ const PanoramaSphere = memo(({ imageSrc }: { imageSrc: string }) => {
   // 确保纹理正确映射并优化，并缓存纹理
   useEffect(() => {
     if (texture && !textureCache.has(imageSrc)) {
+      // eslint-disable-next-line react-hooks/immutability -- Three.js textures are mutable GPU resources configured after loading, not React state.
       texture.mapping = THREE.EquirectangularReflectionMapping
       texture.needsUpdate = true
       // 设置纹理格式优化
@@ -73,13 +74,15 @@ PanoramaSphere.displayName = 'PanoramaSphere'
 
 // 相机控制器 - 允许鼠标拖动查看和自动旋转
 const PanoramaControls = memo(({ 
+  enableInteraction = true,
   enableAutoRotate = true, 
   autoRotateSpeed = 12 
 }: { 
+  enableInteraction?: boolean
   enableAutoRotate?: boolean
   autoRotateSpeed?: number // 度/秒
 }) => {
-  const { camera } = useThree()
+  const { camera, gl } = useThree()
   const isDragging = useRef(false)
   const previousMousePosition = useRef({ x: 0, y: 0 })
   const rotation = useRef({ x: 0, y: 0 })
@@ -97,16 +100,24 @@ const PanoramaControls = memo(({
   })
 
   useEffect(() => {
+    if (!enableInteraction) return
+    const canvas = gl.domElement
+    const previousTouchAction = canvas.style.touchAction
+    canvas.style.setProperty('touch-action', 'none')
     // 使用节流优化鼠标移动事件
     let rafId: number | null = null
+    let activePointerId: number | null = null
     
-    const handleMouseDown = (e: MouseEvent) => {
+    const handlePointerDown = (e: PointerEvent) => {
+      if (!e.isPrimary || e.button !== 0 || activePointerId !== null) return
+      activePointerId = e.pointerId
       isDragging.current = true
       previousMousePosition.current = { x: e.clientX, y: e.clientY }
+      canvas.setPointerCapture(e.pointerId)
     }
 
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging.current) return
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!isDragging.current || e.pointerId !== activePointerId) return
 
       // 使用 requestAnimationFrame 节流，避免过度渲染
       if (rafId !== null) return
@@ -127,12 +138,18 @@ const PanoramaControls = memo(({
       })
     }
 
-    const handleMouseUp = () => {
+    const stopDragging = () => {
       isDragging.current = false
+      const pointerId = activePointerId
+      activePointerId = null
+      if (pointerId !== null && canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId)
       if (rafId !== null) {
         cancelAnimationFrame(rafId)
         rafId = null
       }
+    }
+    const handlePointerUp = (e: PointerEvent) => {
+      if (e.pointerId === activePointerId) stopDragging()
     }
 
     const handleWheel = (e: WheelEvent) => {
@@ -140,21 +157,27 @@ const PanoramaControls = memo(({
       e.preventDefault()
     }
 
-    window.addEventListener('mousedown', handleMouseDown, { passive: true })
-    window.addEventListener('mousemove', handleMouseMove, { passive: true })
-    window.addEventListener('mouseup', handleMouseUp, { passive: true })
-    window.addEventListener('wheel', handleWheel, { passive: false })
+    // Only the panorama surface handles gestures; page controls keep their own scrolling and selection.
+    canvas.addEventListener('pointerdown', handlePointerDown, { passive: true })
+    canvas.addEventListener('pointermove', handlePointerMove, { passive: true })
+    canvas.addEventListener('lostpointercapture', handlePointerUp, { passive: true })
+    canvas.addEventListener('wheel', handleWheel, { passive: false })
+    window.addEventListener('pointerup', handlePointerUp, { passive: true })
+    window.addEventListener('pointercancel', handlePointerUp, { passive: true })
+    window.addEventListener('blur', stopDragging)
 
     return () => {
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId)
-      }
-      window.removeEventListener('mousedown', handleMouseDown)
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
-      window.removeEventListener('wheel', handleWheel)
+      canvas.removeEventListener('pointerdown', handlePointerDown)
+      canvas.removeEventListener('pointermove', handlePointerMove)
+      canvas.removeEventListener('lostpointercapture', handlePointerUp)
+      canvas.removeEventListener('wheel', handleWheel)
+      window.removeEventListener('pointerup', handlePointerUp)
+      window.removeEventListener('pointercancel', handlePointerUp)
+      window.removeEventListener('blur', stopDragging)
+      stopDragging()
+      canvas.style.setProperty('touch-action', previousTouchAction)
     }
-  }, [])
+  }, [enableInteraction, gl])
 
   return null
 })
@@ -185,13 +208,8 @@ export default function PanoramaBackground({
   const isImageCached = useMemo(() => imageLoadCache.has(imageSrc), [imageSrc])
 
   useEffect(() => {
-    // 如果图片已经加载过，直接跳过加载过程
-    if (isImageCached) {
-      setIsLoading(false)
-      setLoadProgress(100)
-      setHasError(false)
-      return
-    }
+    // 缓存命中时由渲染分支跳过加载状态，不再同步触发多次更新。
+    if (isImageCached) return
 
     // 预加载图片以检查是否存在并显示加载进度
     const img = new Image()
@@ -244,18 +262,6 @@ export default function PanoramaBackground({
     }
   }, [imageSrc, isImageCached])
 
-  // 如果图片加载失败，显示错误提示
-  if (hasError) {
-    return (
-      <div className={`absolute inset-0 bg-black ${className} flex items-center justify-center`}>
-        <div className="text-white text-center">
-          <p className="text-xl mb-2">全景图加载失败</p>
-          <p className="text-sm text-gray-400">路径: {imageSrc}</p>
-        </div>
-      </div>
-    )
-  }
-
   // 使用 useMemo 缓存 Canvas 配置，避免重复创建
   const canvasConfig = useMemo(() => ({
     gl: { 
@@ -278,6 +284,7 @@ export default function PanoramaBackground({
     if (enableInteraction || enableAutoRotate) {
       return (
         <PanoramaControls 
+          enableInteraction={enableInteraction}
           enableAutoRotate={enableAutoRotate}
           autoRotateSpeed={autoRotateSpeed}
         />
@@ -285,6 +292,18 @@ export default function PanoramaBackground({
     }
     return null
   }, [enableInteraction, enableAutoRotate, autoRotateSpeed])
+
+  // 保持所有 Hook 的调用顺序一致，再返回图片加载失败状态。
+  if (hasError && !isImageCached) {
+    return (
+      <div className={`absolute inset-0 bg-black ${className} flex items-center justify-center`}>
+        <div className="text-white text-center">
+          <p className="text-xl mb-2">全景图加载失败</p>
+          <p className="text-sm text-gray-400">路径: {imageSrc}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={`absolute inset-0 ${className}`} style={{ willChange: 'opacity' }}>

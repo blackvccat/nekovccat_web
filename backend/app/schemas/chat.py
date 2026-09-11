@@ -1,12 +1,13 @@
 """聊天相关的数据模型"""
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Literal
 
 
 class ChatMessage(BaseModel):
     """聊天消息模型"""
     role: Literal["user", "assistant"] = Field(..., description="消息角色")
-    content: str = Field(..., description="消息内容", min_length=1)
+    content: str = Field(..., description="消息内容", min_length=1, max_length=6000)
+    model_config = ConfigDict(extra="forbid")
 
 
 class ChatRequest(BaseModel):
@@ -14,8 +15,9 @@ class ChatRequest(BaseModel):
     messages: List[ChatMessage] = Field(
         ..., 
         description="聊天消息列表（包含历史消息）",
-        min_items=1
+        min_length=1, max_length=40
     )
+    model_config = ConfigDict(extra="forbid")
 
 
 class ChatResponse(BaseModel):
@@ -23,4 +25,5 @@ class ChatResponse(BaseModel):
     role: Literal["assistant"] = "assistant"
     content: str = Field(..., description="AI 响应内容")
     timestamp: str = Field(..., description="响应时间戳")
-
+    desktop_action: Literal["unlock-girlfriend"] | None = None
+    desktop_proof: str | None = None
