@@ -106,3 +106,16 @@
   .site-music .music-app { padding: 16px; }
   .site-music .music-source-help { font-size: 8px; }
 }
+
+.assistant-loading { padding: 22px; color: var(--music-muted); font-size: 13px; }
+.site-music .agent-notice, .site-music .copy-notice { color: var(--music-muted); font-size: 11px; line-height: 1.6; }
+.site-music .copy-notice { display: block; margin-top: 6px; }
+.site-music .retry-reply { margin: 12px 0 4px; min-height: 38px; padding: 8px 12px; color: var(--music-ink); border: 1px solid var(--music-border); border-radius: 8px; background: var(--music-card); }
+.site-music .stop-reply { white-space: nowrap; }
+@media (max-width: 700px) {
+  .site-music .composer-field textarea, .site-music .music-input-row > input { font-size: 16px; }
+  .site-music .composer-field textarea { height: 48px; }
+  .site-music .send-button { min-height: 44px; }
+  .site-music[data-keyboard-open="true"] .site-music-dock { visibility: hidden; }
+  .site-music[data-keyboard-open="true"] .site-music-panel { bottom: calc(var(--keyboard-inset, 0px) + 8px); height: calc(var(--visible-height, 100dvh) - 16px); }
+}

@@ -1,6 +1,6 @@
 .neko-desktop-page {
   --ink: #34423b; --cream: #e5e1cf; --paper: #f5f3e7; --edge: #737b6a; --sage: #8c9d89; --navy: #34425c;
-  height: 100dvh; min-height: 460px; padding: 18px; overflow: hidden; color: var(--ink);
+  height: var(--visible-height, 100dvh); min-height: 460px; padding: 18px; overflow: hidden; color: var(--ink);
   background: #b8bbae; background-image: radial-gradient(#7d88784d .65px, transparent .65px); background-size: 4px 4px;
   font: 13px/1.5 "SFMono-Regular", Consolas, "Liberation Mono", "PingFang SC", "Microsoft YaHei", monospace;
 }
@@ -272,7 +272,7 @@
 }
 @media (max-width: 1000px) { .computer-brand strong > span, .computer-model { display: none; } .computer-top nav { gap: 22px; } .desktop-watermark { right: 22px; } }
 @media (max-width: 700px) {
-  .neko-desktop-page { padding: 7px; min-height: 400px; }
+  .neko-desktop-page { padding: 7px; min-height: 0; }
   .computer-shell { padding: 0 6px; border-radius: 10px 10px 13px 13px; box-shadow: inset 1px 1px #fff9e4, inset -2px -2px #b3b3a1, 2px 3px #7d8577; }
   .computer-top { height: 57px; flex-basis: 57px; padding: 0 3px; gap: 10px; }
   .computer-brand { gap: 4px; }
@@ -285,15 +285,15 @@
   .speaker-slots { width: 48px; height: 8px; }
   .desktop-window, .desktop-window.agent-window, .desktop-window.maximized { left: 6px !important; top: 7px !important; width: calc(100% - 12px) !important; height: calc(100% - 14px) !important; max-width: none; max-height: none; min-width: 0; box-shadow: 2px 3px #30463377; }
   .window-name small, .maximize-control { display: none !important; }
-  .window-titlebar { touch-action: auto; cursor: default; height: 31px; flex-basis: 31px; }
-  .window-controls button { width: 24px; height: 23px; }
+  .window-titlebar { touch-action: auto; cursor: default; height: 46px; flex-basis: 46px; }
+  .window-controls button { width: 44px; height: 40px; font-size: 20px; }
   .window-statusbar { font-size: 8px; }
-  .desktop-taskbar { gap: 4px; height: 43px; flex-basis: 43px; }
-  .start-button { padding: 2px 7px 2px 4px; height: 31px; gap: 3px; }
+  .desktop-taskbar { gap: 4px; height: 51px; flex-basis: 51px; }
+  .start-button { padding: 2px 7px 2px 4px; height: 44px; gap: 3px; }
   .start-button strong { font-size: 14px; }
   .start-button .pixel-icon { width: 21px; height: 21px; }
   .taskbar-apps { gap: 3px; }
-  .task-button { flex: 0 0 34px; min-width: 34px; padding: 2px 5px; justify-content: center; }
+  .task-button { flex: 0 0 46px; min-width: 46px; height: 44px; padding: 2px 5px; justify-content: center; }
   .task-button > span { display: none; }
   .system-tray { gap: 5px; padding: 5px 7px; font-size: 10px; }
   .system-tray .status-dot, .show-desktop { display: none; }
@@ -315,7 +315,10 @@
   .copy-message { opacity: 1; }
   .composer-field { gap: 7px; padding: 6px; }
   .send-button { min-width: 57px; font-size: 10px; padding: 5px 8px; }
-  .composer-hint { font-size: 6px; }
+  .composer-hint { font-size: 8px; }
+  .composer-field textarea { font-size: 16px; }
+  .send-button { min-height: 44px; }
+  .app-menubar button { min-height: 32px; }
   .settings-app { padding: 18px 12px; }
   .settings-app fieldset { padding: 10px 6px; }
   .wallpaper-options { gap: 4px; }
@@ -328,3 +331,14 @@
 }
 @media (max-width: 380px) { .computer-top nav { gap: 8px; font-size: 8px; } .computer-brand .pixel-icon { display: none; } .agent-welcome h2 { font-size: 24px; } .app-menubar .muted-label { display: none; } .system-tray { padding: 5px; } }
 @media (prefers-reduced-motion: reduce) { .neko-desktop-page *, .neko-desktop-page *::before, .neko-desktop-page *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+
+.desktop-app-loading { padding: 24px; color: #566a50; font-size: 13px; }
+.agent-notice, .copy-notice { color: #63765e; font-size: 11px; line-height: 1.6; }
+.copy-notice { display: block; margin-top: 6px; }
+.retry-reply { margin: 10px 0 4px; padding: 8px 12px; min-height: 36px; }
+.stop-reply { white-space: nowrap; }
+@media (max-width: 700px) {
+  .neko-desktop-page[data-keyboard-open="true"] .computer-top { height: 36px; flex-basis: 36px; }
+  .neko-desktop-page[data-keyboard-open="true"] .computer-chin { display: none; }
+  .neko-desktop-page[data-keyboard-open="true"] .window-statusbar { display: none; }
+}

@@ -1,0 +1,34 @@
+/* Night Harbor shares the existing metal, paper and pixel-art materials. */
+.neko-desktop-page .desktop-stage.wallpaper-night-harbor { background: #1b2b3e; }
+.neko-desktop-page[data-wallpaper="night-harbor"] .desktop-icon > span {
+  color: #fff0d2;
+  text-shadow: 1px 1px #12222e, -1px -1px #12222e, 1px -1px #12222e, -1px 1px #12222e;
+}
+.neko-desktop-page[data-wallpaper="night-harbor"] .desktop-icon > .pixel-icon {
+  filter: drop-shadow(2px 2px 0 #10233188);
+}
+.neko-desktop-page[data-wallpaper="night-harbor"] .desktop-icon:hover,
+.neko-desktop-page[data-wallpaper="night-harbor"] .desktop-icon:focus-visible {
+  border-color: #ecd8b0;
+  background: #bac9c126;
+}
+.neko-desktop-page .settings-app .wallpaper-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.neko-desktop-page .settings-app .wallpaper-option { width: 100%; }
+.neko-desktop-page .settings-app .wallpaper-option strong { font-size: 12px; }
+.neko-desktop-page .settings-app .wallpaper-option small { font-size: 12px; line-height: 1.5; }
+.neko-desktop-page .settings-app .wallpaper-preview { height: 78px; }
+.neko-desktop-page .settings-app .wallpaper-motion-settings { margin-top: 22px; }
+.neko-desktop-page .wallpaper-motion-options { display: flex; gap: 8px; }
+.neko-desktop-page .wallpaper-motion-options .pixel-button { flex: 1; min-height: 44px; }
+.neko-desktop-page .wallpaper-motion-settings p { margin: 10px 0 0; color: var(--desktop-muted); font-size: 12px; line-height: 1.75; }
+.neko-desktop-page .wallpaper-motion-settings:disabled { opacity: .6; }
+.neko-desktop-page .wallpaper-motion-settings:disabled button { cursor: default; }
+.neko-desktop-page .wallpaper-motion-options button:disabled { transform: none; }
+@media (max-width: 700px) {
+  .neko-desktop-page .settings-app .wallpaper-options { gap: 8px; }
+  .neko-desktop-page .settings-app .wallpaper-preview { height: 65px; }
+}

@@ -30,7 +30,13 @@ const nextConfig: NextConfig = {
       { key: 'X-Content-Type-Options', value: 'nosniff' }, { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
       { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
       ...(production ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000' }] : []),
-    ] }]
+    ] }, {
+      source: '/images/:asset(panorama-(?:preview|mobile|desktop)-[a-f0-9]{12}\\.webp)',
+      headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+    }, {
+      source: '/images/my-world-night-harbor/:asset((?:wallpaper|mobile|thumbnail|ambience|manifest)-[a-f0-9]{12}\\.(?:webp|json))',
+      headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+    }]
   },
 
   // 环境变量配置

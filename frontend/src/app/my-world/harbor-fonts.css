@@ -1,0 +1,163 @@
+/* Official, unmodified Fusion Pixel 12px proportional zh_hans, release 2026.09.01.
+   Source and all bundled OFL notices: public/fonts/fusion-pixel-SOURCE.md. */
+@font-face {
+  font-family: "Neko Fusion Pixel";
+  src: url("/fonts/fusion-pixel-12px-proportional-zh-hans.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+.neko-desktop-page {
+  --harbor-font: "Neko Fusion Pixel", "PingFang SC", "Microsoft YaHei", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  font-synthesis: none;
+  font-kerning: none;
+  font-variant-ligatures: none;
+}
+
+/* Legacy software uses several font shorthands. Keep one bilingual face across
+   the console, including native controls, without changing any other route. */
+.neko-desktop-page,
+.neko-desktop-page * {
+  font-family: var(--harbor-font) !important;
+  font-synthesis: none;
+}
+
+.neko-desktop-page :is(button, input, textarea, select) {
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.neko-desktop-page :is(.computer-brand strong, .start-button strong) {
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.neko-desktop-page .computer-top nav {
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.neko-desktop-page :is(.window-name, .window-controls button) {
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.neko-desktop-page :is(.desktop-icon > span, .task-button, .system-tray,
+  .window-statusbar, .window-statusbar > span:last-child, .window-name small,
+  .computer-signature, .computer-chin, .computer-model,
+  .start-menu button > span:nth-child(2), .start-menu small, .start-menu p,
+  .start-home, .app-menubar, .app-menubar button, .pixel-button,
+  .browser-menubar, .browser-toolbar, .browser-address, .browser-tabs button) {
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.neko-desktop-page :is(.agent-welcome h2, .app-section-title h2,
+  .about-computer h2, .browser-document h1, .music-heading h2,
+  .sponsor-heading h1) {
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.neko-desktop-page .profile-hero h1 {
+  font-size: 36px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.neko-desktop-page :is(.agent-welcome p, .agent-intro > p:first-child,
+  .suggestions button, .browser-document p, .document-subtitle,
+  .profile-directory strong, .profile-callout, .sponsor-intro,
+  .music-link-form > label, .music-save-form > label, .music-source,
+  .music-library-load strong, .music-input-row > button,
+  .settings-app, .notes-paper) {
+  font-size: 12px;
+  line-height: 1.75;
+  letter-spacing: 0;
+}
+
+.neko-desktop-page :is(.eyebrow, .agent-welcome .eyebrow,
+  .message-meta, .agent-message.user .message-meta, .local-history-note,
+  .composer-hint, .agent-execution, .agent-notice, .copy-notice,
+  .tool-status, .browser-kicker, .profile-alias,
+  .browser-status, .browser-page-footer, .music-heading .eyebrow,
+  .music-stereo, .music-source-help, .music-empty p, .music-notice,
+  .music-library-heading, .music-library-heading h3,
+  .music-library-load small, .music-library-empty, .music-platform-note,
+  .sponsor-help, .sponsor-footer, .software-feedback) {
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+.neko-desktop-page .message-text {
+  font-size: 14px;
+  line-height: 2;
+  letter-spacing: 0;
+}
+
+.neko-desktop-page .composer-field textarea {
+  font-size: 14px;
+  line-height: 1.75;
+  letter-spacing: 0;
+}
+
+.neko-desktop-page .copy-message {
+  font-size: 12px !important;
+}
+
+.neko-desktop-page :is(.notes-paper, .profile-alias) {
+  font-size: 12px !important;
+}
+
+/* Solid display lettering complements the lighter bilingual pixel body. */
+.neko-desktop-page :is(.computer-brand strong, .agent-welcome h2, .profile-hero h1, .music-heading h2, .start-button strong) {
+  font-family: "Jersey 25", var(--harbor-font) !important;
+}
+.neko-desktop-page .computer-brand strong { font-size: 30px; letter-spacing: 2px; }
+.neko-desktop-page .agent-welcome h2 { font-size: 32px; }
+.neko-desktop-page .profile-hero h1 { font-size: 48px; }
+.neko-desktop-page .music-heading h2 { font-size: 28px; }
+.neko-desktop-page .start-button strong { font-size: 24px; }
+
+@media (max-width: 700px) {
+  .neko-desktop-page .computer-top nav {
+    font-size: 12px;
+  }
+
+  .neko-desktop-page .start-button strong {
+    font-size: 22px;
+  }
+
+  .neko-desktop-page :is(.window-name, .system-tray) {
+    font-size: 12px;
+  }
+
+  .neko-desktop-page :is(.composer-field textarea, .music-input-row > input,
+    .sponsor-amount-row input, .notes-paper) {
+    font-size: 16px !important;
+    line-height: 1.75;
+  }
+
+  .neko-desktop-page .message-text {
+    font-size: 14px;
+    line-height: 2;
+  }
+
+  .neko-desktop-page .composer-hint {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+}

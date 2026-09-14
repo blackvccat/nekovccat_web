@@ -1,0 +1,242 @@
+/* Harbor: shared pixel materials for the computer and its applications. */
+.neko-desktop-page {
+  --ink: #263e4b;
+  --cream: #e8dabb;
+  --paper: #f4eedf;
+  --edge: #263e4b;
+  --sage: #6f8990;
+  --navy: #435f70;
+  --desktop-muted: #536b78;
+  --desktop-line: #b3b7a9;
+  --desktop-tint: #e6e8df;
+  --desktop-highlight: #fff4d9;
+  --desktop-button: #e8d7b5;
+  --desktop-button-shadow: #b5a689;
+  --desktop-shell: #3d5664;
+  --desktop-shell-light: #769197;
+  --desktop-shell-dark: #1d3340;
+  --desktop-amber: #e6b66f;
+  padding: 12px;
+  background: #263b48;
+  font-family: "SFMono-Regular", Consolas, "PingFang SC", "Microsoft YaHei", monospace;
+}
+.neko-desktop-page button, .neko-desktop-page input, .neko-desktop-page textarea { border-radius: 0; }
+.neko-desktop-page button:focus-visible, .neko-desktop-page a:focus-visible, .neko-desktop-page [tabindex]:focus-visible { outline: 2px solid var(--desktop-amber); outline-offset: 2px; }
+.neko-desktop-page .computer-shell {
+  position: relative; padding: 0 18px; border: 2px solid var(--desktop-shell-dark); border-radius: 0;
+  background: var(--desktop-shell) url('/images/my-world-harbor/blue-metal.webp');
+  box-shadow: inset 2px 2px var(--desktop-shell-light), inset -4px -4px #2b414e, inset 6px 6px #4e6b77;
+  clip-path: polygon(0 12px,4px 12px,4px 6px,8px 6px,8px 2px,14px 2px,14px 0,calc(100% - 14px) 0,calc(100% - 14px) 2px,calc(100% - 8px) 2px,calc(100% - 8px) 6px,calc(100% - 4px) 6px,calc(100% - 4px) 12px,100% 12px,100% calc(100% - 12px),calc(100% - 4px) calc(100% - 12px),calc(100% - 4px) calc(100% - 6px),calc(100% - 8px) calc(100% - 6px),calc(100% - 8px) calc(100% - 2px),calc(100% - 14px) calc(100% - 2px),calc(100% - 14px) 100%,14px 100%,14px calc(100% - 2px),8px calc(100% - 2px),8px calc(100% - 6px),4px calc(100% - 6px),4px calc(100% - 12px),0 calc(100% - 12px));
+}
+.neko-desktop-page .computer-shell::before { content: ""; position: absolute; inset: -2px; border: 24px solid transparent; border-image: url('/images/my-world-harbor/shell-frame.png') 24 / 24px stretch; pointer-events: none; }
+.neko-desktop-page .computer-top::before { content: ""; position: absolute; left: -16px; top: 0; width: 43px; height: 52px; background: url('/images/my-world-harbor/corner-patina.webp') no-repeat; opacity: .7; pointer-events: none; }
+.neko-desktop-page .computer-top, .neko-desktop-page .computer-chin { position: relative; }
+.neko-desktop-page .computer-brand { position: relative; }
+.neko-desktop-page .computer-top { height: 52px; flex-basis: 52px; padding: 0 12px; gap: 20px; color: #f1dfbb; }
+.neko-desktop-page .computer-brand { gap: 10px; }
+.neko-desktop-page .computer-brand strong { font: 400 30px/1 "Jersey 25", monospace; letter-spacing: 3px; }
+.neko-desktop-page .computer-brand strong > span { display: none; }
+.neko-desktop-page .computer-top nav { height: 100%; gap: 6px; font: 400 22px/1 "Jersey 25", monospace; }
+.neko-desktop-page .computer-top nav a { display: flex; align-items: center; padding: 0 18px; height: 36px; border: 2px solid transparent; color: #c2d4d4; }
+.neko-desktop-page .computer-top nav a:hover { color: var(--desktop-highlight); background: #344d5b; }
+.neko-desktop-page .computer-top nav a[aria-current] { font-weight: 400; color: #fff0cd; background: #304855; border-color: #243d4b; border-bottom-color: var(--desktop-amber); box-shadow: inset 2px 2px #506d79; }
+.neko-desktop-page .computer-model { display: none; }
+.neko-desktop-page .computer-screen { border: 4px solid var(--desktop-shell-dark); border-radius: 0; box-shadow: -2px -2px #82979b, 2px 2px #637c87, 0 0 0 2px #2b414e; }
+.neko-desktop-page .wallpaper-island { background-position: right bottom; }
+.neko-desktop-page .desktop-watermark:not(.couple-watermark) { display: none; }
+.neko-desktop-page .desktop-icons { left: 16px; top: 24px; gap: 10px; max-height: calc(100% - 40px); scrollbar-color: #d9c8a5 #354f5c44; }
+.neko-desktop-page .desktop-icon { width: 104px; min-height: 78px; flex-shrink: 0; gap: 5px; padding: 4px; border: 2px solid transparent; color: #fff2d6; text-shadow: 1px 1px #213b4a; }
+.neko-desktop-page .desktop-icon > .pixel-icon { width: 48px; height: 48px; filter: drop-shadow(2px 2px 0 #223d4f66); }
+.neko-desktop-page .desktop-icon > span { background: transparent; color: #183b50; text-shadow: 1px 1px #d9eff1; padding: 3px 2px; font-family: "Jersey 25", "PingFang SC", monospace; font-size: 17px; line-height: 1.1; }
+.neko-desktop-page .desktop-icon:hover, .neko-desktop-page .desktop-icon:focus-visible { border: 2px solid #f9e8c5; background: #eff6ed26; outline-offset: 0; }
+.neko-desktop-page .desktop-icon:active { transform: translateY(2px); }
+.neko-desktop-page .desktop-window { padding: 0; border: 10px solid transparent; border-image: url('/images/my-world-harbor/window-frame.png') 10 / 10px stretch; background: var(--desktop-shell); border-radius: 0; box-shadow: 6px 6px 0 #263e4b55; image-rendering: pixelated; }
+.neko-desktop-page .desktop-window.agent-window { width: clamp(360px, 48%, 620px) !important; height: min(548px, calc(100% - 48px)) !important; }
+.neko-desktop-page .desktop-window.maximized { width: calc(100% - 10px) !important; height: calc(100% - 10px) !important; }
+.neko-desktop-page .window-titlebar { height: 36px; flex-basis: 36px; padding: 3px 4px 3px 8px; color: #f4e7ca; background: #546b74; border-bottom: 2px solid var(--desktop-shell-dark); box-shadow: inset 0 2px #7d9495; }
+.neko-desktop-page .active-window .window-titlebar { background: #436675; box-shadow: inset 0 2px #839c9b; }
+.neko-desktop-page .window-name { font: 400 21px/1 "Jersey 25", "PingFang SC", monospace; letter-spacing: .3px; }
+.neko-desktop-page .window-name small { display: none; }
+.neko-desktop-page .window-controls { gap: 4px; }
+.neko-desktop-page .window-controls button { width: 26px; height: 26px; border: 2px solid #243c49; background: var(--desktop-button); color: #233d4b; box-shadow: inset 2px 2px var(--desktop-highlight), inset -2px -2px var(--desktop-button-shadow); font: 700 17px/1 monospace; }
+.neko-desktop-page .window-controls button:active { box-shadow: inset 2px 2px var(--desktop-button-shadow); }
+.neko-desktop-page .window-controls button:last-child { margin-left: 0; }
+.neko-desktop-page .window-controls button:last-child:hover { background: #e5b79b; }
+.neko-desktop-page .window-content { background: var(--paper) url('/images/my-world-harbor/warm-paper.webp'); }
+.neko-desktop-page .window-statusbar { margin-top: 0; height: 24px; flex-basis: 24px; background: var(--paper); color: var(--desktop-muted); border-top: 1px solid #c8c5b3; font-size: 10px; }
+.neko-desktop-page .window-statusbar > span { border: 0; padding: 3px 9px; }
+.neko-desktop-page .window-statusbar > span:last-child { font-family: "Jersey 25", monospace; font-size: 14px; letter-spacing: 1px; }
+.neko-desktop-page .resize-grip { display: none; }
+.neko-desktop-page .inset-panel { border: 2px solid; border-color: #8b9a9d #fff4dc #fff4dc #8b9a9d; box-shadow: inset 2px 2px #d9ddcf; }
+.neko-desktop-page .pixel-button { border: 2px solid #3d5562; color: var(--ink); background: var(--desktop-button); box-shadow: inset 2px 2px var(--desktop-highlight), inset -2px -2px var(--desktop-button-shadow), 2px 2px #334e5d33; padding: 6px 11px; }
+.neko-desktop-page .pixel-button:hover:not(:disabled) { background: #f3e4c3; }
+.neko-desktop-page .pixel-button:active:not(:disabled), .neko-desktop-page .pixel-button.pressed { background: #d4dddb; box-shadow: inset 2px 2px #8a9c9e, inset -2px -2px #f8efda; }
+.neko-desktop-page .desktop-taskbar { height: 48px; flex-basis: 48px; padding: 5px; gap: 8px; background: #354f5e; border-top: 2px solid #b1b9aa; box-shadow: inset 0 -2px #253b48; }
+.neko-desktop-page .start-button { height: 36px; padding: 2px 12px 2px 7px; }
+.neko-desktop-page .start-button strong { font: 400 25px/1 "Jersey 25", monospace; letter-spacing: .5px; }
+.neko-desktop-page .taskbar-divider { height: 28px; box-shadow: -1px 0 #233b49, 1px 0 #738b90; }
+.neko-desktop-page .task-button { height: 36px; width: 164px; background: #405d6b; color: #f1e7d0; border-color: #263e4b; box-shadow: inset 2px 2px #74909a, inset -2px -2px #2b4453; font: 400 18px/1 "Jersey 25", "PingFang SC", monospace; }
+.neko-desktop-page .task-button:hover:not(:disabled) { background: #4e6b77; }
+.neko-desktop-page .task-button.pressed { font-weight: 400; color: #fff0cb; background: #304b5a; box-shadow: inset 2px 2px #213c4b, inset -2px -2px #769297; }
+.neko-desktop-page .system-tray { height: 34px; color: #f4e7ca; border: 0; border-left: 2px solid #81969a; box-shadow: none; padding: 4px 12px; font: 400 21px/1 "Jersey 25", monospace; letter-spacing: .7px; }
+.neko-desktop-page .system-tray .status-dot { display: none; }
+.neko-desktop-page .show-desktop { height: 34px; width: 32px; color: #eee0c1; }
+.neko-desktop-page .show-desktop > span { width: 16px; height: 14px; border: 2px solid #e5d4ae; background: #385666; box-shadow: inset 2px 2px #7999a1; }
+.neko-desktop-page .show-desktop:hover { border-color: #c8b995; }
+.neko-desktop-page .start-menu { bottom: 50px; max-height: calc(var(--visible-height, 100dvh) - 150px); color: var(--ink); background: var(--paper); border: 2px solid #233d4b; box-shadow: inset 2px 2px #e1cba3, 4px 4px #1c344366; }
+.neko-desktop-page .start-menu-banner { background: #3c5b6d; font-family: "Jersey 25", monospace; }
+.neko-desktop-page .start-menu p { color: var(--desktop-muted); }
+.neko-desktop-page .start-menu button:hover, .neko-desktop-page .start-home:hover { background: #dce3df; }
+.neko-desktop-page .start-home { border-color: var(--desktop-line); }
+.neko-desktop-page .computer-chin { flex-basis: 32px; padding: 0 13px; color: #bbcecd; font-size: 9px; }
+.neko-desktop-page .power-led { width: 8px; height: 8px; border-radius: 0; background: #efbe75; box-shadow: inset 2px 2px #ffe2a4, 2px 2px #243e4d; }
+.neko-desktop-page .speaker-slots { width: 88px; height: 10px; transform: none; background: repeating-linear-gradient(90deg,#1e3544 0 4px,#789199 4px 6px,transparent 6px 8px); }
+.neko-desktop-page .computer-signature { color: #bbcecd; font-family: "Jersey 25", monospace; font-size: 15px; letter-spacing: .5px; }
+
+/* Paper stays quiet so messages, rather than nested bevels, own the window. */
+.neko-desktop-page .agent-app { background: var(--paper) url('/images/my-world-harbor/warm-paper.webp'); --execution-ink: var(--ink); --execution-muted: var(--desktop-muted); --execution-border: #bdc6bd; --execution-surface: #e8ebe2; }
+.neko-desktop-page .agent-mascot > .pixel-icon:first-child { display: none; }
+.neko-desktop-page .agent-mascot > .pixel-icon:last-child { display: block; width: 72px; height: 72px; }
+.neko-desktop-page .agent-desktop-shortcuts { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0 8px; }
+.neko-desktop-page .agent-desktop-shortcuts > a { min-height: 44px; padding: 8px 14px; }
+.neko-desktop-page .agent-welcome .eyebrow { display: none; }
+.neko-desktop-page .app-menubar { color: var(--desktop-muted); padding: 5px 14px; min-height: 30px; flex-basis: 30px; font-size: 10px; }
+.neko-desktop-page .app-menubar .muted-label { color: var(--desktop-muted); }
+.neko-desktop-page .app-menubar button { font-size: 11px; }
+.neko-desktop-page .agent-messages { border: 0; background: transparent; box-shadow: none; margin: 0; padding: 18px 26px; scrollbar-color: #899da2 var(--paper); }
+.neko-desktop-page .agent-welcome { gap: 16px; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 0; }
+.neko-desktop-page .agent-welcome > .pixel-icon { width: 48px; height: 48px; margin-top: 0; }
+.neko-desktop-page .agent-welcome h2 { margin: 0 0 4px; font-size: 32px; letter-spacing: 0; color: var(--ink); }
+.neko-desktop-page .agent-welcome .eyebrow { font-size: 9px; color: var(--desktop-muted); letter-spacing: .8px; }
+.neko-desktop-page .agent-welcome p { font-size: 12px; color: var(--desktop-muted); }
+.neko-desktop-page .pixel-cursor { color: var(--desktop-muted); }
+.neko-desktop-page .agent-intro { margin-top: 14px; }
+.neko-desktop-page .agent-intro > p:first-child { color: var(--desktop-muted); font-size: 12px; }
+.neko-desktop-page .suggestions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.neko-desktop-page .suggestions button { background: var(--desktop-button); font-size: 12px; padding: 9px 12px; min-height: 42px; }
+.neko-desktop-page .suggestions button > span { color: #405d6b; }
+.neko-desktop-page .suggestions button:nth-child(3) { grid-column: 1 / -1; }
+.neko-desktop-page .local-history-note { font-size: 10px; line-height: 1.7; color: var(--desktop-muted); margin-top: 20px; }
+.neko-desktop-page .agent-message { max-width: 100%; margin: 12px 0 20px; padding: 4px 0 18px; border: 0; background: transparent; }
+.neko-desktop-page .agent-message.user { max-width: 88%; background: #ebd7b3; padding: 10px 13px 18px; border: 0; box-shadow: 2px 2px #c7b79244; }
+.neko-desktop-page .message-meta, .neko-desktop-page .agent-message.user .message-meta { color: var(--desktop-muted); font-size: 10px; }
+.neko-desktop-page .message-text { font-size: 13px; line-height: 1.95; }
+.neko-desktop-page .copy-message { color: #476475; font-size: 10px !important; }
+.neko-desktop-page .agent-composer { padding: 6px 18px 8px; }
+.neko-desktop-page .composer-field { background: #fbf5e7; padding: 6px 7px 6px 11px; border-color: #83989e #fff8e6 #fff8e6 #83989e; }
+.neko-desktop-page .composer-field > span { color: #536e7b; }
+.neko-desktop-page .composer-field textarea { color: var(--ink); font-size: 13px; }
+.neko-desktop-page .composer-field textarea::placeholder { color: #667f8a; }
+.neko-desktop-page .composer-field:focus-within { border-color: #42687c; box-shadow: inset 2px 2px #d4dddc; }
+.neko-desktop-page .send-button { background: #426677; color: #fff1cf; box-shadow: inset 2px 2px #8fa7a7,inset -2px -2px #2e4d5d; min-width: 64px; }
+.neko-desktop-page .send-button:hover:not(:disabled) { background: #527b8a; }
+.neko-desktop-page .composer-hint { color: var(--desktop-muted); font-size: 9px; padding-top: 6px; }
+.neko-desktop-page .agent-execution { border-radius: 0; border-width: 0 0 0 2px; border-color: #9caeae; font-size: 11px; }
+.neko-desktop-page .agent-execution summary { padding: 6px 9px; }
+.neko-desktop-page .execution-indicator { width: 6px; height: 6px; border-radius: 0; background: var(--desktop-amber); box-shadow: 1px 1px #947443; }
+.neko-desktop-page .agent-execution .working { animation-timing-function: steps(2, end); }
+.neko-desktop-page .agent-app .agent-latest { border-radius: 0; border: 2px solid #84999e; }
+.neko-desktop-page .agent-notice, .neko-desktop-page .copy-notice { color: var(--desktop-muted); }
+.neko-desktop-page .site-message-link { color: #325f79 !important; }
+.neko-desktop-page .tool-status { background: var(--desktop-tint); color: var(--desktop-muted); border-color: var(--desktop-line); }
+.neko-desktop-page .desktop-app-loading { color: var(--desktop-muted); }
+
+.neko-desktop-page .notes-app, .neko-desktop-page .settings-app, .neko-desktop-page .about-computer { background: var(--paper); color: var(--ink); }
+.neko-desktop-page .notes-paper { background-color: #faf3e3; color: var(--ink); border-color: var(--desktop-line); }
+.neko-desktop-page .notes-footer, .neko-desktop-page .settings-footer, .neko-desktop-page .app-section-title p, .neko-desktop-page .scanline-setting small, .neko-desktop-page .wallpaper-option small { color: var(--desktop-muted); }
+.neko-desktop-page .app-section-title h2, .neko-desktop-page .about-computer h2 { font-family: "Jersey 25", "PingFang SC", monospace; font-weight: 400; font-size: 30px; }
+.neko-desktop-page .settings-app fieldset { border: 0; padding-left: 0; padding-right: 0; }
+.neko-desktop-page .wallpaper-option { background: #e6e5d8; border: 2px solid #a1afb0; }
+.neko-desktop-page .wallpaper-option.selected { background: #f5e6c8; border-color: #456a7b; box-shadow: inset 2px 2px #fff4d9; }
+.neko-desktop-page .scanline-setting { border-color: var(--desktop-line); }
+.neko-desktop-page .scanline-setting input { accent-color: #486b7b; }
+.neko-desktop-page .about-computer > .pixel-icon { width: 72px; height: 72px; }
+.neko-desktop-page .about-computer p, .neko-desktop-page .about-computer .eyebrow, .neko-desktop-page .computer-specs span, .neko-desktop-page .computer-specs strong { color: var(--desktop-muted); }
+.neko-desktop-page .computer-specs { background: var(--desktop-tint); border: 0; box-shadow: none; }
+
+@media (max-height: 650px) and (min-width: 701px) {
+  .neko-desktop-page { padding: 8px; }
+  .neko-desktop-page .computer-top { height: 42px; flex-basis: 42px; }
+  .neko-desktop-page .computer-chin { flex-basis: 24px; }
+  .neko-desktop-page .desktop-icons { top: 12px; gap: 6px; max-height: calc(100% - 24px); }
+  .neko-desktop-page .desktop-icon { min-height: 76px; gap: 3px; }
+  .neko-desktop-page .desktop-icon > .pixel-icon { width: 48px; height: 48px; }
+  .neko-desktop-page .desktop-window.agent-window { height: calc(100% - 24px) !important; }
+  .neko-desktop-page .agent-messages { padding: 12px 18px; }
+  .neko-desktop-page .agent-welcome { gap: 12px; margin-bottom: 8px; padding-bottom: 8px; }
+  .neko-desktop-page .agent-welcome h2 { font-size: 28px; }
+  .neko-desktop-page .agent-composer { padding: 4px 12px 6px; }
+  .neko-desktop-page .agent-intro { margin-top: 8px; }
+  .neko-desktop-page .local-history-note { margin-top: 12px; }
+}
+@media (max-width: 1000px) and (min-width: 701px) {
+  .neko-desktop-page .computer-shell { padding: 0 12px; }
+  .neko-desktop-page .agent-messages { padding-left: 17px; padding-right: 17px; }
+  .neko-desktop-page .agent-welcome { gap: 10px; }
+  .neko-desktop-page .agent-welcome h2 { font-size: 28px; }
+  .neko-desktop-page .suggestions { grid-template-columns: 1fr; gap: 8px; }
+  .neko-desktop-page .suggestions button { min-height: 38px; padding: 6px 10px; }
+  .neko-desktop-page .composer-hint > span:first-child { display: none; }
+}
+@media (max-width: 700px) {
+  .neko-desktop-page { padding: 4px; }
+  .neko-desktop-page .computer-shell { padding: 0 6px; border-radius: 0; box-shadow: inset 2px 2px var(--desktop-shell-light),inset -2px -2px var(--desktop-shell-dark); }
+  .neko-desktop-page .computer-shell::before { border-width: 12px; border-image-width: 12px; }
+  .neko-desktop-page .computer-top::before { display: none; }
+  .neko-desktop-page .computer-top { height: 48px; flex-basis: 48px; padding: 0 6px; gap: 6px; }
+  .neko-desktop-page .computer-brand { gap: 6px; }
+  .neko-desktop-page .computer-brand .pixel-icon { width: 24px; height: 24px; }
+  .neko-desktop-page .computer-brand strong { font-size: 27px; letter-spacing: 1px; }
+  .neko-desktop-page .computer-top nav { font-size: 18px; gap: 2px; }
+  .neko-desktop-page .computer-top nav a { padding: 0 8px; height: 38px; }
+  .neko-desktop-page .computer-screen { border-width: 2px; border-radius: 0; }
+  .neko-desktop-page .computer-chin { flex-basis: 22px; padding: 0 6px; }
+  .neko-desktop-page .computer-signature { display: none; }
+  .neko-desktop-page .speaker-slots { width: 48px; height: 6px; }
+  .neko-desktop-page .desktop-window, .neko-desktop-page .desktop-window.agent-window, .neko-desktop-page .desktop-window.maximized { left: 4px !important; top: 6px !important; width: calc(100% - 8px) !important; height: calc(100% - 12px) !important; padding: 0; border-width: 6px; border-image-width: 6px; box-shadow: none; }
+  .neko-desktop-page .window-titlebar { height: 48px; flex-basis: 48px; padding-left: 6px; }
+  .neko-desktop-page .window-name { font-size: 20px; gap: 6px; }
+  .neko-desktop-page .window-controls { gap: 4px; margin-left: 5px; }
+  .neko-desktop-page .window-controls button { width: 44px; height: 44px; font-size: 20px; }
+  .neko-desktop-page .window-statusbar { font-size: 9px; height: 23px; flex-basis: 23px; }
+  .neko-desktop-page .window-statusbar > span { padding: 3px 6px; }
+  .neko-desktop-page .window-statusbar > span:last-child { flex-basis: 94px; }
+  .neko-desktop-page .desktop-taskbar { height: 54px; flex-basis: 54px; gap: 5px; padding: 4px; }
+  .neko-desktop-page .start-button { height: 44px; padding: 2px 7px; gap: 5px; }
+  .neko-desktop-page .start-button strong { font-size: 23px; }
+  .neko-desktop-page .start-button .pixel-icon { width: 24px; height: 24px; }
+  .neko-desktop-page .task-button { height: 44px; width: 44px; min-width: 44px; flex: 0 0 44px; padding: 4px; }
+  .neko-desktop-page .system-tray { font-size: 19px; padding: 4px 7px; }
+  .neko-desktop-page .start-menu { bottom: 56px; width: min(280px, calc(100vw - 36px)); }
+  .neko-desktop-page .start-menu button { min-height: 44px; }
+  .neko-desktop-page .desktop-icons { top: 16px; left: 12px; gap: 10px; }
+  .neko-desktop-page .agent-messages { padding: 15px 14px; margin: 0; }
+  .neko-desktop-page .agent-welcome { align-items: center; gap: 10px; padding-bottom: 10px; margin-bottom: 10px; }
+  .neko-desktop-page .agent-mascot > .pixel-icon:last-child { width: 48px; height: 48px; }
+  .neko-desktop-page .agent-welcome h2 { font-size: 29px; }
+  .neko-desktop-page .agent-welcome .eyebrow { font-size: 8px; letter-spacing: .3px; }
+  .neko-desktop-page .agent-welcome p { font-size: 11px; }
+  .neko-desktop-page .app-menubar { padding: 4px 10px; font-size: 9px; min-height: 32px; flex-basis: 32px; }
+  .neko-desktop-page .app-menubar .muted-label { display: none; }
+  .neko-desktop-page .suggestions { grid-template-columns: 1fr; }
+  .neko-desktop-page .suggestions button { min-height: 44px; }
+  .neko-desktop-page .agent-composer { padding: 5px 9px 7px; }
+  .neko-desktop-page .composer-field { padding: 5px 6px; gap: 6px; }
+  .neko-desktop-page .composer-field textarea { font-size: 16px; }
+  .neko-desktop-page .send-button { min-width: 54px; min-height: 44px; }
+  .neko-desktop-page .composer-hint { font-size: 8px; }
+  .neko-desktop-page .composer-hint > span:first-child { display: none; }
+  .neko-desktop-page .message-text { font-size: 13px; }
+  .neko-desktop-page .agent-message.user { max-width: 94%; }
+  .neko-desktop-page .settings-footer button { min-height: 44px; }
+  .neko-desktop-page[data-keyboard-open="true"] .computer-top { height: 36px; flex-basis: 36px; }
+}
+@media (max-width: 380px) {
+  .neko-desktop-page .computer-top nav { font-size: 17px; }
+  .neko-desktop-page .computer-top nav a { padding: 0 6px; }
+  .neko-desktop-page .window-name { font-size: 18px; }
+  .neko-desktop-page .window-name .pixel-icon { display: none; }
+  .neko-desktop-page .agent-welcome h2 { font-size: 25px; }
+  .neko-desktop-page .agent-welcome { gap: 8px; }
+  .neko-desktop-page .agent-welcome p { font-size: 10px; }
+}

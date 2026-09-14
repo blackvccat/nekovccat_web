@@ -1,14 +1,14 @@
 'use client'
 
 import { useId } from 'react'
-import PixelIcon from './pixel-icon'
+import PixelIcon from './harbor-pixel-icon'
 import { MUSIC_PROVIDERS as PROVIDERS, MusicPlayerSlot, useMusicSession } from '@/components/music/music-session'
 import './music-app.css'
 import './desktop-software.css'
 
 export default function MusicApp({ playerLayer = 80, active = true, onActivate }: { playerLayer?: number; active?: boolean; onActivate?: () => void }) {
   const { provider, input, current, favoriteName, error, notice, library, ready, setInput, setFavoriteName,
-    load, stop, switchProvider, saveFavorite, removeFavorite } = useMusicSession()
+    load, stop, switchProvider, saveFavorite, removeFavorite, playerStatus, reloadPlayer } = useMusicSession()
   const instance = useId()
   const shareId = `${instance}-music-share-link`
   const favoriteId = `${instance}-music-favorite-name`
@@ -35,6 +35,11 @@ export default function MusicApp({ playerLayer = 80, active = true, onActivate }
     {current ? <section className="music-player-panel" aria-label={`${PROVIDERS[current.provider].name}播放器`}>
       <div className="music-player-caption"><span><span className={`music-provider-dot ${current.provider}`} />{PROVIDERS[current.provider].name} · 官方播放器</span><button type="button" className="text-button" onClick={stop}>停止播放</button></div>
       <a className="music-open-original pixel-button" href={current.url} target="_blank" rel="noopener noreferrer">在{PROVIDERS[current.provider].name}打开 ↗</a>
+      <div className="music-player-status" role="status" aria-live="polite">
+        {playerStatus === 'loading' && <span>正在打开官方播放器…</span>}
+        {playerStatus === 'loaded' && <span>官方播放器页面已载入，请使用其中的播放按钮。</span>}
+        {playerStatus === 'slow' && <><span>播放器加载较慢，可以重新加载或在原平台打开。</span><button type="button" className="text-button" onClick={reloadPlayer}>重新加载</button></>}
+      </div>
       <div className={`music-frame ${current.provider}`}>
         <MusicPlayerSlot height={current.height} layer={playerLayer} active={active} onActivate={onActivate} />
       </div>

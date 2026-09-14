@@ -9,7 +9,7 @@ interface RelationshipMode {
   isUnlocked: boolean
   isReady: boolean
   content: RelationshipContent | null
-  activateGirlfriend: (proof?: string, csrf?: string) => Promise<boolean>
+  activateGirlfriend: (proof?: string, csrf?: string, signal?: AbortSignal) => Promise<boolean>
   leaveGirlfriend: () => void
 }
 
@@ -40,15 +40,18 @@ export function RelationshipModeProvider({ children }: { children: ReactNode }) 
     return () => { cancelled = true }
   }, [])
 
-  const activateGirlfriend = useCallback(async (proof?: string, csrf?: string) => {
+  const activateGirlfriend = useCallback(async (proof?: string, csrf?: string, signal?: AbortSignal) => {
+    if (signal?.aborted) return false
     if (mode.unlocked && content) { setMode({ unlocked: true, active: true }); return true }
     if (!proof || !csrf) return false
     try {
-      const unlock = await fetch('/api/chat/relationship-unlock', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Neko-CSRF': csrf }, body: JSON.stringify({ proof }) })
-      if (!unlock.ok) return false
-      const response = await fetch('/api/relationship/content', { cache: 'no-store' })
-      if (!response.ok) return false
-      setContent(await response.json())
+      const unlock = await fetch('/api/chat/relationship-unlock', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Neko-CSRF': csrf }, body: JSON.stringify({ proof }), signal })
+      if (!unlock.ok || signal?.aborted) return false
+      const response = await fetch('/api/relationship/content', { cache: 'no-store', signal })
+      if (!response.ok || signal?.aborted) return false
+      const nextContent = await response.json()
+      if (signal?.aborted) return false
+      setContent(nextContent)
       setMode({ unlocked: true, active: true })
       return true
     } catch { return false }

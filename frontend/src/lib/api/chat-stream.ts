@@ -3,6 +3,18 @@ export interface ChatToolEvent {
   name: string
   status: string
   message: string
+  call_id?: string
+}
+
+export interface ChatProgressEvent {
+  event: 'progress'
+  stage: string
+  message: string
+}
+
+export interface ChatContentUpdate {
+  kind: 'delta' | 'replace' | 'final'
+  messageId?: string
 }
 
 export interface ChatDesktopEvent {
@@ -12,8 +24,9 @@ export interface ChatDesktopEvent {
 }
 
 interface ChatStreamHandlers {
-  onContent: (content: string) => void
+  onContent: (content: string, update?: ChatContentUpdate) => void
   onTool?: (event: ChatToolEvent) => void
+  onProgress?: (event: ChatProgressEvent) => void
   onDesktop?: (event: ChatDesktopEvent) => void
 }
 
@@ -78,14 +91,45 @@ export async function consumeChatStream(
   const reader = body.getReader()
   let complete = false
   let content = ''
+  let messageId = ''
+  let hasReply = false
+  let hasFinal = false
   let desktopEvent: ChatDesktopEvent | undefined
   const decoder = new EventDecoder((value) => {
+    signal?.throwIfAborted()
     if (complete) return
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
       throw new Error('聊天服务返回了无效的消息。')
     }
     const data = value as Record<string, unknown>
     if (typeof data.error === 'string' && data.error) throw new Error(data.error)
+
+    if (data.event === 'reply') {
+      if (!['delta', 'final'].includes(String(data.phase)) || typeof data.message_id !== 'string' || !data.message_id || typeof data.content !== 'string' || hasFinal) {
+        throw new Error('聊天服务返回了无效的正文事件，请重试。')
+      }
+      hasReply = true
+      if (data.phase === 'final') {
+        hasFinal = true
+        content = data.content
+        messageId = data.message_id
+        handlers.onContent(content, { kind: 'final', messageId })
+      } else {
+        const replaced = messageId !== data.message_id
+        content = replaced ? data.content : content + data.content
+        messageId = data.message_id
+        handlers.onContent(content, { kind: replaced ? 'replace' : 'delta', messageId })
+      }
+      return
+    }
+
+    if (data.event === 'progress') {
+      if (typeof data.stage !== 'string' || !data.stage || typeof data.message !== 'string') {
+        throw new Error('聊天服务返回了无效的进度事件。')
+      }
+      handlers.onProgress?.({ event: 'progress', stage: data.stage, message: data.message })
+      return
+    }
 
     if (data.event === 'desktop') {
       if (data.action !== 'unlock-girlfriend') throw new Error('聊天服务返回了无效的桌面操作。')
@@ -103,15 +147,24 @@ export async function consumeChatStream(
         name: data.name,
         status: data.status,
         message: typeof data.message === 'string' ? data.message : '',
+        ...(typeof data.call_id === 'string' && data.call_id ? { call_id: data.call_id } : {}),
       })
       return
     }
 
     if (typeof data.content === 'string') {
-      content += data.content
-      handlers.onContent(content)
+      if (hasReply) {
+        // Earlier v2 deployments used the legacy empty-content done sentinel.
+        if (data.content !== '' || data.done !== true || !hasFinal) throw new Error('聊天服务混用了正文协议，请重试。')
+      } else if (data.content !== '') {
+        content += data.content
+        handlers.onContent(content, { kind: 'delta' })
+      }
     }
-    if (data.done === true) complete = true
+    if (data.done === true) {
+      if (hasReply && !hasFinal) throw new Error(interruptedMessage)
+      complete = true
+    }
   })
   const abort = () => { void reader.cancel().catch(() => {}) }
   signal?.addEventListener('abort', abort, { once: true })

@@ -1,7 +1,5 @@
 """聊天服务"""
 from datetime import datetime, timezone
-from typing import Optional
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.chat import ChatMessage, ChatResponse
 from app.services.ai_service import AIService
@@ -10,9 +8,8 @@ from app.services.ai_service import AIService
 class ChatService:
     """聊天业务逻辑"""
     
-    def __init__(self, db: Optional[AsyncSession] = None):
-        self.db = db  # 数据库会话（可选，当前未使用）
-        self.ai_service = AIService()
+    def __init__(self, runtime_manager=None):
+        self.ai_service = AIService(runtime_manager=runtime_manager)
     
     def validate_messages(self, messages: list[ChatMessage]) -> None:
         if not messages:

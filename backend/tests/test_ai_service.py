@@ -14,8 +14,18 @@ from app.config import Settings, settings
 from app.main import app
 from app.schemas.chat import ChatMessage
 from app.services.ai_service import AIService, AIServiceError
+from app.services.runtime_manager import AgentRuntimeManager
 
 FAKE_KEY = "unit-test-placeholder-secret"
+
+
+def private_fixture(directory):
+    path = Path(directory) / "private-fixture.json"
+    path.write_text(json.dumps({"quiz_answers": {
+        "anime": ["fictional-character"], "birthday": ["01-02"], "cat_name": ["fixture-cat"],
+        "mbti": ["xxxx"], "initials": ["zz"],
+    }}))
+    return str(path)
 
 
 def girlfriend_run(*, unlocked=True, progress=5, finish_reason="completed", is_error=False,
@@ -77,13 +87,18 @@ class SDKInitializationTests(unittest.TestCase):
         # Raw output schemas use the SDK's supported subset, not full JSON Schema.
         # A fake registry cannot detect incompatibilities that prevent boot.
         with tempfile.TemporaryDirectory() as directory:
-            config = Settings(_env_file=None, DEEPSEEK_API_KEY=FAKE_KEY, DSH_HOME=directory)
-            harness, runtime_patch = AIService(config)._harness()
+            config = Settings(_env_file=None, DEEPSEEK_API_KEY=FAKE_KEY, DSH_HOME=directory,
+                              RELATIONSHIP_PRIVATE_PATH=private_fixture(directory))
+            manager = AgentRuntimeManager(config)
+            lease = manager.acquire()
+            pipes = []
             try:
-                harness.start()
+                lease.start()
+                process = lease.harness.client._proc
+                pipes = [process.stdin, process.stdout, process.stderr]
             finally:
-                harness.close()
-                runtime_patch.unlink(missing_ok=True)
+                manager.close()
+            self.assertTrue(all(pipe.closed for pipe in pipes))
 
 
 class HarnessAdapterTests(unittest.IsolatedAsyncioTestCase):
@@ -93,7 +108,8 @@ class HarnessAdapterTests(unittest.IsolatedAsyncioTestCase):
         patch_path = Path(self.temp.name) / "website.patch.yml"
         patch_path.write_text("[]")
         self.config = Settings(_env_file=None, DEEPSEEK_API_KEY=FAKE_KEY,
-                               DSH_HOME=self.temp.name, DSH_PATCH_PATH=str(patch_path))
+                               DSH_HOME=self.temp.name, DSH_PATCH_PATH=str(patch_path),
+                               RELATIONSHIP_PRIVATE_PATH=private_fixture(self.temp.name))
         self.messages = [ChatMessage(role="user", content="有哪些页面？"),
                          ChatMessage(role="assistant", content="首页和我的世界。"),
                          ChatMessage(role="user", content="后者有什么？")]
@@ -127,13 +143,72 @@ class HarnessAdapterTests(unittest.IsolatedAsyncioTestCase):
             for answer in choices:
                 self.assertNotIn(answer, first.kwargs["env"]["DSH_SYSTEM_PROMPT"])
 
-    async def test_stream_maps_tool_events_and_visible_root_text_only(self):
+    async def test_stream_maps_tool_events_and_canonical_reply_only(self):
         events = [event async for event in self.service().stream_response(self.messages)]
         self.assertEqual("".join(e.get("content", "") for e in events), "你好，本站有五个应用。")
         self.assertEqual(events[-1], {"content": "", "done": True})
         self.assertEqual([e["status"] for e in events if e.get("event") == "tool"], ["running", "completed"])
         self.assertNotIn(FAKE_KEY, json.dumps(events))
         self.assertTrue(self.instances[0].closed.is_set())
+
+    async def test_intermediate_deltas_never_replace_duplicate_or_prefix_canonical_reply(self):
+        canonical = "这是最终核实后的完整回答。"
+        for deltas in [["让我先查询一下。"], ["这是最终"], ["完全不同的草稿。"], [canonical], ["分段", "但不完整"]]:
+            def behavior(runtime, sid, notify):
+                for delta in deltas:
+                    notify(SimpleNamespace(method="session.event", payload={"sessionId": sid, "event": {
+                        "type": "assistant/chunk", "data": {"chunk": {"type": "text-delta", "text": delta}},
+                    }}))
+                return SimpleNamespace(session_id=sid, final_response=canonical, finish_reason="completed", events=[])
+            with self.subTest(deltas=deltas):
+                events = [event async for event in self.service(behavior).stream_response(self.messages)]
+                self.assertEqual(events, [{"content": canonical, "done": False}, {"content": "", "done": True}])
+                self.assertTrue(self.instances[-1].closed.is_set())
+
+    async def test_failure_after_text_delta_never_exposes_draft_as_success(self):
+        def behavior(runtime, sid, notify):
+            notify(SimpleNamespace(method="session.event", payload={"sessionId": sid, "event": {
+                "type": "assistant/chunk", "data": {"chunk": {"type": "text-delta", "text": "未完成草稿"}},
+            }}))
+            return SimpleNamespace(session_id=sid, final_response="未完成草稿", finish_reason="error", events=[])
+        events = []
+        with self.assertRaises(AIServiceError):
+            async for event in self.service(behavior).stream_response(self.messages):
+                events.append(event)
+        self.assertFalse(any("content" in event or event.get("done") for event in events))
+        self.assertTrue(self.instances[-1].closed.is_set())
+
+    async def test_notification_retention_limits_apply_to_json_and_sse_and_close_runtime(self):
+        for limit in ["events", "bytes"]:
+            self.config.DSH_MAX_NOTIFICATION_EVENTS = 2 if limit == "events" else 100
+            self.config.DSH_MAX_NOTIFICATION_BYTES = 1024
+            def behavior(runtime, sid, notify):
+                for _ in range(3):
+                    notify(SimpleNamespace(method="session.event", payload={"sessionId": sid, "event": {
+                        "type": "assistant/chunk", "data": {"chunk": {
+                            "type": "text-delta", "text": "x" if limit == "events" else "大" * 500,
+                        }},
+                    }}))
+                return SimpleNamespace(session_id=sid, final_response="must not succeed", finish_reason="completed", events=[])
+            for streaming in [False, True]:
+                with self.subTest(limit=limit, streaming=streaming):
+                    service = self.service(behavior)
+                    with self.assertRaises(AIServiceError) as error:
+                        if streaming:
+                            _ = [event async for event in service.stream_response(self.messages)]
+                        else:
+                            await service.generate_reply(self.messages)
+                    self.assertEqual(error.exception.code, "response_limit")
+                    self.assertTrue(self.instances[-1].closed.is_set())
+
+    async def test_oversized_final_reply_fails_without_done_or_unlock(self):
+        self.config.DSH_MAX_REPLY_BYTES = 1024
+        def behavior(runtime, sid, notify):
+            return SimpleNamespace(session_id=sid, final_response="大" * 500, finish_reason="completed", events=[])
+        with self.assertRaises(AIServiceError) as error:
+            _ = [event async for event in self.service(behavior).stream_response(self.messages)]
+        self.assertEqual(error.exception.code, "response_limit")
+        self.assertTrue(self.instances[-1].closed.is_set())
 
     async def test_missing_key_and_missing_profile_fail_closed(self):
         self.config.DEEPSEEK_API_KEY = None
@@ -228,12 +303,12 @@ class HarnessAdapterTests(unittest.IsolatedAsyncioTestCase):
     async def test_early_stream_close_cancels_runtime(self):
         def behavior(runtime, sid, notify):
             notify(SimpleNamespace(method="session.event", payload={"sessionId": sid, "event": {
-                "type": "assistant/chunk", "data": {"chunk": {"type": "text-delta", "text": "开始"}},
+                "type": "tool/call", "data": {"name": "site_info", "callId": "early-tool"},
             }}))
             runtime.closed.wait(timeout=4)
             raise RuntimeError("cancelled")
         stream = self.service(behavior).stream_response(self.messages)
-        self.assertEqual((await anext(stream))["content"], "开始")
+        self.assertEqual((await anext(stream))["event"], "tool")
         await stream.aclose()
         self.assertTrue(self.instances[0].closed.is_set())
 

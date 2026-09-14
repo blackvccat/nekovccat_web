@@ -1,337 +1,176 @@
 'use client'
 
-import { Suspense, useRef, useEffect, useState, useMemo, memo } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { useTexture } from '@react-three/drei'
-import * as THREE from 'three'
-
-// 全局纹理缓存和加载状态缓存
-const textureCache = new Map<string, THREE.Texture>()
-const imageLoadCache = new Map<string, boolean>() // 记录图片是否已加载
-
-// 全景图球体组件 - 使用 memo 优化
-const PanoramaSphere = memo(({ imageSrc }: { imageSrc: string }) => {
-  const meshRef = useRef<THREE.Mesh>(null)
-  const texture = useTexture(imageSrc)
-
-  // 确保纹理正确映射并优化，并缓存纹理
-  useEffect(() => {
-    if (texture && !textureCache.has(imageSrc)) {
-      // eslint-disable-next-line react-hooks/immutability -- Three.js textures are mutable GPU resources configured after loading, not React state.
-      texture.mapping = THREE.EquirectangularReflectionMapping
-      texture.needsUpdate = true
-      // 设置纹理格式优化
-      texture.format = THREE.RGBAFormat
-      texture.flipY = true // 全景图需要翻转Y轴以正确显示
-      
-      // 对于大图片，限制纹理尺寸以节省内存
-      const maxTextureSize = 4096 // 限制最大纹理尺寸为 4096x4096
-      if (texture.image) {
-        const img = texture.image as HTMLImageElement
-        if (img.width > maxTextureSize || img.height > maxTextureSize) {
-          // 如果图片太大，创建缩小的 canvas
-          const canvas = document.createElement('canvas')
-          const scale = Math.min(maxTextureSize / img.width, maxTextureSize / img.height)
-          canvas.width = Math.floor(img.width * scale)
-          canvas.height = Math.floor(img.height * scale)
-          const ctx = canvas.getContext('2d')!
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-          texture.image = canvas
-          texture.needsUpdate = true
-        }
-      }
-      
-      // 纹理过滤优化 - 降低各向异性以提高性能
-      texture.anisotropy = 8 // 从 16 降低到 8，减少内存占用
-      texture.generateMipmaps = true // 生成 mipmap 以提高性能
-      texture.minFilter = THREE.LinearMipmapLinearFilter // 使用线性过滤
-      texture.magFilter = THREE.LinearFilter
-      
-      // 缓存纹理（克隆以避免被 Three.js 自动释放）
-      textureCache.set(imageSrc, texture.clone())
-    } else if (texture && textureCache.has(imageSrc)) {
-      // 如果缓存中有纹理，使用缓存的设置
-      const cached = textureCache.get(imageSrc)!
-      texture.mapping = cached.mapping
-      texture.flipY = cached.flipY
-      texture.anisotropy = cached.anisotropy
-      texture.minFilter = cached.minFilter
-      texture.magFilter = cached.magFilter
-    }
-  }, [texture, imageSrc])
-
-  // 将纹理映射到球体内部
-  // 降低球体几何体复杂度以提高性能（从 60x40 降低到 48x32）
-  return (
-    <mesh ref={meshRef}>
-      <sphereGeometry args={[500, 48, 32]} />
-      <meshBasicMaterial map={texture} side={THREE.BackSide} />
-    </mesh>
-  )
-})
-
-PanoramaSphere.displayName = 'PanoramaSphere'
-
-// 相机控制器 - 允许鼠标拖动查看和自动旋转
-const PanoramaControls = memo(({ 
-  enableInteraction = true,
-  enableAutoRotate = true, 
-  autoRotateSpeed = 12 
-}: { 
-  enableInteraction?: boolean
-  enableAutoRotate?: boolean
-  autoRotateSpeed?: number // 度/秒
-}) => {
-  const { camera, gl } = useThree()
-  const isDragging = useRef(false)
-  const previousMousePosition = useRef({ x: 0, y: 0 })
-  const rotation = useRef({ x: 0, y: 0 })
-
-  useFrame((state, delta) => {
-    // 自动旋转（只在没有拖动时）
-    if (enableAutoRotate && !isDragging.current) {
-      const rotationAngle = (autoRotateSpeed * Math.PI / 180) * delta // 转换为弧度
-      rotation.current.x += rotationAngle // 水平旋转
-    }
-
-    // 应用旋转到相机
-    const euler = new THREE.Euler(rotation.current.y, rotation.current.x, 0, 'YXZ')
-    camera.quaternion.setFromEuler(euler)
-  })
-
-  useEffect(() => {
-    if (!enableInteraction) return
-    const canvas = gl.domElement
-    const previousTouchAction = canvas.style.touchAction
-    canvas.style.setProperty('touch-action', 'none')
-    // 使用节流优化鼠标移动事件
-    let rafId: number | null = null
-    let activePointerId: number | null = null
-    
-    const handlePointerDown = (e: PointerEvent) => {
-      if (!e.isPrimary || e.button !== 0 || activePointerId !== null) return
-      activePointerId = e.pointerId
-      isDragging.current = true
-      previousMousePosition.current = { x: e.clientX, y: e.clientY }
-      canvas.setPointerCapture(e.pointerId)
-    }
-
-    const handlePointerMove = (e: PointerEvent) => {
-      if (!isDragging.current || e.pointerId !== activePointerId) return
-
-      // 使用 requestAnimationFrame 节流，避免过度渲染
-      if (rafId !== null) return
-      
-      rafId = requestAnimationFrame(() => {
-        const deltaX = e.clientX - previousMousePosition.current.x
-        const deltaY = e.clientY - previousMousePosition.current.y
-
-        // 更新旋转角度
-        rotation.current.x += deltaX * 0.002
-        rotation.current.y += deltaY * 0.002
-
-        // 限制垂直旋转角度
-        rotation.current.y = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotation.current.y))
-
-        previousMousePosition.current = { x: e.clientX, y: e.clientY }
-        rafId = null
-      })
-    }
-
-    const stopDragging = () => {
-      isDragging.current = false
-      const pointerId = activePointerId
-      activePointerId = null
-      if (pointerId !== null && canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId)
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId)
-        rafId = null
-      }
-    }
-    const handlePointerUp = (e: PointerEvent) => {
-      if (e.pointerId === activePointerId) stopDragging()
-    }
-
-    const handleWheel = (e: WheelEvent) => {
-      // 缩放功能（可选）
-      e.preventDefault()
-    }
-
-    // Only the panorama surface handles gestures; page controls keep their own scrolling and selection.
-    canvas.addEventListener('pointerdown', handlePointerDown, { passive: true })
-    canvas.addEventListener('pointermove', handlePointerMove, { passive: true })
-    canvas.addEventListener('lostpointercapture', handlePointerUp, { passive: true })
-    canvas.addEventListener('wheel', handleWheel, { passive: false })
-    window.addEventListener('pointerup', handlePointerUp, { passive: true })
-    window.addEventListener('pointercancel', handlePointerUp, { passive: true })
-    window.addEventListener('blur', stopDragging)
-
-    return () => {
-      canvas.removeEventListener('pointerdown', handlePointerDown)
-      canvas.removeEventListener('pointermove', handlePointerMove)
-      canvas.removeEventListener('lostpointercapture', handlePointerUp)
-      canvas.removeEventListener('wheel', handleWheel)
-      window.removeEventListener('pointerup', handlePointerUp)
-      window.removeEventListener('pointercancel', handlePointerUp)
-      window.removeEventListener('blur', stopDragging)
-      stopDragging()
-      canvas.style.setProperty('touch-action', previousTouchAction)
-    }
-  }, [enableInteraction, gl])
-
-  return null
-})
-
-PanoramaControls.displayName = 'PanoramaControls'
+import { BackSide, Euler, LinearFilter, LinearMipmapLinearFilter, PerspectiveCamera, SRGBColorSpace, Texture } from 'three'
 
 interface PanoramaBackgroundProps {
   imageSrc: string
-  className?: string
   enableInteraction?: boolean
-  enableAutoRotate?: boolean // 是否启用自动旋转
-  autoRotateSpeed?: number // 旋转速度（度/秒），默认12度/秒（30秒一圈）
+  enableAutoRotate?: boolean
+  autoRotateSpeed?: number
+  visible: boolean
+  lowPower: boolean
+  onReady: () => void
+  onError: () => void
 }
 
-export default function PanoramaBackground({ 
-  imageSrc, 
-  className = '',
-  enableInteraction = true,
-  enableAutoRotate = true,
-  autoRotateSpeed = 12 // 360度 / 30秒 = 12度/秒
-}: PanoramaBackgroundProps) {
-  // 添加加载状态和错误处理
-  const [hasError, setHasError] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadProgress, setLoadProgress] = useState(0)
+function PanoramaScene({ texture, enableInteraction, enableAutoRotate, autoRotateSpeed, visible, onReady, onError }: PanoramaBackgroundProps & { texture: Texture }) {
+  const { camera, gl, invalidate, size } = useThree()
+  const rotation = useRef({ x: 0, y: 0 })
+  const euler = useRef(new Euler(0, 0, 0, 'YXZ'))
+  const dragging = useRef(false)
+  const reportedReady = useRef(false)
 
-  // 检查图片是否已加载过
-  const isImageCached = useMemo(() => imageLoadCache.has(imageSrc), [imageSrc])
+  useLayoutEffect(() => {
+    if (!(camera instanceof PerspectiveCamera) || !size.height) return
+    // Match the 16:9 poster's object-cover framing, including ultrawide windows.
+    // Both representations start at the same angle, so activation does not jump.
+    // eslint-disable-next-line react-hooks/immutability -- Three.js cameras are imperative renderer objects; resize updates their projection in place.
+    camera.fov = 2 * Math.atan(Math.tan(75 * Math.PI / 360) * Math.min(1, (16 / 9) / (size.width / size.height))) * 180 / Math.PI
+    camera.updateProjectionMatrix()
+    invalidate()
+  }, [camera, size.width, size.height, invalidate])
 
   useEffect(() => {
-    // 缓存命中时由渲染分支跳过加载状态，不再同步触发多次更新。
-    if (isImageCached) return
+    const canvas = gl.domElement
+    const lost = (event: Event) => { event.preventDefault(); onError() }
+    canvas.addEventListener('webglcontextlost', lost)
+    return () => canvas.removeEventListener('webglcontextlost', lost)
+  }, [gl, onError])
 
-    // 预加载图片以检查是否存在并显示加载进度
-    const img = new Image()
-    
-    // 监听加载进度（通过 XMLHttpRequest 获取更准确的进度）
-    const xhr = new XMLHttpRequest()
-    xhr.open('GET', imageSrc, true)
-    xhr.responseType = 'blob'
-    
-    xhr.onprogress = (e) => {
-      if (e.lengthComputable) {
-        const percentComplete = (e.loaded / e.total) * 100
-        setLoadProgress(Math.min(percentComplete, 95)) // 最多显示到 95%，剩余 5% 留给纹理处理
-      }
+  useFrame((_, delta) => {
+    if (!visible || !texture) return
+    if (enableAutoRotate && !dragging.current) rotation.current.x += (autoRotateSpeed || 0) * Math.PI / 180 * Math.min(delta, 0.05)
+    euler.current.set(rotation.current.y, rotation.current.x, 0, 'YXZ')
+    camera.quaternion.setFromEuler(euler.current)
+  })
+
+  useEffect(() => {
+    if (!enableInteraction || !visible) return
+    const canvas = gl.domElement
+    const oldTouchAction = canvas.style.touchAction
+    canvas.style.setProperty('touch-action', 'none')
+    let pointer: number | null = null
+    let previous = { x: 0, y: 0 }
+    const down = (event: PointerEvent) => {
+      if (!event.isPrimary || event.button !== 0 || pointer !== null) return
+      pointer = event.pointerId
+      dragging.current = true
+      previous = { x: event.clientX, y: event.clientY }
+      canvas.setPointerCapture(event.pointerId)
     }
-    
-    xhr.onload = () => {
-      const blob = xhr.response
-      const url = URL.createObjectURL(blob)
-      img.src = url
-      
-      img.onload = () => {
-        setLoadProgress(100)
-        setIsLoading(false)
-        setHasError(false)
-        // 标记图片已加载
-        imageLoadCache.set(imageSrc, true)
-        // 清理 blob URL
-        setTimeout(() => URL.revokeObjectURL(url), 100)
-      }
-      
-      img.onerror = () => {
-        console.error('Panorama image failed to load:', imageSrc)
-        setHasError(true)
-        setIsLoading(false)
-        URL.revokeObjectURL(url)
-      }
+    const move = (event: PointerEvent) => {
+      if (event.pointerId !== pointer) return
+      rotation.current.x += (event.clientX - previous.x) * 0.002
+      rotation.current.y = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotation.current.y + (event.clientY - previous.y) * 0.002))
+      previous = { x: event.clientX, y: event.clientY }
+      // R3F coalesces camera invalidations into the next frame without a React update.
+      invalidate()
     }
-    
-    xhr.onerror = () => {
-      console.error('Panorama image failed to load:', imageSrc)
-      setHasError(true)
-      setIsLoading(false)
+    const stop = () => {
+      const previousPointer = pointer
+      pointer = null
+      dragging.current = false
+      if (previousPointer !== null && canvas.hasPointerCapture(previousPointer)) canvas.releasePointerCapture(previousPointer)
     }
-    
-    xhr.send()
-    
+    const up = (event: PointerEvent) => { if (event.pointerId === pointer) stop() }
+    canvas.addEventListener('pointerdown', down, { passive: true })
+    canvas.addEventListener('pointermove', move, { passive: true })
+    canvas.addEventListener('lostpointercapture', up, { passive: true })
+    window.addEventListener('pointerup', up, { passive: true })
+    window.addEventListener('pointercancel', up, { passive: true })
+    window.addEventListener('blur', stop)
     return () => {
-      xhr.abort()
+      stop()
+      canvas.style.setProperty('touch-action', oldTouchAction)
+      canvas.removeEventListener('pointerdown', down)
+      canvas.removeEventListener('pointermove', move)
+      canvas.removeEventListener('lostpointercapture', up)
+      window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', up)
+      window.removeEventListener('blur', stop)
     }
-  }, [imageSrc, isImageCached])
+  }, [enableInteraction, visible, gl, invalidate])
 
-  // 使用 useMemo 缓存 Canvas 配置，避免重复创建
-  const canvasConfig = useMemo(() => ({
-    gl: { 
-      antialias: false, // 关闭抗锯齿以提高性能
-      alpha: true,
-      powerPreference: 'high-performance' as const,
-      preserveDrawingBuffer: false,
-      stencil: false,
-      depth: true,
-      // 限制纹理大小
-      maxTextureSize: 4096,
-    },
-    camera: { position: [0, 0, 0] as [number, number, number], fov: 75 },
-    dpr: [1, 1.5] as [number, number], // 降低 DPR 以提高性能
-    performance: { min: 0.5 }
-  }), [])
+  return <mesh onAfterRender={() => {
+    if (!reportedReady.current) { reportedReady.current = true; onReady() }
+  }}>
+    <sphereGeometry args={[500, 48, 32]} />
+    <meshBasicMaterial map={texture} side={BackSide} toneMapped={false} />
+  </mesh>
+}
 
-  // 使用 useMemo 缓存控制组件，避免重复创建
-  const controls = useMemo(() => {
-    if (enableInteraction || enableAutoRotate) {
-      return (
-        <PanoramaControls 
-          enableInteraction={enableInteraction}
-          enableAutoRotate={enableAutoRotate}
-          autoRotateSpeed={autoRotateSpeed}
-        />
-      )
+export default function PanoramaBackground(props: PanoramaBackgroundProps) {
+  const { imageSrc, lowPower, onError, onReady } = props
+  const [decoded, setDecoded] = useState<{ src: string; lowPower: boolean; texture: Texture } | null>(null)
+  const [paintedTexture, setPaintedTexture] = useState<string | null>(null)
+  // A capability or source change must unmount the old canvas before its
+  // effect releases the old texture. Never render a disposed previous value.
+  const texture = decoded?.src === imageSrc && decoded.lowPower === lowPower ? decoded.texture : null
+  const painted = texture !== null && paintedTexture === texture.uuid
+  const reportPainted = useCallback(() => {
+    if (texture) { setPaintedTexture(texture.uuid); onReady() }
+  }, [texture, onReady])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    let bitmap: ImageBitmap | null = null
+    let element: HTMLImageElement | null = null
+    let objectUrl: string | null = null
+    let owned: Texture | null = null
+    void (async () => {
+      try {
+        // Fetch and decode before creating a WebGL context. Navigation aborts
+        // the request, and a decode completing after cancellation is released.
+        const response = await fetch(imageSrc, { signal: controller.signal, cache: 'force-cache' })
+        if (!response.ok) throw new Error('Panorama unavailable')
+        const blob = await response.blob()
+        if (controller.signal.aborted) return
+        if (typeof createImageBitmap === 'function') {
+          bitmap = await createImageBitmap(blob, { imageOrientation: 'flipY' })
+          if (controller.signal.aborted) { bitmap.close(); bitmap = null; return }
+          owned = new Texture(bitmap)
+          owned.flipY = false // ImageBitmap was flipped during decode.
+        } else {
+          objectUrl = URL.createObjectURL(blob)
+          element = new Image()
+          element.decoding = 'async'
+          element.src = objectUrl
+          await element.decode()
+          if (controller.signal.aborted) return
+          owned = new Texture(element)
+        }
+        owned.colorSpace = SRGBColorSpace
+        owned.anisotropy = lowPower ? 1 : 2
+        owned.generateMipmaps = !lowPower
+        owned.minFilter = lowPower ? LinearFilter : LinearMipmapLinearFilter
+        owned.magFilter = LinearFilter
+        owned.needsUpdate = true
+        setDecoded({ src: imageSrc, lowPower, texture: owned })
+      } catch {
+        if (!controller.signal.aborted) onError()
+      } finally {
+        if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null }
+      }
+    })()
+    return () => {
+      controller.abort()
+      owned?.dispose()
+      bitmap?.close()
+      if (element) element.removeAttribute('src')
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-    return null
-  }, [enableInteraction, enableAutoRotate, autoRotateSpeed])
+  }, [imageSrc, lowPower, onError])
 
-  // 保持所有 Hook 的调用顺序一致，再返回图片加载失败状态。
-  if (hasError && !isImageCached) {
-    return (
-      <div className={`absolute inset-0 bg-black ${className} flex items-center justify-center`}>
-        <div className="text-white text-center">
-          <p className="text-xl mb-2">全景图加载失败</p>
-          <p className="text-sm text-gray-400">路径: {imageSrc}</p>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className={`absolute inset-0 ${className}`} style={{ willChange: 'opacity' }}>
-      {/* 加载进度显示 - 只在首次加载时显示 */}
-      {isLoading && !isImageCached && (
-        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-20 transition-opacity duration-200">
-          <div className="text-center">
-            <div className="text-white text-lg mb-4 font-mono">加载全景图...</div>
-            <div className="w-64 h-1 bg-gray-800 border border-gray-600 rounded overflow-hidden">
-              <div
-                className="h-full bg-green-400 transition-all duration-200 ease-out"
-                style={{ width: `${loadProgress}%` }}
-              />
-            </div>
-            <div className="text-gray-400 text-sm mt-2 font-mono">{Math.round(loadProgress)}%</div>
-          </div>
-        </div>
-      )}
-      
-      {/* Canvas 始终渲染，避免切换时白屏 */}
-      <Suspense fallback={null}>
-        <Canvas
-          {...canvasConfig}
-        >
-          <PanoramaSphere imageSrc={imageSrc} />
-          {controls}
-        </Canvas>
-      </Suspense>
-    </div>
-  )
+  // Keep an existing context paused while hidden; never create a new hidden one.
+  if (!texture || (!props.visible && !painted)) return null
+  return <Canvas
+    key={texture.uuid}
+    frameloop={!props.visible ? 'never' : painted && props.enableAutoRotate ? 'always' : 'demand'}
+    dpr={props.lowPower ? 1 : [1, 1.5]}
+    gl={{ antialias: false, alpha: true, powerPreference: 'low-power', stencil: false, depth: false }}
+    camera={{ position: [0, 0, 0], fov: 75 }}
+    fallback={null}
+  ><PanoramaScene {...props} texture={texture} onReady={reportPainted} /></Canvas>
 }

@@ -1,66 +1,46 @@
-"""数据库连接配置"""
+"""Optional application storage; no engine or connections exist until enabled."""
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base
+
 from app.config import settings
+from app.observability import log_event
 
-# 将 PostgreSQL URL 转换为异步 URL
-database_url = settings.DATABASE_URL.replace(
-    "postgresql://", 
-    "postgresql+asyncpg://"
-)
-
-# 创建异步引擎
-engine = create_async_engine(
-    database_url,
-    echo=settings.DEBUG,
-    future=True,
-    pool_pre_ping=True,  # 连接前检查连接是否有效
-    pool_size=10,  # 连接池大小
-    max_overflow=20,  # 最大溢出连接数
-)
-
-# 创建异步会话工厂
-AsyncSessionLocal = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-    autocommit=False,
-    autoflush=False,
-)
-
-# 声明式基类
 Base = declarative_base()
+engine = None
+AsyncSessionLocal = None
 
 
 async def get_db():
-    """获取数据库会话依赖"""
-    try:
-        async with AsyncSessionLocal() as session:
-            try:
-                yield session
-                await session.commit()
-            except Exception:
-                await session.rollback()
-                raise
-            finally:
-                await session.close()
-    except Exception as e:
-        # 如果数据库不可用，返回 None（聊天服务实际上不使用数据库）
-        print(f"警告: 数据库会话创建失败: {type(e).__name__}")
-        yield None
+    if AsyncSessionLocal is None:
+        raise RuntimeError("Application database is not ready")
+    async with AsyncSessionLocal() as session:
+        async with session.begin():
+            yield session
 
 
-async def init_db():
-    """初始化数据库（创建表）"""
+async def init_db() -> bool:
+    global engine, AsyncSessionLocal
+    if not settings.DATABASE_ENABLED:
+        return True
     try:
+        engine = create_async_engine(
+            settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1),
+            echo=False, pool_pre_ping=True, pool_size=5, max_overflow=5,
+        )
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-        print("数据库初始化成功")
-    except Exception as e:
-        print(f"警告: 数据库连接失败，将使用无数据库模式: {type(e).__name__}")
-        print("提示: 站内 Agent 功能不需要数据库，服务将继续运行")
+        AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+        log_event("database", outcome="ready")
+        return True
+    except Exception:
+        await close_db()
+        log_event("database", outcome="unavailable")
+        return False
 
 
 async def close_db():
-    """关闭数据库连接"""
-    await engine.dispose()
+    global engine, AsyncSessionLocal
+    if engine is not None:
+        await engine.dispose()
+    engine = None
+    AsyncSessionLocal = None

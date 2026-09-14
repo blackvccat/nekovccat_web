@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { ETHEREUM_CHAIN, SPONSOR_ADDRESS, ethToHex, submitSponsor, walletAddress, walletError, type WalletProvider } from '@/lib/wallet'
-import PixelIcon from './pixel-icon'
+import PixelIcon from './harbor-pixel-icon'
 import './desktop-software.css'
 
 type Wallet = { id: string; name: string; provider: WalletProvider }

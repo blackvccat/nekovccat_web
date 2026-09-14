@@ -51,7 +51,23 @@ data: {"content":"My World","done":false}
 data: {"content":"","done":true}
 ```
 
-当前官方 SDK `0.1.5rc1` 公开持久会话通知，不转发 Harness 内部逐 token 的瞬态事件。因此工具进度可实时显示，回复文本在运行完成后一次发送，不模拟打字效果。只转发当前请求根会话的可见文本与站内工具状态；推理过程、子会话消息、工具参数和工具原始返回不进入前端。已开始的 SSE 遇到错误时发送 `{"error":"脱敏的用户提示","done":true}`；普通请求返回对应的 HTTP 错误和 `detail`。
+上述旧协议继续服务已经打开的旧页面。新客户端使用 `POST /api/chat/?stream=true&protocol=v2`：
+
+```text
+data: {"event":"progress","stage":"analyzing","message":"正在分析问题…"}
+
+data: {"event":"reply","phase":"delta","message_id":"reply-example","content":"My "}
+
+data: {"event":"reply","phase":"delta","message_id":"reply-example","content":"World"}
+
+data: {"event":"reply","phase":"final","message_id":"reply-example","content":"My World 的完整最终介绍。"}
+
+data: {"done":true}
+```
+
+固定 SDK `0.1.5rc1` 的默认 stdio 桥不转发逐 token 瞬态事件。本项目的 `progressive_bridge.mjs` 仅在 v2 请求中通过独立 runtime patch 启用，订阅真实 `agent/assistant-stream` 并发出白名单 `site.assistant` 通知；没有修改 SDK 包或二进制。服务只接受当前请求根会话的正文，换 `message_id` 时替换上一轮前言，`phase=final` 始终覆盖全部临时正文。客户端必须同时收到最终正文和正常 `done` 才能认定成功。
+
+真实 reasoning 通知仅映射为“正在分析问题”状态，原始推理内容、子会话消息、工具参数和工具原始返回不进入前端。输出对跨增量边界的配置密钥执行遮蔽，并受单轮正文、通知和缓冲上限限制。已开始的 SSE 遇到错误时发送 `{"error":"脱敏的用户提示","done":true}`；普通请求返回对应的 HTTP 错误和 `detail`。
 
 缺少配置、认证失败、余额不足、限流、超时和中断不会被替换成模拟回复。每轮有默认 180 秒的总时限，浏览器取消请求会关闭 SDK runtime，避免遗留运行中的子进程。
 

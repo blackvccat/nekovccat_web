@@ -1,0 +1,30 @@
+.agent-app { --execution-ink: #52664e; --execution-muted: #7a886d; --execution-border: #bac6ac; --execution-surface: #f2f4e9; }
+.agent-mascot { display: inline-flex; flex-shrink: 0; }
+.agent-mascot > .pixel-icon:last-child { display: none; }
+.agent-desktop-shortcuts { display: none; }
+.site-music .agent-app { --execution-ink: var(--music-ink); --execution-muted: var(--music-muted); --execution-border: var(--music-border); --execution-surface: var(--music-card); }
+.agent-execution { margin: 0 0 10px; border: 1px solid var(--execution-border); border-radius: 7px; color: var(--execution-ink); background: var(--execution-surface); font-size: 10px; line-height: 1.6; }
+.agent-execution summary { display: flex; align-items: center; gap: 7px; padding: 7px 9px; min-height: 34px; cursor: pointer; list-style: none; }
+.agent-execution summary::-webkit-details-marker { display: none; }
+.agent-execution summary::after { content: '⌄'; color: var(--execution-muted); margin-left: 2px; }
+.agent-execution[open] summary::after { content: '⌃'; }
+.agent-execution summary:focus-visible { outline: 2px solid var(--execution-ink); outline-offset: 2px; }
+.execution-summary { flex: 1; min-width: 0; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.agent-execution summary small { flex-shrink: 0; color: var(--execution-muted); font-size: 9px; }
+.execution-indicator { width: 5px; height: 5px; flex-shrink: 0; border-radius: 50%; background: currentColor; }
+.agent-execution ol { margin: 0; padding: 6px 10px 9px; list-style: none; border-top: 1px solid var(--execution-border); max-height: 190px; overflow-y: auto; overscroll-behavior: contain; }
+.agent-execution li { display: flex; align-items: baseline; gap: 7px; padding: 4px 0; }
+.agent-execution li > span:nth-child(2) { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.agent-execution li small { flex-shrink: 0; color: var(--execution-muted); font-size: 9px; }
+.execution-step-icon { width: 9px; flex-shrink: 0; color: var(--execution-muted); }
+.agent-execution .working { animation: execution-pulse 1.2s ease-in-out infinite; }
+.message-streaming::after { content: ''; display: inline-block; width: 5px; height: 1em; margin-left: 3px; vertical-align: -2px; background: currentColor; animation: execution-pulse 1s steps(2, end) infinite; }
+.agent-app .agent-latest { align-self: center; flex-shrink: 0; margin: 5px 0 0; padding: 6px 14px; min-height: 32px; color: var(--execution-ink); border: 1px solid var(--execution-border); border-radius: 16px; background: var(--execution-surface); font-size: 11px; cursor: pointer; }
+@keyframes execution-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@media (max-width: 700px) {
+  .agent-execution summary { min-height: 40px; }
+  .agent-app .agent-latest { min-height: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-execution .working, .message-streaming::after { animation: none; }
+}

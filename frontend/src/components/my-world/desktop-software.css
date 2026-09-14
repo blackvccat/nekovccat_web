@@ -1,103 +1,109 @@
-.neko-browser { display: flex; flex-direction: column; height: 100%; min-height: 0; background: #e9e8d9; color: #3f4c40; }
-.browser-menubar { display: flex; gap: 17px; padding: 5px 11px; font-size: 9px; border-bottom: 1px solid #b7bea9; }
-.browser-menubar span:last-child { margin-left: auto; color: #7b856d; }
+.neko-browser { display: flex; flex-direction: column; height: 100%; min-height: 0; background: var(--cream, #e9e8d9); color: var(--ink, #3f4c40); }
+.browser-menubar { display: flex; gap: 17px; padding: 5px 11px; font-size: 9px; border-bottom: 1px solid var(--desktop-line, #b7bea9); }
+.browser-menubar span:last-child { margin-left: auto; color: var(--navy, #7b856d); }
 .browser-toolbar { display: flex; gap: 6px; align-items: center; padding: 8px; }
 .browser-toolbar button { width: 29px; height: 25px; padding: 0; }
-.browser-address { flex: 1; min-width: 0; padding: 5px 10px; background: #faf9ed; font: 11px monospace; }
-.browser-online { color: #728760; padding: 0 6px; }
-.browser-tabs { display: flex; gap: 3px; padding: 0 8px; border-bottom: 1px solid #929e83; }
-.browser-tabs button { flex: 1; padding: 8px 4px; font-size: 11px; background: #dbdfcf; border: 1px solid #b3baa5; border-bottom: 0; }
-.browser-tabs button[aria-current] { background: #faf7eb; color: #344b37; border-color: #929e83; box-shadow: 0 1px #faf7eb; font-weight: 600; }
-.browser-document { flex: 1; min-height: 0; overflow: auto; padding: 26px 29px 15px; background: #faf7eb; scrollbar-width: thin; scrollbar-color: #aab59a #e9e8d9; }
+.browser-address { border-radius: 0; flex: 1; min-width: 0; padding: 5px 10px; background: var(--paper, #faf9ed); font: 11px monospace; }
+.browser-online { color: var(--navy, #728760); padding: 0 6px; }
+.browser-tabs { display: flex; gap: 3px; padding: 0 8px; border-bottom: 1px solid var(--desktop-line, #929e83); }
+.browser-tabs button { border-radius: 0; color: var(--ink, #263e4b); flex: 1; padding: 8px 4px; font-size: 11px; background: var(--desktop-tint, #dbdfcf); border: 1px solid var(--desktop-line, #b3baa5); border-bottom: 0; }
+.browser-tabs button[aria-current] { background: var(--paper, #faf7eb); color: var(--ink, #344b37); border-color: var(--desktop-line, #929e83); box-shadow: 0 1px var(--paper, #faf7eb); font-weight: 600; }
+.browser-document { flex: 1; min-height: 0; overflow: auto; padding: 26px 29px 15px; background: var(--paper, #faf7eb); scrollbar-width: thin; scrollbar-color: var(--sage, #aab59a) var(--cream, #e9e8d9); }
 .browser-document article { max-width: 880px; margin: auto; }
-.browser-kicker { font-size: 8px; letter-spacing: 1.4px; color: #839176; }
+.browser-kicker { font-size: 8px; letter-spacing: 1.4px; color: var(--navy, #839176); }
 .browser-document h1 { font-size: 30px; font-weight: 500; margin: 11px 0 17px; letter-spacing: -1px; line-height: 1.35; }
-.document-subtitle { display: block; font-size: 11px; line-height: 1.8; letter-spacing: 0; color: #7c896e; margin-top: 9px; font-weight: 400; }
+.document-subtitle { display: block; font-size: 11px; line-height: 1.8; letter-spacing: 0; color: var(--navy, #7c896e); margin-top: 9px; font-weight: 400; }
 .browser-document p { font-size: 12px; line-height: 1.9; }
 .profile-hero { display: flex; align-items: center; gap: 22px; margin-top: 19px; }
-.profile-stamp { width: 87px; height: 93px; border: 1px solid #8e9d7c; outline: 3px double #d0d5bc; background: #dce4ca; font: 64px/1.1 'Jersey 25',monospace; text-align: center; color: #567053; flex-shrink: 0; padding-top: 2px; }
-.profile-stamp span { display: block; font: 8px monospace; border-top: 1px solid #96a482; padding-top: 5px; }
-.profile-alias { color: #8b8f72; font: 9px monospace !important; margin: 0; letter-spacing: 2px; }
+.profile-stamp { width: 88px; height: 96px; border: 2px solid var(--edge, #263e4b); box-shadow: 3px 3px 0 var(--desktop-button-shadow, #b5a689); background: var(--desktop-tint, #dce4ca); font: 64px/1.1 'Jersey 25',monospace; text-align: center; color: var(--navy, #567053); flex-shrink: 0; padding-top: 2px; }
+.profile-stamp span { display: block; font: 8px monospace; border-top: 1px solid var(--desktop-line, #96a482); padding-top: 5px; }
+.profile-alias { color: var(--navy, #8b8f72); font: 9px monospace !important; margin: 0; letter-spacing: 2px; }
 .profile-hero h1 { font: 53px/1.05 'Jersey 25',monospace; margin: 5px 0; }
 .profile-hero h1 span { font: 13px sans-serif; padding-left: 13px; }
 .profile-hero p:last-child { margin: 4px 0; font-size: 11px; }
 .profile-intro { margin: 24px 0 19px; }
-.profile-callout { background: #e9eddb; border-left: 2px solid #8a9b79; padding: 14px 16px; font-size: 11px; line-height: 1.9; margin: 17px 0; }
+.profile-callout { background: var(--desktop-tint, #e9eddb); border-left: 2px solid var(--sage, #8a9b79); padding: 14px 16px; font-size: 11px; line-height: 1.9; margin: 17px 0; }
 .profile-directory { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 25px 0; }
-.profile-directory button { border: 1px solid #bbc2ac; background: #f4f0df; padding: 15px; text-align: left; }
-.profile-directory button:hover { background: #e8ecdc; }
-.profile-directory span,.profile-directory small { display: block; font-size: 9px; color: #89947b; }
+.profile-directory button { border-radius: 0; color: var(--ink, #263e4b); border: 1px solid var(--desktop-line, #bbc2ac); background: var(--cream, #f4f0df); padding: 15px; text-align: left; }
+.profile-directory button:hover { background: var(--desktop-tint, #e8ecdc); }
+.profile-directory span,.profile-directory small { display: block; font-size: 9px; color: var(--navy, #89947b); }
 .profile-directory strong { display: block; font-size: 14px; margin: 12px 0 7px; font-weight: 500; }
 .browser-section { margin: 25px 0; }
-.browser-section h2,.sponsor-wallet h2 { font-size: 15px; font-weight: 500; border-bottom: 1px solid #b8c2a9; padding-bottom: 9px; }
-.browser-section h2 small,.sponsor-wallet h2 small { font-size: 8px; margin-left: 7px; color: #8b947f; letter-spacing: .8px; }
+.browser-section h2,.sponsor-wallet h2 { font-size: 15px; font-weight: 500; border-bottom: 1px solid var(--desktop-line, #b8c2a9); padding-bottom: 9px; }
+.browser-section h2 small,.sponsor-wallet h2 small { font-size: 8px; margin-left: 7px; color: var(--navy, #8b947f); letter-spacing: .8px; }
 .profile-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.profile-tags span { border: 1px solid #d1d6c1; padding: 4px 7px; font-size: 10px; color: #66775b; background: #eef0e3; }
-.profile-education { color: #7a896b; font-size: 10px !important; border-top: 1px dotted #aebba0; padding-top: 14px; margin-top: 20px; }
-.profile-job { border-left: 1px solid #a9b798; margin: 17px 0 25px; padding-left: 17px; }
-.profile-job time { font: 10px monospace; color: #8b927b; }
+.profile-tags span { border-bottom: 1px solid var(--desktop-line, #d1d6c1); padding: 4px 7px; font-size: 10px; color: var(--navy, #66775b); background: var(--desktop-tint, #eef0e3); }
+.profile-education { color: var(--navy, #7a896b); font-size: 10px !important; border-top: 1px dotted var(--desktop-line, #aebba0); padding-top: 14px; margin-top: 20px; }
+.profile-job { border-left: 1px solid var(--desktop-line, #a9b798); margin: 17px 0 25px; padding-left: 17px; }
+.profile-job time { font: 10px monospace; color: var(--navy, #8b927b); }
 .profile-job h3,.profile-project h3 { font-size: 15px; margin: 7px 0; font-weight: 500; }
-.profile-job .job-role { color: #81916e; font-size: 10px; margin: 3px 0; }
-.profile-project { border: 1px solid #c5cbb5; padding: 14px 17px; margin: 13px 0; }
-.profile-project small { display: block; color: #869676; font-size: 10px; }
-.profile-project a { display: inline-block; font-size: 11px; color: #536f54; margin-top: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.profile-job .job-role { color: var(--navy, #81916e); font-size: 10px; margin: 3px 0; }
+.profile-project { border-top: 1px solid var(--desktop-line, #c5cbb5); padding: 14px 0; margin: 13px 0; }
+.profile-project small { display: block; color: var(--navy, #869676); font-size: 10px; }
+.profile-project a { display: inline-block; font-size: 11px; color: var(--navy, #536f54); margin-top: 12px; text-decoration: underline; text-underline-offset: 3px; }
 .gallery-filters { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; padding: 10px 0 16px; }
 .gallery-filters button { font-size: 10px; padding: 5px 8px; }
-.gallery-filters button[aria-pressed=true] { background: #c8d4b8; box-shadow: inset 1px 1px #7e8c72; }
-.gallery-filters small { margin-left: auto; font-size: 9px; color: #8a997c; }
+.gallery-filters button[aria-pressed=true] { background: var(--desktop-button, #c8d4b8); box-shadow: inset 1px 1px var(--sage, #7e8c72); }
+.gallery-filters small { margin-left: auto; font-size: 9px; color: var(--navy, #8a997c); }
 .minecraft-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
-.minecraft-photo { padding: 5px; border: 1px solid #c8c5af; box-shadow: 2px 2px #d9d9c8; background: #fffdf5; text-align: left; min-width: 0; }
-.minecraft-photo:hover { border-color: #899c76; }
+.minecraft-photo { padding: 5px; border: 1px solid var(--desktop-line, #c8c5af); box-shadow: 2px 2px var(--desktop-button-shadow, #d9d9c8); background: var(--paper, #fffdf5); text-align: left; min-width: 0; }
+.minecraft-photo:hover { border-color: var(--desktop-line, #899c76); }
 .minecraft-photo img { width: 100%; height: 130px; object-fit: cover; object-position: center; }
-.minecraft-photo span { display: flex; justify-content: space-between; padding: 8px 4px 4px; color: #7c886b; font-size: 10px; }
+.minecraft-photo span { display: flex; justify-content: space-between; padding: 8px 4px 4px; color: var(--navy, #7c886b); font-size: 10px; }
 .minecraft-photo b { font-weight: 400; }
-.gallery-viewer { border: 1px solid #a6b492; padding: 8px; margin-bottom: 18px; }
-.gallery-viewer img { width: 100%; height: auto; max-height: 600px; object-fit: contain; background: #353c33; margin-top: 8px; }
+.gallery-viewer { border: 1px solid var(--desktop-line, #a6b492); padding: 8px; margin-bottom: 18px; }
+.gallery-viewer img { width: 100%; height: auto; max-height: 600px; object-fit: contain; background: var(--ink, #353c33); margin-top: 8px; }
 .gallery-viewer p { margin: 6px; font-size: 10px; }
-.gallery-note { font-size: 10px !important; color: #8a957c; margin-top: 21px; }
-.contact-card { border: 1px solid #c1c9b0; padding: 17px; margin: 17px 0; background: #f4f3e5; }
-.contact-card > span { display: block; font-size: 9px; color: #89977b; letter-spacing: 1.1px; }
+.gallery-viewer:focus-visible { outline: 2px solid var(--edge, #6f8661); outline-offset: 2px; }
+.gallery-viewer-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; font-size: 10px; }
+.gallery-viewer-controls > span { margin: 0 auto; font-variant-numeric: tabular-nums; }
+.gallery-viewer-controls .text-button { margin-left: auto; }
+.gallery-note { font-size: 10px !important; color: var(--navy, #8a957c); margin-top: 21px; }
+.contact-card { border-left: 2px solid var(--sage, #6f8990); padding: 17px; margin: 17px 0; background: var(--cream, #f4f3e5); }
+.contact-card > span { display: block; font-size: 9px; color: var(--navy, #89977b); letter-spacing: 1.1px; }
 .contact-card strong { display: block; font-size: 16px; font-weight: 400; margin: 12px 0 16px; overflow-wrap: anywhere; }
 .contact-card .pixel-button { display: inline-block; font-size: 11px; margin-right: 10px; }
-.browser-page-footer { max-width: 880px; margin: 31px auto 0; padding-top: 10px; border-top: 1px solid #d8dcc9; font-size: 7px; letter-spacing: .8px; color: #95a188; display: flex; justify-content: space-between; gap: 10px; }
-.browser-status { display: flex; justify-content: space-between; border-top: 1px solid #b7c1a7; padding: 4px 10px; font-size: 8px; color: #7d8a70; }
-.sponsor-app { height: 100%; overflow: auto; padding: 22px 23px; color: #4e6049; background: #f5f1df; scrollbar-width: thin; }
+.browser-page-footer { max-width: 880px; margin: 31px auto 0; padding-top: 10px; border-top: 1px solid var(--desktop-line, #d8dcc9); font-size: 7px; letter-spacing: .8px; color: var(--navy, #95a188); display: flex; justify-content: space-between; gap: 10px; }
+.browser-status { display: flex; justify-content: space-between; border-top: 1px solid var(--desktop-line, #b7c1a7); padding: 4px 10px; font-size: 8px; color: var(--navy, #7d8a70); }
+.sponsor-app { height: 100%; overflow: auto; padding: 22px 23px; color: var(--ink, #4e6049); background: var(--paper, #f5f1df); scrollbar-width: thin; }
 .sponsor-heading { display: flex; gap: 12px; align-items: center; }
 .sponsor-heading h1 { font-size: 26px; font-weight: 400; margin: 5px 0; }
 .sponsor-heading .browser-kicker { font-size: 7px; }
 .sponsor-intro { font-size: 12px; line-height: 1.9; margin: 18px 0; }
-.sponsor-network { background: #dce5cf; border: 1px solid #9fab8d; padding: 9px 10px; font-size: 10px; display: flex; justify-content: space-between; }
+.sponsor-network { background: var(--desktop-tint, #dce5cf); border-bottom: 1px solid var(--desktop-line, #9fab8d); padding: 9px 10px; font-size: 10px; display: flex; justify-content: space-between; }
 .sponsor-network span { font-size: 9px; }
 .sponsor-receiver { display: flex; align-items: center; gap: 16px; padding: 18px 0 9px; }
 .sponsor-receiver img { width: 134px; height: 134px; flex-shrink: 0; border: 5px solid #fff; image-rendering: pixelated; }
 .sponsor-receiver > div { min-width: 0; }
 .sponsor-receiver span { font-size: 10px; }
 .sponsor-app code { display: block; font-size: 10px; line-height: 1.8; word-break: break-all; padding: 6px 0; user-select: all; }
-.sponsor-receiver a,.sponsor-transfer a { display: block; font-size: 10px; color: #657c53; margin: 11px 0 4px; text-decoration: underline; }
+.sponsor-receiver a,.sponsor-transfer a { display: block; font-size: 10px; color: var(--navy, #657c53); margin: 11px 0 4px; text-decoration: underline; }
 .sponsor-app .pixel-button { font-size: 11px; padding: 6px 10px; }
-.sponsor-help { color: #8d8067; font-size: 10px; line-height: 1.8; }
+.sponsor-help { color: var(--navy, #435f70); font-size: 10px; line-height: 1.8; }
 .sponsor-wallet { margin-top: 22px; }
 .sponsor-wallet p { font-size: 11px; line-height: 1.8; }
 .sponsor-wallet > button { margin: 3px 6px 8px 0; }
-.wallet-empty { background: #e7e9d9; padding: 12px; }
-.connected-wallet { border: 1px dashed #a6b497; padding: 11px; margin: 11px 0; }
+.wallet-empty { background: var(--desktop-tint, #e7e9d9); padding: 12px; }
+.connected-wallet { border-left: 2px solid var(--sage, #6f8990); background: var(--desktop-tint, #e6e8df); padding: 11px; margin: 11px 0; }
 .connected-wallet > span { font-size: 10px; }
 .sponsor-wallet label { font-size: 11px; display: block; margin: 17px 0 7px; }
 .sponsor-amount-row { display: flex; gap: 7px; }
-.sponsor-amount-row input { min-width: 0; flex: 1; background: #fffdf2; border: 1px solid #9da98d; padding: 7px; font: 15px monospace; }
+.sponsor-amount-row input { border-radius: 0; color: var(--ink, #263e4b); min-width: 0; flex: 1; background: var(--paper, #fffdf2); border: 1px solid var(--desktop-line, #9da98d); padding: 7px; font: 15px monospace; }
 .sponsor-presets { display: flex; gap: 8px; margin-top: 7px; }
-.sponsor-presets button { font-size: 10px; background: #e5e9d8; border: 1px solid #bfc8ae; padding: 4px 8px; }
-.sponsor-review,.sponsor-transfer { margin: 16px 0; padding: 14px; border: 1px solid #93a77e; background: #e6edda; }
+.sponsor-presets button { border-radius: 0; color: var(--ink, #263e4b); font-size: 10px; background: var(--desktop-tint, #e5e9d8); border: 1px solid var(--desktop-line, #bfc8ae); padding: 4px 8px; }
+.sponsor-review,.sponsor-transfer { margin: 16px 0; padding: 14px; border-left: 2px solid var(--sage, #6f8990); background: var(--desktop-tint, #e6edda); }
 .sponsor-review strong,.sponsor-transfer strong { font-size: 12px; font-weight: 500; }
 .sponsor-review .text-button { margin-left: 8px; }
 .software-feedback { color: #8b684c; }
-.sponsor-footer { margin-top: 25px; border-top: 1px solid #cbd2bb; padding-top: 15px; font-size: 10px; color: #94a083; }
-.music-account-entry { margin: 13px 0 16px; border: 1px solid #bec6af; padding: 11px; background: #e8eddf; }
+.sponsor-footer { margin-top: 25px; border-top: 1px solid var(--desktop-line, #cbd2bb); padding-top: 15px; font-size: 10px; color: var(--navy, #94a083); }
+.music-account-entry { margin: 13px 0 16px; border-top: 1px solid var(--desktop-line, #bec6af); padding: 11px; background: var(--desktop-tint, #e8eddf); }
 .music-account-entry a { display: inline-block; font-size: 11px; }
-.music-account-entry p { font-size: 9px; line-height: 1.8; color: #7e8a72; margin: 8px 0 0; }
+.music-account-entry p { font-size: 9px; line-height: 1.8; color: var(--navy, #7e8a72); margin: 8px 0 0; }
 @media(max-width:600px) {
   .browser-document { padding: 20px 15px 12px; }
   .browser-tabs button { font-size: 10px; }
+  .browser-toolbar button { width: 44px; height: 40px; }
+  .browser-tabs button, .gallery-filters button, .gallery-viewer-controls button { min-height: 40px; }
   .profile-hero { gap: 15px; }
   .profile-directory { gap: 8px; }
   .profile-directory button { padding: 11px; }
@@ -108,4 +114,107 @@
   .sponsor-receiver { gap: 11px; }
   .sponsor-receiver img { width: 110px; height: 110px; }
   .browser-menubar span:last-child { font-size: 7px; }
+}
+
+/* Shared application surfaces use the harbor desktop palette. */
+.neko-desktop-page .browser-toolbar button,
+.neko-desktop-page .browser-tabs button { min-height: 28px; }
+.neko-desktop-page .browser-tabs button[aria-current] { border-top: 2px solid var(--navy); }
+.neko-desktop-page .browser-document { box-shadow: none; }
+.neko-desktop-page .profile-directory button:hover,
+.neko-desktop-page .sponsor-presets button:hover { border-color: var(--navy); background: var(--desktop-button); }
+.neko-desktop-page .profile-directory button:active,
+.neko-desktop-page .sponsor-presets button:active { box-shadow: inset 2px 2px 0 var(--desktop-button-shadow); }
+.neko-desktop-page .profile-hero > .pixel-icon,
+.neko-desktop-page .sponsor-heading > .pixel-icon { width: 48px; height: 48px; }
+@media (max-width: 600px) {
+  .neko-desktop-page .browser-toolbar button,
+  .neko-desktop-page .browser-tabs button { min-height: 40px; }
+}
+
+/* Navigator has a solid control deck above an uncluttered document sheet. */
+.neko-desktop-page .neko-browser { background: var(--desktop-shell); }
+.neko-desktop-page .browser-menubar { min-height: 28px; align-items: center; gap: 20px; padding: 4px 12px; color: var(--desktop-highlight); border-bottom: 2px solid var(--desktop-shell-dark); box-shadow: inset 0 2px var(--desktop-shell-light); font: 17px/1 "Jersey 25", monospace; }
+.neko-desktop-page .browser-menubar span:last-child { color: #c9d9d5; font-size: 14px; }
+.neko-desktop-page .browser-toolbar { gap: 6px; padding: 10px 10px 12px; background: var(--sage); box-shadow: inset 0 2px var(--desktop-shell-light); }
+.neko-desktop-page .browser-toolbar button { width: 32px; height: 32px; flex-shrink: 0; font: 18px/1 monospace; }
+.neko-desktop-page .browser-toolbar .browser-address { display: flex; align-items: center; height: 32px; border: 2px solid var(--desktop-shell-dark); padding: 0 10px; color: var(--ink); background: var(--paper); box-shadow: inset 2px 2px 0 var(--desktop-line), 0 2px 0 var(--desktop-shell-light); font-size: 11px; }
+.neko-desktop-page .browser-online { width: 8px; height: 8px; padding: 0; margin: 0 4px; flex-shrink: 0; overflow: hidden; font-size: 0; background: var(--desktop-amber); box-shadow: 2px 2px 0 var(--desktop-shell-dark), inset 2px 2px 0 var(--desktop-highlight); }
+.neko-desktop-page .browser-tabs { gap: 4px; padding: 0 10px; background: var(--sage); border-bottom: 2px solid var(--desktop-shell-dark); }
+.neko-desktop-page .browser-tabs button { position: relative; min-height: 34px; padding: 8px 4px 7px; border: 2px solid var(--desktop-shell-dark); border-bottom: 0; background: var(--desktop-shell); color: var(--desktop-highlight); box-shadow: inset 2px 2px var(--desktop-shell-light); font-size: 11px; line-height: 1.3; }
+.neko-desktop-page .browser-tabs button::before { content: ""; position: absolute; top: -2px; left: -2px; width: 4px; height: 4px; background: var(--sage); box-shadow: 2px 2px 0 var(--desktop-shell-dark); pointer-events: none; }
+.neko-desktop-page .browser-tabs button:hover { background: var(--navy); }
+.neko-desktop-page .browser-tabs button[aria-current] { border-color: var(--desktop-shell-dark); background: var(--paper); color: var(--ink); box-shadow: inset 2px 2px var(--desktop-highlight), 0 2px 0 var(--paper); font-weight: 600; }
+.neko-desktop-page .browser-document { padding: 30px 32px 20px; background: var(--paper); }
+.neko-desktop-page .browser-document article { max-width: 760px; }
+.neko-desktop-page .browser-kicker { display: flex; gap: 8px; align-items: center; font: 15px/1.2 "Jersey 25", monospace; letter-spacing: 1.2px; color: var(--desktop-muted); }
+.neko-desktop-page .browser-kicker::before { content: ""; width: 6px; height: 6px; flex-shrink: 0; background: var(--sage); box-shadow: 4px 4px 0 var(--desktop-amber); margin-right: 4px; }
+.neko-desktop-page .profile-hero { gap: 20px; margin-top: 24px; }
+.neko-desktop-page .profile-stamp { width: 80px; height: 88px; border: 2px solid var(--edge); background: var(--desktop-shell); color: var(--desktop-highlight); box-shadow: inset 2px 2px var(--desktop-shell-light), 4px 4px 0 var(--cream); font-size: 58px; }
+.neko-desktop-page .profile-stamp span { border-top: 2px solid var(--sage); padding-top: 4px; color: var(--desktop-highlight); }
+.neko-desktop-page .profile-hero h1 { font-size: 56px; }
+.neko-desktop-page .browser-document p { line-height: 1.95; }
+.neko-desktop-page .profile-intro { margin: 26px 0 20px; }
+.neko-desktop-page .profile-callout { padding: 4px 0 4px 16px; margin: 20px 0 26px; background: transparent; border-left: 3px solid var(--sage); font-size: 12px; }
+.neko-desktop-page .profile-directory { gap: 24px; margin: 26px 0 32px; }
+.neko-desktop-page .profile-directory button { padding: 16px 0 12px; border: 0; border-top: 2px solid var(--sage); background: transparent; box-shadow: none; }
+.neko-desktop-page .profile-directory button:hover { background: transparent; border-color: var(--ink); }
+.neko-desktop-page .profile-directory button:hover strong { text-decoration: underline; text-underline-offset: 4px; }
+.neko-desktop-page .profile-directory button:active { box-shadow: none; transform: translateY(2px); }
+.neko-desktop-page .profile-directory span { font: 16px/1 "Jersey 25", monospace; letter-spacing: 1px; }
+.neko-desktop-page .profile-directory strong { margin: 10px 0 7px; font-size: 14px; font-weight: 600; }
+.neko-desktop-page .browser-section { margin: 30px 0; }
+.neko-desktop-page .browser-section h2 { font-size: 16px; font-weight: 600; padding-bottom: 12px; }
+.neko-desktop-page .profile-tags { gap: 8px 14px; }
+.neko-desktop-page .profile-tags span { padding: 2px 0; border: 0; background: transparent; font-size: 11px; }
+.neko-desktop-page .profile-tags span::before { content: "·"; padding-right: 6px; color: var(--sage); }
+.neko-desktop-page .profile-job { margin: 24px 0 30px; padding-left: 18px; border-left: 2px solid var(--desktop-line); }
+.neko-desktop-page .profile-project { padding: 18px 0; }
+.neko-desktop-page .contact-card { padding: 18px 0; margin: 20px 0; border: 0; border-top: 2px solid var(--desktop-line); background: transparent; }
+.neko-desktop-page .contact-card strong { font-size: 18px; margin: 12px 0 18px; }
+.neko-desktop-page .minecraft-photo { padding: 6px; border: 2px solid var(--sage); box-shadow: 3px 3px 0 var(--cream); }
+.neko-desktop-page .minecraft-photo span { padding: 10px 4px 4px; }
+.neko-desktop-page .gallery-viewer { border: 2px solid var(--sage); background: var(--desktop-tint); }
+.neko-desktop-page .browser-status { min-height: 24px; align-items: center; padding: 4px 10px; background: var(--cream); color: var(--desktop-muted); border-top: 2px solid var(--sage); box-shadow: inset 0 2px var(--desktop-highlight); font-size: 9px; }
+
+/* Notes is a bound paper pad; Settings is a compact hardware control panel. */
+.neko-desktop-page .notes-app { padding: 0 10px; background: var(--desktop-shell); }
+.neko-desktop-page .notes-app .app-menubar { color: var(--desktop-highlight); padding: 10px 4px; min-height: 38px; border-bottom: 0; font-size: 10px; }
+.neko-desktop-page .notes-app .notes-paper { border: 2px solid var(--desktop-shell-dark); padding: 18px 18px 18px 40px; background-color: var(--paper); background-image: linear-gradient(90deg, transparent 28px, #bb9c7a 28px, #bb9c7a 30px, transparent 30px), repeating-linear-gradient(transparent 0, transparent 27px, #d4d6c9 27px, #d4d6c9 28px); background-position: 0 0, 0 18px; box-shadow: inset 4px 0 var(--cream), 4px 4px 0 var(--desktop-shell-dark); line-height: 28px; caret-color: var(--navy); }
+.neko-desktop-page .notes-app .notes-paper::placeholder { color: var(--desktop-muted); }
+.neko-desktop-page .notes-app .notes-paper:focus-visible { outline: 2px solid var(--desktop-amber); outline-offset: -4px; }
+.neko-desktop-page .notes-app .notes-footer { padding: 10px 4px; min-height: 34px; color: var(--desktop-highlight); font-size: 9px; }
+.neko-desktop-page .settings-app { padding: 0 20px 20px; }
+.neko-desktop-page .settings-app > .app-section-title { margin: 0 -20px 24px; padding: 20px; background: var(--desktop-shell); border-bottom: 4px solid var(--sage); box-shadow: inset 0 2px var(--desktop-shell-light); }
+.neko-desktop-page .settings-app > .app-section-title h2 { color: var(--desktop-highlight); font: 28px/1.1 "Jersey 25", monospace; letter-spacing: .3px; }
+.neko-desktop-page .settings-app > .app-section-title p { margin-top: 8px; color: #c9d9d5; font-size: 11px; }
+.neko-desktop-page .settings-app > fieldset { padding: 0; border: 0; }
+.neko-desktop-page .settings-app legend { padding: 0 0 12px; color: var(--ink); font-size: 12px; font-weight: 600; }
+.neko-desktop-page .settings-app .wallpaper-options { gap: 10px; }
+.neko-desktop-page .settings-app .wallpaper-option { flex: 1; min-width: 0; padding: 6px; border: 2px solid transparent; background: transparent; }
+.neko-desktop-page .settings-app .wallpaper-preview { height: 72px; border: 2px solid var(--desktop-shell-dark); box-shadow: 2px 2px 0 var(--desktop-line); margin-bottom: 10px; image-rendering: pixelated; }
+.neko-desktop-page .settings-app .wallpaper-option.selected { border-color: var(--navy); background: var(--desktop-tint); box-shadow: inset 2px 2px var(--desktop-highlight); }
+.neko-desktop-page .settings-app .wallpaper-option.selected strong::after { content: " ✓"; color: var(--navy); }
+.neko-desktop-page .settings-app .wallpaper-option strong { font-size: 11px; }
+.neko-desktop-page .settings-app .wallpaper-option small { font-size: 9px; line-height: 1.5; }
+.neko-desktop-page .settings-app .scanline-setting { padding: 18px 0; margin: 22px 0 18px; border-top: 1px solid var(--desktop-line); border-bottom: 1px solid var(--desktop-line); }
+.neko-desktop-page .settings-app .scanline-setting strong { font-size: 12px; font-weight: 600; }
+.neko-desktop-page .settings-app .scanline-setting small { font-size: 10px; margin-top: 6px; }
+.neko-desktop-page .settings-app .scanline-setting input { appearance: none; width: 24px; height: 24px; flex-shrink: 0; margin: 0; border: 2px solid var(--edge); background: var(--paper); box-shadow: inset 2px 2px var(--desktop-line); }
+.neko-desktop-page .settings-app .scanline-setting input:checked { background-color: var(--navy); background-image: linear-gradient(var(--desktop-highlight), var(--desktop-highlight)); background-size: 10px 10px; background-position: center; background-repeat: no-repeat; box-shadow: inset 2px 2px var(--desktop-shell-dark); }
+.neko-desktop-page .settings-app .scanline-setting input:focus-visible { outline: 2px solid var(--desktop-amber); outline-offset: 2px; }
+.neko-desktop-page .settings-app .settings-footer > span { font-size: 9px; line-height: 1.6; }
+@media (max-width: 600px) {
+  .neko-desktop-page .browser-menubar { gap: 14px; }
+  .neko-desktop-page .browser-menubar span:last-child { display: none; }
+  .neko-desktop-page .browser-toolbar { padding: 8px; }
+  .neko-desktop-page .browser-toolbar button { width: 40px; height: 40px; }
+  .neko-desktop-page .browser-toolbar .browser-address { height: 40px; padding: 0 8px; }
+  .neko-desktop-page .browser-document { padding: 24px 18px 16px; }
+  .neko-desktop-page .profile-directory { gap: 16px; }
+  .neko-desktop-page .settings-app { padding: 0 12px 16px; }
+  .neko-desktop-page .settings-app > .app-section-title { margin: 0 -12px 20px; padding: 18px 16px; }
+  .neko-desktop-page .settings-app .wallpaper-options { gap: 4px; }
+  .neko-desktop-page .settings-app .wallpaper-option { padding: 4px; }
+  .neko-desktop-page .settings-app .wallpaper-preview { height: 56px; }
 }

@@ -1,0 +1,20 @@
+{
+  "preview": {
+    "src": "/images/panorama-preview-caaf5b50a87d.webp",
+    "width": 1280,
+    "height": 720,
+    "bytes": 113600
+  },
+  "mobile": {
+    "src": "/images/panorama-mobile-d55f65a13836.webp",
+    "width": 2048,
+    "height": 1024,
+    "bytes": 199424
+  },
+  "desktop": {
+    "src": "/images/panorama-desktop-c3dff344203f.webp",
+    "width": 4096,
+    "height": 2048,
+    "bytes": 753672
+  }
+}

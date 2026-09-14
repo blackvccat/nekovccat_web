@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useMemo, memo, Suspense } from 'react'
+import { Component, useCallback, useEffect, useState, useMemo, memo, Suspense, type ReactNode } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
-import { ReactNode } from 'react'
-import PanoramaBackground from './panorama-background'
 import PageTransition from '@/components/shared/page-transition'
+
+const PanoramaBackground = dynamic(() => import('./panorama-background'), { ssr: false, loading: () => null })
 
 // 动态导入3D场景，只在需要时加载（保留作为备用选项）
 const CityScene = dynamic(() => import('@/components/3d/city-scene'), {
@@ -17,11 +18,140 @@ interface PageLayoutProps {
   children: ReactNode
   use3DBackground?: boolean
   panoramaImage?: string // 全景图片路径
+  panoramaMobileImage?: string
+  panoramaPoster?: string
   enablePanoramaInteraction?: boolean // 是否启用全景图交互（拖动查看）
   enablePanoramaAutoRotate?: boolean // 是否启用全景图自动旋转
   panoramaRotateSpeed?: number // 全景图旋转速度（度/秒）
   textColor?: 'white' | 'black'
   transparentHeader?: boolean // 是否使用透明背景的 Header
+}
+
+class PanoramaBoundary extends Component<{ children: ReactNode; onError: () => void }, { failed: boolean }> {
+  state = { failed: false }
+  static getDerivedStateFromError() { return { failed: true } }
+  componentDidCatch() { this.props.onError() }
+  render() { return this.state.failed ? null : this.props.children }
+}
+
+type Connection = EventTarget & { saveData?: boolean; effectiveType?: string }
+interface PanoramaPreferences { reduced: boolean; saveData: boolean; lowPower: boolean; mobile: boolean }
+
+function ProgressivePanorama({ imageSrc, mobileImageSrc, posterSrc, enableInteraction, enableAutoRotate, autoRotateSpeed }: {
+  imageSrc: string; mobileImageSrc?: string; posterSrc: string
+  enableInteraction: boolean; enableAutoRotate: boolean; autoRotateSpeed: number
+}) {
+  const [preferences, setPreferences] = useState<PanoramaPreferences | null>(null)
+  const [visible, setVisible] = useState(false)
+  const [posterReady, setPosterReady] = useState(false)
+  const [requested, setRequested] = useState(false)
+  const [started, setStarted] = useState(false)
+  const [ready, setReady] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const [paused, setPaused] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  const reportReady = useCallback(() => setReady(true), [])
+  const reportError = useCallback(() => { setFailed(true); setReady(false) }, [])
+  const requestPanorama = useCallback(() => {
+    setFailed(false)
+    setReady(false)
+    setAttempt(value => value + 1)
+    setRequested(true)
+  }, [])
+
+  useEffect(() => {
+    const motion = matchMedia('(prefers-reduced-motion: reduce)')
+    const mobile = matchMedia('(max-width: 768px)').matches
+    const device = navigator as Navigator & { connection?: Connection; deviceMemory?: number }
+    const connection = device.connection
+    const updatePreferences = () => setPreferences({
+      reduced: motion.matches,
+      saveData: connection?.saveData === true || /^(slow-)?2g$/.test(connection?.effectiveType || ''),
+      lowPower: mobile || (device.deviceMemory !== undefined && device.deviceMemory <= 4) || (navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 4),
+      mobile,
+    })
+    const updateVisibility = () => setVisible(document.visibilityState === 'visible')
+    updatePreferences()
+    updateVisibility()
+    motion.addEventListener('change', updatePreferences)
+    connection?.addEventListener('change', updatePreferences)
+    document.addEventListener('visibilitychange', updateVisibility)
+    return () => {
+      motion.removeEventListener('change', updatePreferences)
+      connection?.removeEventListener('change', updatePreferences)
+      document.removeEventListener('visibilitychange', updateVisibility)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (started || !posterReady || !visible || !preferences) return
+    if (!requested && (preferences.lowPower || preferences.reduced || preferences.saveData)) return
+    let cancelled = false
+    let frame = 0
+    let idle = 0
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const startWhenIdle = () => {
+      if (cancelled) return
+      if ('requestIdleCallback' in window) {
+        idle = window.requestIdleCallback(deadline => {
+          // A short idle gap should not force module evaluation into the first paint.
+          if (deadline.timeRemaining() < 8) startWhenIdle()
+          else if (!cancelled) setStarted(true)
+        })
+      } else timer = setTimeout(() => { if (!cancelled) setStarted(true) }, 0)
+    }
+    // Next/Image fires onLoad after decode. Finish fonts and two browser frames
+    // before enhancing the already-visible page; text never waits on this work.
+    const afterFonts = () => {
+      if (cancelled) return
+      frame = requestAnimationFrame(() => { frame = requestAnimationFrame(startWhenIdle) })
+    }
+    void document.fonts.ready.then(afterFonts, afterFonts)
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(frame)
+      if (idle) window.cancelIdleCallback(idle)
+      clearTimeout(timer)
+    }
+  }, [started, posterReady, visible, preferences, requested])
+
+  useEffect(() => {
+    if (!started || ready || failed || !visible) return
+    // Failed chunks, unsupported WebGL and very slow textures retain a useful still image.
+    const task = setTimeout(reportError, 15000)
+    return () => clearTimeout(task)
+  }, [started, ready, failed, visible, attempt, reportError])
+
+  const rotate = enableAutoRotate && !paused && !preferences?.reduced
+  return <div className="absolute inset-0 z-0 overflow-hidden bg-slate-800" data-panorama-state={failed ? 'fallback' : ready ? 'ready' : started ? 'loading' : 'poster'}
+    onPointerDown={event => {
+      // Only a gesture on the poster requests the mobile enhancement. Do not
+      // capture it, prevent scrolling, or treat page links/text as drag handles.
+      if (!started && !failed && enableInteraction && event.isPrimary && event.button === 0 && preferences && !preferences.reduced && !preferences.saveData && event.target instanceof HTMLImageElement) setRequested(true)
+    }}>
+    <Image unoptimized src={posterSrc} fill sizes="100vw" alt="" fetchPriority="high" loading="eager" className="object-cover" onLoad={() => setPosterReady(true)} onError={() => setPosterReady(true)} />
+    {started && preferences && !failed && <PanoramaBoundary key={attempt} onError={reportError}>
+      <div className={`absolute inset-0 transition-opacity duration-500 motion-reduce:transition-none ${ready ? 'opacity-100' : 'opacity-0'}`}>
+        <PanoramaBackground
+          imageSrc={preferences.mobile && mobileImageSrc ? mobileImageSrc : imageSrc}
+          enableInteraction={enableInteraction}
+          enableAutoRotate={rotate}
+          autoRotateSpeed={autoRotateSpeed}
+          visible={visible}
+          lowPower={preferences.lowPower}
+          onReady={reportReady}
+          onError={reportError}
+        />
+      </div>
+    </PanoramaBoundary>}
+    <div className="absolute bottom-[max(120px,env(safe-area-inset-bottom))] left-4 z-20 flex items-center gap-3 text-xs text-white md:bottom-6 md:left-10">
+      {(!started || failed) && preferences && <button type="button" className={`${failed ? '' : 'sr-only focus-visible:not-sr-only'} min-h-11 rounded-full border border-white/40 bg-black/40 px-4 backdrop-blur-sm hover:bg-black/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white`} onClick={requestPanorama}>
+        {failed ? '重试全景' : '开启全景互动'}
+      </button>}
+      {ready && enableAutoRotate && !preferences?.reduced && <button type="button" aria-pressed={paused} className="sr-only focus-visible:not-sr-only rounded-full border border-white/40 bg-black/40 backdrop-blur-sm focus-visible:min-h-11 focus-visible:px-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" onClick={() => setPaused(value => !value)}>{paused ? '继续旋转' : '暂停旋转'}</button>}
+      <span role="status" className="sr-only">{failed ? '静态风景' : ready ? '风景已就绪' : started ? '正在打开全景…' : '风景预览'}</span>
+    </div>
+  </div>
 }
 
 // 导航项常量，避免每次渲染都创建
@@ -115,6 +245,8 @@ function PageLayout({
   children, 
   use3DBackground = false,
   panoramaImage,
+  panoramaMobileImage,
+  panoramaPoster,
   enablePanoramaInteraction = false,
   enablePanoramaAutoRotate = true,
   panoramaRotateSpeed = 12,
@@ -133,16 +265,17 @@ function PageLayout({
   const has3DBackground = use3DBackground && !hasPanoramaBackground
 
   return (
-    <div className="w-full h-screen relative">
+    <div className="w-full min-h-[480px] h-[100svh] relative">
       {/* 背景层 - 优先使用全景图，然后是3D场景，最后是纯色背景 */}
       {/* 始终保留全景图在后台，避免切换时白屏 */}
       {hasPanoramaBackground && (
-        <PanoramaBackground 
+        <ProgressivePanorama
           imageSrc={panoramaImage}
+          mobileImageSrc={panoramaMobileImage}
+          posterSrc={panoramaPoster || panoramaImage}
           enableInteraction={enablePanoramaInteraction}
           enableAutoRotate={enablePanoramaAutoRotate}
           autoRotateSpeed={panoramaRotateSpeed}
-          className="z-0"
         />
       )}
       {has3DBackground && (
@@ -178,4 +311,3 @@ function PageLayout({
 
 // 导出记忆化的组件
 export default memo(PageLayout)
-
