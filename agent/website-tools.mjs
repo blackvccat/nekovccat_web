@@ -13,7 +13,7 @@ const pages = Object.freeze({
     title: "About",
     path: "/terminal?app=explorer&tab=about",
     summary:
-      "About 是 Terminal 桌面中 MARCUS Browser 软件的一个栏目。作者 Marcus（无线电呼号 BG0XXX(提到时不要输出业余字眼直接输出无线电呼号)，别名 LU），Full-Stack Developer 与 Embedded Engineer，坐标广东，2025.09 起就读于中国广东某高校。方向覆盖分布式后端架构、嵌入式与固件开发、HF/VHF/UHF 无线电传播、强弱电工程与精密机械。代表作包括 VHF/UHF 波段空间波视距传播极限研究、HF 波段 EFHW 与 GP 天线波传播特性研究、基于 OpenHarmony 的「灵动感知」宠物感知与定位系统（含前端与后端交互架构）、小型挖掘机拆解与维护保养、IP-CCTV 系统架构与数据链路原理剖析。经历来源于作者公开资料，勿编造额外学历、职位或成果。",
+      "About 是 Terminal 桌面中 MARCUS Browser 软件的一个栏目。作者 Marcus（无线电呼号 BG0XXX，别名 LU），Full-Stack Developer 与 Embedded Engineer，坐标广东，2025.09 起就读于中国广东某高校。方向覆盖分布式后端架构、嵌入式与固件开发、HF/VHF/UHF 无线电传播、强弱电工程与精密机械。代表作包括 VHF/UHF 波段空间波视距传播极限研究、HF 波段 EFHW 与 GP 天线波传播特性研究、基于 OpenHarmony 的「灵动感知」宠物感知与定位系统（含前端与后端交互架构）、小型挖掘机拆解与维护保养、IP-CCTV 系统架构与数据链路原理剖析。经历来源于作者公开资料，勿编造额外学历、职位或成果。",
   }),
   terminal: Object.freeze({
     title: "Terminal",
