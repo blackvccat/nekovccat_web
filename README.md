@@ -1,6 +1,7 @@
 # Marcus · Terminal
 
-Next.js + FastAPI 的个人网站，地址是 **<https://example.com/terminal>**——一台可交互的像素风复古电脑，内置 DeepSeek Harness 站内 Agent、音乐软件、站点导航、便签与外观设置。它只有一个页面：打开 `/terminal` 就直接是桌面，没有单独的首页。域名根路径 <https://example.com/> 留给主站，顶栏 **HOME** 就指向那里（在当前标签页直接跳转），**Terminal** 是当前桌面；About 与 Contact 合并进桌面的 **MARCUS Browser**，旧地址会自动跳转。
+Next.js + FastAPI 的个人网站，地址是 **<https://example.com/terminal>**——一台可交互的像素风复古电脑，内置 DeepSeek Harness 站内 Agent、音乐软件、站点导航、便签与外观设置。本分支不含3D首页，它只有一个页面：打开 `/terminal` 就直接是桌面，没有单独的首页。域名根路径 <https://example.com/> 留给主站，顶栏 **HOME** 就指向那里（在当前标签页直接跳转），**Terminal** 是当前桌面；About 与 Contact 合并进桌面的 **MARCUS Browser**，旧地址会自动跳转
+
 
 ## 站内助手
 
@@ -10,7 +11,7 @@ Next.js + FastAPI 的个人网站，地址是 **<https://example.com/terminal>**
 
 ## 桌面软件
 
-- **MK Agent**：官方 DeepSeek Harness 负责模型循环、会话轨迹与站内工具，默认使用 Deepseek-flash
+- **MK Agent**：官方 DeepSeek Harness 负责模型循环、会话轨迹与站内工具，默认使用 Deepseek-flash，本分支不含agent彩蛋模式
 - **MARCUS Browser**：复古站内浏览器，包含关于 MARCUS、项目/探索与经历、长廊及联系栏目。长廊挑选了主站「共鸣」展厅的一部分作品，带标题、简介与调性标注，点开任意画框会在新标签页打开主站对应作品。联系栏目给出公开邮箱与 GitHub 链接（示例值写在 `frontend/src/content/profile.ts`，换成自己的即可）。旧 About / Contact 与 `/my-world` 地址自动跳转。公开身份为 Marcus
 - **MARCUS Music**：粘贴网易云或 Spotify 分享链接，加载官方播放器，保存常听收藏。
 - **Notes**：在当前浏览器自动保存便签。
