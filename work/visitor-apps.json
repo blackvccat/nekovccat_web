@@ -1,0 +1,92 @@
+{
+  "_说明": "访客应用的注册表。一条记录一个应用：id（小写字母/数字/连字符，≤32 位）、title、subtitle、可选 watermark、可选 icon / wallpaper（写明 VISITOR_ASSETS_DIR 里的文件名）、view（视图区块数组）。区块类型：heading / text / letter / counter / checklist / footer / link / image / files / notice，字段规则见 backend/app/services/visitor_apps.py。访客名单在 visitor-accounts.json，每个访客的 apps 列决定他能打开哪几个。",
+  "apps": [
+    {
+      "id": "our-space",
+      "title": "Ourspace",
+      "subtitle": "只属于受邀访客的空间",
+      "icon": "our-room.svg",
+      "wallpaper": "seagull.jpg",
+      "watermark": "MARCUS PRIVATE DESKTOP",
+      "view": [
+        {
+          "type": "notice",
+          "text": "功能开发中"
+        }
+      ]
+    },
+    {
+      "id": "files",
+      "title": "Files",
+      "subtitle": "只读：下载 Marcus 分享的文件",
+      "icon": "files.svg",
+      "view": [
+        {
+          "type": "heading",
+          "eyebrow": "MARCUS SHARED FILES",
+          "title": "Files",
+          "action": null
+        },
+        {
+          "type": "files",
+          "title": "可下载的文件",
+          "intro": "点右边的「下载」保存到你的设备",
+          "items": [
+            {
+              "name": "示例图片.jpg",
+              "note": "把 href 换成你自己的文件地址即可",
+              "size": "211 KB",
+              "href": "/images/one-gull.jpg"
+            }
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "demo-welcome",
+      "title": "Welcome",
+      "subtitle": "示例应用：标题 / 正文 / 提示三种区块",
+      "watermark": "DEMO",
+      "view": [
+        {
+          "type": "heading",
+          "eyebrow": "DEMO APP",
+          "title": "这是一个示例应用"
+        },
+        {
+          "type": "text",
+          "title": "内容从哪里来",
+          "lines": [
+            "每一块内容都由后端在授权之后才返回，前端在登录之前不含任何应用文案与素材。",
+            "把 visitor-apps.json 换成你自己的应用即可。"
+          ]
+        },
+        {
+          "type": "notice",
+          "text": "示例内容",
+          "note": "notice 区块适合占位，比如「功能开发中」"
+        }
+      ]
+    },
+    {
+      "id": "demo-checklist",
+      "title": "Checklist",
+      "subtitle": "示例应用：可打勾的清单",
+      "view": [
+        {
+          "type": "checklist",
+          "title": "清单示例",
+          "intro": "打勾状态只存在当前浏览器，不会上传。",
+          "defaults": [
+            "第一条示例",
+            "第二条示例"
+          ],
+          "addPlaceholder": "再加一条…",
+          "addLabel": "添加",
+          "storageKey": "demo-visitor-checklist"
+        }
+      ]
+    }
+  ]
+}

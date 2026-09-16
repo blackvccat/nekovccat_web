@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" shape-rendering="crispEdges">
+  <!-- 访客应用的中性占位图标（应用没有自己的图标时用它）；24×24 像素网格 -->
+  <path d="M2 4h20v16H2z" fill="#3a4b46" />
+  <path d="M3 5h18v14H3z" fill="#e9e6cd" />
+  <path d="M3 5h18v3H3z" fill="#88978c" />
+  <path d="M5 9h6v7H5z" fill="#b9c7a6" />
+  <path d="M13 9h6v1h-6zM13 12h6v1h-6zM13 15h4v1h-4z" fill="#8d9c86" />
+</svg>

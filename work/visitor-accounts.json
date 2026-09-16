@@ -1,0 +1,16 @@
+{
+  "_说明": "访客模式账号。password_hash 由 scripts/add-visitor.py 生成，不要手写明文密码；DATABASE_ENABLED=true 时数据库的 visitor_accounts 表与这份文件一起生效（用 --db 直接写库，不要在数据库里存明文密码）。示例账号为「MK」，密码为「12345678」",
+  "visitors": [
+    {
+      "username": "mk",
+      "name": "MK",
+      "password_hash": "pbkdf2_sha256$600000$xa4A5x+KLWsCwMha5j+uEg==$QtGP/G55fkFqrlwHiFrMRGzQa+LUve1PH84ujjDoKdY=",
+      "apps": [
+        "our-space",
+        "files",
+        "demo-welcome",
+        "demo-checklist"
+      ]
+    }
+  ]
+}
