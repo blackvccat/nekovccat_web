@@ -1,0 +1,359 @@
+/* 桌面暗色主题 —— 由 scripts/desktop-theme.mjs 生成，请勿手改。
+ *
+ * 改法：改亮色 CSS（desktop.css / desktop-software.css / music-app.css / agent-progress.css），
+ * 或改生成器里的 DARK_PALETTE / RULE_OVERRIDES，然后 npm run theme:dark。
+ * 测试会校验这份文件与亮色 CSS 保持同步，手改会被 `npm test` 逮住。
+ *
+ * 每条规则都挂在 html[data-theme="dark"] .marcus-desktop-page 下面：只有桌面打开暗色时生效，
+ * 亮色主题与站内助手面板都不受影响。图片上的颜色（壁纸、图标标签、水印）按原样保留。
+ */
+html[data-theme="dark"] .marcus-desktop-page { color-scheme: dark; }
+html[data-theme="dark"] .marcus-desktop-page { --ink: #c7ecd3; --cream: #121914; --paper: #131b16; --edge: #388853; --sage: #57c77c; --navy: #193322; color: var(--ink); background: #1e2321; background-image: radial-gradient(#191d1b4d .65px, transparent .65px); }
+html[data-theme="dark"] .marcus-desktop-page button:focus-visible, html[data-theme="dark"] .marcus-desktop-page a:focus-visible, html[data-theme="dark"] .marcus-desktop-page [tabindex]:focus-visible { outline: 2px dashed #3adf71; }
+html[data-theme="dark"] .marcus-desktop-page textarea:focus-visible, html[data-theme="dark"] .marcus-desktop-page input:focus-visible { outline: 2px solid #3adf71; }
+html[data-theme="dark"] .marcus-desktop-page .computer-shell { background: #212725; border: 2px solid #378752; box-shadow: inset 2px 2px #3b8b56, inset -3px -3px #0a170e, 5px 7px 0 #08120b80, 0 12px 34px #050b0733; }
+html[data-theme="dark"] .marcus-desktop-page .computer-top nav a:hover { border-bottom-color: var(--ink); }
+html[data-theme="dark"] .marcus-desktop-page .computer-top nav a[aria-current] { border-bottom-color: var(--ink); }
+html[data-theme="dark"] .marcus-desktop-page .computer-model { border: 1px solid #3c9258; color: #78d296; }
+html[data-theme="dark"] .marcus-desktop-page .computer-screen { border: 3px solid #327a4a; box-shadow: 0 0 0 2px #0a180f, inset 2px 2px #030705; }
+html[data-theme="dark"] .marcus-desktop-page .desktop-icons { scrollbar-color: #46ab68 #0a0d0b44; }
+html[data-theme="dark"] .marcus-desktop-page .desktop-icon:hover, html[data-theme="dark"] .marcus-desktop-page .desktop-icon:focus-visible { border: 1px dotted #64d88b; }
+html[data-theme="dark"] .marcus-desktop-page .desktop-window { border: 1px solid #307547; background: var(--cream); box-shadow: inset 1px 1px #429b60, inset -1px -1px #08130c, 4px 5px 0 #04090555; }
+html[data-theme="dark"] .marcus-desktop-page .window-titlebar { color: #d3eedc; background: #0c110e; }
+html[data-theme="dark"] .marcus-desktop-page .active-window .window-titlebar { background: var(--navy); }
+html[data-theme="dark"] .marcus-desktop-page .window-name small { color: #c6ead2; }
+html[data-theme="dark"] .marcus-desktop-page .window-controls button { border: 1px solid #2e7044; background: #121914; color: #d1f0db; box-shadow: inset 1px 1px #40965d, inset -1px -1px #08120b; }
+html[data-theme="dark"] .marcus-desktop-page .window-controls button:active { box-shadow: inset 1px 1px #08120b; }
+html[data-theme="dark"] .marcus-desktop-page .window-controls button:last-child:hover { background: #e29083; }
+html[data-theme="dark"] .marcus-desktop-page .window-statusbar { color: #8cd9a6; }
+html[data-theme="dark"] .marcus-desktop-page .window-statusbar > span { border-color: #3f9b5e #4bb66f #4bb66f #3f9b5e; }
+html[data-theme="dark"] .marcus-desktop-page .resize-grip { color: #5ac87f; }
+html[data-theme="dark"] .marcus-desktop-page .inset-panel { border-color: #3c9258 #4cb66f #4cb66f #3c9258; box-shadow: inset 1px 1px #050c072b; }
+html[data-theme="dark"] .marcus-desktop-page .pixel-button { border: 1px solid #388a54; background: #121915; color: #c6ecd2; box-shadow: inset 1px 1px #439c60, inset -1px -1px #0a170e, 1px 1px 0 #060d0833; }
+html[data-theme="dark"] .marcus-desktop-page .pixel-button:hover:not(:disabled) { background: #182c1f; }
+html[data-theme="dark"] .marcus-desktop-page .pixel-button:active:not(:disabled), html[data-theme="dark"] .marcus-desktop-page .pixel-button.pressed { background: #09110b; box-shadow: inset 1px 1px #08130c, inset -1px -1px #429a5f; }
+html[data-theme="dark"] .marcus-desktop-page .desktop-taskbar { border-top: 2px solid #4bb66f; background: #111814; }
+html[data-theme="dark"] .marcus-desktop-page .taskbar-divider { box-shadow: -1px 0 #09140d, 1px 0 #429a5f; }
+html[data-theme="dark"] .marcus-desktop-page .status-dot { background: #3adf71; box-shadow: 1px 1px #214e30; }
+html[data-theme="dark"] .marcus-desktop-page .status-dot.busy { background: #e8b130; }
+html[data-theme="dark"] .marcus-desktop-page .show-desktop:hover { border-color: #7ade9b; }
+html[data-theme="dark"] .marcus-desktop-page .show-desktop > span { border: 1px solid #398b54; background: #0e1410; box-shadow: inset 1px 2px #2f6e44; }
+html[data-theme="dark"] .marcus-desktop-page .start-menu { background: var(--cream); border: 1px solid #32794a; box-shadow: inset 1px 1px #3f925a, 3px 4px 0 #04090655; }
+html[data-theme="dark"] .marcus-desktop-page .start-menu-banner { background: var(--navy); color: #d3eedc; }
+html[data-theme="dark"] .marcus-desktop-page .start-menu p { color: #78d296; }
+html[data-theme="dark"] .marcus-desktop-page .start-menu button:hover, html[data-theme="dark"] .marcus-desktop-page .start-home:hover { background: #09110b; }
+html[data-theme="dark"] .marcus-desktop-page .start-home { border-top: 1px solid #409d5f; }
+html[data-theme="dark"] .marcus-desktop-page .computer-chin { color: #71d091; }
+html[data-theme="dark"] .marcus-desktop-page .power-led { background: #3adf71; box-shadow: inset 0 1px #7beaa0, 0 0 4px #42e07777; }
+html[data-theme="dark"] .marcus-desktop-page .speaker-slots { background: repeating-linear-gradient(90deg, #1d2120 0 2px, #232926 2px 3px, transparent 3px 6px); }
+html[data-theme="dark"] .marcus-desktop-page .app-menubar button:hover { border-color: #79de9b; }
+html[data-theme="dark"] .marcus-desktop-page .muted-label { color: #68cd89; }
+html[data-theme="dark"] .marcus-desktop-page .agent-messages { background: var(--paper); scrollbar-color: #3e995c #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .agent-welcome { border-bottom: 1px dashed #42a162; }
+html[data-theme="dark"] .marcus-desktop-page .eyebrow { color: #6acd8b; }
+html[data-theme="dark"] .marcus-desktop-page .agent-welcome h2 { color: #b3e6c4; }
+html[data-theme="dark"] .marcus-desktop-page .agent-welcome p { color: #80d59c; }
+html[data-theme="dark"] .marcus-desktop-page .pixel-cursor { color: #60ca84; }
+html[data-theme="dark"] .marcus-desktop-page .agent-intro > p:first-child { color: #75d194; }
+html[data-theme="dark"] .marcus-desktop-page .suggestions button { background: #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .suggestions button > span { color: #69cd8a; }
+html[data-theme="dark"] .marcus-desktop-page .local-history-note { color: #58c77d; }
+html[data-theme="dark"] .marcus-desktop-page .agent-message { background: #131a15; border-left: 2px solid #3d965b; }
+html[data-theme="dark"] .marcus-desktop-page .agent-message.user { background: #131a15; border-left-color: #3e975c; }
+html[data-theme="dark"] .marcus-desktop-page .message-meta { color: #80d59c; }
+html[data-theme="dark"] .marcus-desktop-page .agent-message.user .message-meta { color: #71d091; }
+html[data-theme="dark"] .marcus-desktop-page .site-message-link { color: #b8edca !important; }
+html[data-theme="dark"] .marcus-desktop-page .copy-message { color: #6ecf8e; }
+html[data-theme="dark"] .marcus-desktop-page .interrupted-label { color: #80d59c; }
+html[data-theme="dark"] .marcus-desktop-page .tool-status { background: #121915; border: 1px dashed #3f9a5d; color: #91daa9; }
+html[data-theme="dark"] .marcus-desktop-page .agent-error { color: #db958a; background: #1e1311; border: 1px solid #409e60; }
+html[data-theme="dark"] .marcus-desktop-page .composer-field { background: #131b16; }
+html[data-theme="dark"] .marcus-desktop-page .composer-field > span { color: #71d091; }
+html[data-theme="dark"] .marcus-desktop-page .composer-field textarea { color: #b8e7c8; }
+html[data-theme="dark"] .marcus-desktop-page .composer-field:focus-within { border-color: #9de7b6; box-shadow: inset 0 0 0 1px #09150d; }
+html[data-theme="dark"] .marcus-desktop-page .composer-field textarea::placeholder { color: #57c77d; }
+html[data-theme="dark"] .marcus-desktop-page .send-button { background: #121814; }
+html[data-theme="dark"] .marcus-desktop-page .composer-hint { color: #62cb85; }
+html[data-theme="dark"] .marcus-desktop-page .explorer-app { background: #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .explorer-address { background: #131b16; }
+html[data-theme="dark"] .marcus-desktop-page .explorer-address > span:first-child { color: #65cc87; border-right: 1px solid #46ab68; }
+html[data-theme="dark"] .marcus-desktop-page .explorer-heading p, html[data-theme="dark"] .marcus-desktop-page .app-section-title p { color: #65cc87; }
+html[data-theme="dark"] .marcus-desktop-page .site-page-item { border-bottom: 1px solid #46ab68; }
+html[data-theme="dark"] .marcus-desktop-page .site-page-item:hover { background: #09110b; }
+html[data-theme="dark"] .marcus-desktop-page .site-page-item small { color: #63cb86; }
+html[data-theme="dark"] .marcus-desktop-page .site-page-item > span:nth-child(2) > span { color: #75d194; }
+html[data-theme="dark"] .marcus-desktop-page .site-page-item > span:last-child { color: #60ca84; }
+html[data-theme="dark"] .marcus-desktop-page .explorer-footer { color: #6acd8b; }
+html[data-theme="dark"] .marcus-desktop-page .text-button { color: #a5e8bb; }
+html[data-theme="dark"] .marcus-desktop-page .notes-app { background: #121914; }
+html[data-theme="dark"] .marcus-desktop-page .notes-toolbar { border-top: 1px solid #42a262; }
+html[data-theme="dark"] .marcus-desktop-page .notes-title { color: #9edfb4; background: #131a15; border-color: #409c5e #4bb66f #4bb66f #409c5e; }
+html[data-theme="dark"] .marcus-desktop-page .notes-title::placeholder { color: #4fc476; }
+html[data-theme="dark"] .marcus-desktop-page .notes-status { color: #63cb86; }
+html[data-theme="dark"] .marcus-desktop-page .notes-list { border-left: 1px dashed #42a262; }
+html[data-theme="dark"] .marcus-desktop-page .notes-list-head { border-bottom: 1px dashed #42a262; }
+html[data-theme="dark"] .marcus-desktop-page .notes-list-head .eyebrow { color: #63cb86; }
+html[data-theme="dark"] .marcus-desktop-page .notes-list li { border-bottom: 1px solid #44a765; }
+html[data-theme="dark"] .marcus-desktop-page .notes-list li.selected { background: #09110b; }
+html[data-theme="dark"] .marcus-desktop-page .notes-list-open:hover { background: #09110b; }
+html[data-theme="dark"] .marcus-desktop-page .notes-list-open strong { color: #9edfb4; }
+html[data-theme="dark"] .marcus-desktop-page .notes-list-open small { color: #72d091; }
+html[data-theme="dark"] .marcus-desktop-page .notes-list-remove { color: #4fc476; }
+html[data-theme="dark"] .marcus-desktop-page .notes-list-remove:hover { background: #09110b; color: #db958a; }
+html[data-theme="dark"] .marcus-desktop-page .notes-list-empty { color: #5cc981; }
+html[data-theme="dark"] .marcus-desktop-page .notes-list-note { border-top: 1px dashed #43a564; color: #5cc981; }
+html[data-theme="dark"] .marcus-desktop-page .notes-paper { border-top: 1px solid #42a262; color: #9edfb4; background: #131a15; background-image: repeating-linear-gradient(transparent 0, transparent 26px, #111814 26px, #111814 27px); }
+html[data-theme="dark"] .marcus-desktop-page .notes-paper::placeholder { color: #4fc476; }
+html[data-theme="dark"] .marcus-desktop-page .notes-footer { color: #75d194; }
+html[data-theme="dark"] .marcus-desktop-page .settings-app { background: #131a16; }
+html[data-theme="dark"] .marcus-desktop-page .settings-app fieldset { border: 1px solid #42a161; }
+html[data-theme="dark"] .marcus-desktop-page .settings-app legend { color: #87d7a2; }
+html[data-theme="dark"] .marcus-desktop-page .theme-option.selected { border-color: #a0e7b7; background: #0e1a12; }
+html[data-theme="dark"] .marcus-desktop-page .theme-option:hover { background: #112016; }
+html[data-theme="dark"] .marcus-desktop-page .theme-option small { color: #62cb85; }
+html[data-theme="dark"] .marcus-desktop-page .wallpaper-option.selected { border-color: #a0e7b7; background: #0e1a12; }
+html[data-theme="dark"] .marcus-desktop-page .wallpaper-option:hover { background: #112016; }
+html[data-theme="dark"] .marcus-desktop-page .wallpaper-preview { border: 2px solid #368550; }
+html[data-theme="dark"] .marcus-desktop-page .wallpaper-option small { color: #62cb85; }
+html[data-theme="dark"] .marcus-desktop-page .scanline-setting { border-bottom: 1px solid #46ab68; }
+html[data-theme="dark"] .marcus-desktop-page .scanline-setting small { color: #62cb85; }
+html[data-theme="dark"] .marcus-desktop-page .scanline-setting input { accent-color: #3adf71; }
+html[data-theme="dark"] .marcus-desktop-page .scanline-width-settings p { color: #62cb85; }
+html[data-theme="dark"] .marcus-desktop-page .wallpaper-motion-settings p { color: #62cb85; }
+html[data-theme="dark"] .marcus-desktop-page .settings-footer > span { color: #57c77d; }
+/* 访客登录窗：只有中性的形状与配色，登录前窗口里不存在任何应用素材。 */
+html[data-theme="dark"] .marcus-desktop-page .visitor-login { background-color: #131a15; background-image: radial-gradient(#0c110e20 .7px, transparent .7px); scrollbar-color: #3e995c #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-login-heading { border: 1px solid #419f61; background: linear-gradient(#141b16, #121915); box-shadow: inset 1px 1px #46a466, inset -1px -1px #193a24, 2px 2px #132b1b; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-login-plate { border: 1px solid #3e985c; background: #121914; box-shadow: inset 1px 1px #439c60, inset -1px -1px #0c1b11; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-login-heading h2 { color: #c8edd4; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-login-tag { color: #74d193; border: 1px dashed #3f9b5e; background: #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-login-note { color: #90daa9; background: #121a15; border-left: 2px solid #3c9459; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-login-form { border: 1px solid #43a363; background: #141b16; box-shadow: inset 1px 1px #45a164, inset -1px -1px #245534; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-login-legend { border-bottom: 1px dashed #45aa67; color: #63cb86; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-login-field label { color: #85d6a0; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-login-field label small { color: #54c67a; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-login-field input { color: #bde9cc; background: #141c17; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-login-error { color: #db958a; background: #1e1312; border: 1px solid #419f60; border-left: 2px solid #3a8d56; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-login-error::before { color: #d3eedc; background: #d35845; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-login-footnote { border-top: 1px dashed #45a866; color: #53c679; }
+/* 访客模式的通用样式：区块由后端数据驱动，类名只描述形状，不含任何应用专属素材。 */
+html[data-theme="dark"] .marcus-desktop-page .visitor-home, html[data-theme="dark"] .marcus-desktop-page .visit-app { background: #131a15; scrollbar-color: #3e995c #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-home-note, html[data-theme="dark"] .marcus-desktop-page .visitor-home-footnote { color: #88d7a3; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-home-footnote { border-top: 1px solid #45a967; color: #53c679; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-home-empty { border: 1px dashed #419e60; color: #75d194; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-app-card { background: #131a15; border: 1px solid #42a161; box-shadow: inset 1px 1px #439c60; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-app-card:hover { background: #1c3424; }
+html[data-theme="dark"] .marcus-desktop-page .visitor-app-card small { color: #75d194; }
+html[data-theme="dark"] .marcus-desktop-page .visit-app-status { color: #88d7a3; }
+html[data-theme="dark"] .marcus-desktop-page .visit-app-error { color: #db958a; }
+html[data-theme="dark"] .marcus-desktop-page .visit-notice strong { color: #78d296; text-shadow: 2px 2px #2a623d; }
+html[data-theme="dark"] .marcus-desktop-page .visit-notice small { color: #53c679; }
+html[data-theme="dark"] .marcus-desktop-page .visit-text { background: #121a15; border-left: 2px solid #3c9459; }
+html[data-theme="dark"] .marcus-desktop-page .visit-text h3 { color: #9bdeb1; }
+html[data-theme="dark"] .marcus-desktop-page .visit-text p { color: #88d7a3; }
+html[data-theme="dark"] .marcus-desktop-page .visit-letter-button { color: #a4e1b9; background: #131a15; border: 1px solid #409c5e; box-shadow: inset 1px 1px #429b60, inset -1px -1px #1f482d, 2px 2px #132d1c; }
+html[data-theme="dark"] .marcus-desktop-page .visit-letter-button:hover { background: #1d3625; border-color: #8ae2a8; }
+html[data-theme="dark"] .marcus-desktop-page .visit-letter-seal { color: #65cc87; }
+html[data-theme="dark"] .marcus-desktop-page .visit-letter-button small { color: #71d091; }
+html[data-theme="dark"] .marcus-desktop-page .visit-letter-open { color: #84d69f; }
+html[data-theme="dark"] .marcus-desktop-page .visit-letter-reader { background: #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .visit-letter-toolbar { border-bottom: 1px solid #42a362; }
+html[data-theme="dark"] .marcus-desktop-page .visit-letter-toolbar > span { color: #6acd8b; }
+html[data-theme="dark"] .marcus-desktop-page .visit-letter-paper { border: 1px solid #44a765; background: #131b16; color: #afe4c1; scrollbar-color: #3f995d #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .visit-counter { color: #9bdeb1; background-color: #121915; background-image: radial-gradient(#0c110e26 .65px, transparent .65px); }
+html[data-theme="dark"] .marcus-desktop-page .visit-counter > span:last-child { color: #6acd8b; }
+html[data-theme="dark"] .marcus-desktop-page .visit-anniversary { border: 1px solid #44a765; }
+html[data-theme="dark"] .marcus-desktop-page .visit-anniversary > div:first-child > span { color: #66cc88; }
+html[data-theme="dark"] .marcus-desktop-page .visit-anniversary small { color: #64cb87; }
+html[data-theme="dark"] .marcus-desktop-page .visit-anniversary-countdown { color: #7cd399; }
+html[data-theme="dark"] .marcus-desktop-page .visit-anniversary-countdown > strong { color: #95dcac; }
+html[data-theme="dark"] .marcus-desktop-page .visit-files-head > span { color: #64cb87; }
+html[data-theme="dark"] .marcus-desktop-page .visit-files-intro { color: #59c87e; }
+html[data-theme="dark"] .marcus-desktop-page .visit-files li { border-bottom: 1px dashed #45a866; }
+html[data-theme="dark"] .marcus-desktop-page .visit-file-glyph { border: 1px solid #409c5e; background: linear-gradient(#111713 0 4px, #131a15 4px); }
+html[data-theme="dark"] .marcus-desktop-page .visit-file-name small { color: #71d091; }
+html[data-theme="dark"] .marcus-desktop-page .visit-file-size { color: #64cb87; }
+html[data-theme="dark"] .marcus-desktop-page .visit-files-note { color: #5ec982; }
+html[data-theme="dark"] .marcus-desktop-page .visit-checklist-head > span { color: #64cb87; }
+html[data-theme="dark"] .marcus-desktop-page .visit-checklist-intro { color: #59c87e; }
+html[data-theme="dark"] .marcus-desktop-page .visit-checklist li { border-bottom: 1px dashed #45a866; }
+html[data-theme="dark"] .marcus-desktop-page .visit-checklist label input { accent-color: #3adf71; }
+html[data-theme="dark"] .marcus-desktop-page .visit-item-done > span { color: #54c67a; }
+html[data-theme="dark"] .marcus-desktop-page .visit-item-remove { color: #58c77d; }
+html[data-theme="dark"] .marcus-desktop-page .visit-item-remove:hover { color: #9be6b4; }
+html[data-theme="dark"] .marcus-desktop-page .visit-checklist-empty { color: #64cb87; }
+html[data-theme="dark"] .marcus-desktop-page .visit-checklist-form input { background: #131b16; color: #9bdeb1; }
+html[data-theme="dark"] .marcus-desktop-page .visit-checklist-form input::placeholder { color: #55c67b; }
+html[data-theme="dark"] .marcus-desktop-page .visit-checklist-note { color: #5ec982; }
+html[data-theme="dark"] .marcus-desktop-page .visit-checklist-note.storage-unavailable { color: #db958a; background: #1f1b10; border: 1px solid #419e60; }
+html[data-theme="dark"] .marcus-desktop-page .visit-footer { border-top: 1px solid #45a967; color: #53c679; }
+html[data-theme="dark"] .marcus-desktop-page .visit-image figcaption { color: #64cb87; }
+html[data-theme="dark"] .marcus-desktop-page .about-computer { background: #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .about-computer h2 > span { color: #6dce8d; }
+html[data-theme="dark"] .marcus-desktop-page .about-computer > p { color: #70cf90; }
+html[data-theme="dark"] .marcus-desktop-page .computer-specs { background: #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .computer-specs > span { color: #60ca83; }
+html[data-theme="dark"] .marcus-desktop-page .computer-specs strong { color: #93dbab; }
+html[data-theme="dark"] .marcus-desktop-page .about-computer > p.about-footnote { color: #53c679; }
+@media (max-width: 700px) {
+  html[data-theme="dark"] .marcus-desktop-page .computer-shell { box-shadow: inset 1px 1px #3d8f59, inset -2px -2px #0a170e, 2px 3px #08120b; }
+  html[data-theme="dark"] .marcus-desktop-page .desktop-window, html[data-theme="dark"] .marcus-desktop-page .desktop-window.agent-window, html[data-theme="dark"] .marcus-desktop-page .desktop-window.maximized { box-shadow: 2px 3px #04090677; }
+}
+html[data-theme="dark"] .marcus-desktop-page .marcus-browser { background: #121915; color: #bae8c9; }
+html[data-theme="dark"] .marcus-desktop-page .browser-menubar { border-bottom: 1px solid #42a061; }
+html[data-theme="dark"] .marcus-desktop-page .browser-menubar span:last-child { color: #78d296; }
+html[data-theme="dark"] .marcus-desktop-page .browser-address { background: #141b16; }
+html[data-theme="dark"] .marcus-desktop-page .browser-online { color: #7fd49b; }
+html[data-theme="dark"] .marcus-desktop-page .browser-tabs { border-bottom: 1px solid #3c9359; }
+html[data-theme="dark"] .marcus-desktop-page .browser-tabs button { background: #121914; border: 1px solid #419f60; }
+html[data-theme="dark"] .marcus-desktop-page .browser-tabs button[aria-current] { background: #213e2b; color: #c7f1d5; border-color: #80dfa0; box-shadow: 0 1px #3e915a; }
+html[data-theme="dark"] .marcus-desktop-page .browser-document { background: #141b16; scrollbar-color: #409c5e #121915; }
+html[data-theme="dark"] .marcus-desktop-page .browser-kicker { color: #6acd8b; }
+html[data-theme="dark"] .marcus-desktop-page .document-subtitle { color: #75d193; }
+html[data-theme="dark"] .marcus-desktop-page .profile-stamp { border: 1px solid #3c9258; outline: 3px double #7beaa0; background: #121914; }
+html[data-theme="dark"] .marcus-desktop-page .profile-alias { color: #6ecf8e; }
+html[data-theme="dark"] .marcus-desktop-page .profile-callout { background: #131a15; border-left: 2px solid #3b9158; }
+html[data-theme="dark"] .marcus-desktop-page .profile-directory button { border: 1px solid #42a262; background: #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .profile-directory button:hover { background: #14261a; }
+html[data-theme="dark"] .marcus-desktop-page .profile-directory span, html[data-theme="dark"] .marcus-desktop-page .profile-directory small { color: #65cc88; }
+html[data-theme="dark"] .marcus-desktop-page .browser-section h2 { border-bottom: 1px solid #42a162; }
+html[data-theme="dark"] .marcus-desktop-page .browser-section h2 small { color: #63cb86; }
+html[data-theme="dark"] .marcus-desktop-page .profile-tags span { border: 1px solid #45a967; color: #8cd9a6; background: #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .profile-education { color: #77d295; border-top: 1px dotted #419e60; }
+html[data-theme="dark"] .marcus-desktop-page .profile-job { border-left: 1px solid #409c5e; }
+html[data-theme="dark"] .marcus-desktop-page .profile-job time { color: #67cc88; }
+html[data-theme="dark"] .marcus-desktop-page .profile-job .job-role { color: #70cf8f; }
+html[data-theme="dark"] .marcus-desktop-page .profile-project { border: 1px solid #43a564; }
+html[data-theme="dark"] .marcus-desktop-page .profile-project small { color: #67cc89; }
+html[data-theme="dark"] .marcus-desktop-page .profile-project a { color: #96dcae; }
+html[data-theme="dark"] .marcus-desktop-page .gallery-filters button[aria-pressed=true] { background: #111713; box-shadow: inset 1px 1px #08120b; }
+html[data-theme="dark"] .marcus-desktop-page .gallery-filters small { color: #62cb85; }
+html[data-theme="dark"] .marcus-desktop-page .gallery-frame { border: 1px solid #3f9a5d; background: #131a15; box-shadow: inset 0 0 0 4px #449e62, 2px 2px #1c4128; }
+html[data-theme="dark"] .marcus-desktop-page .gallery-frame:hover { border-color: #91e4ad; background: #213d2a; }
+html[data-theme="dark"] .marcus-desktop-page .frame-mat { border: 1px solid #3b9158; background: #080a09; }
+html[data-theme="dark"] .marcus-desktop-page .frame-plate b { color: #61ca84; }
+html[data-theme="dark"] .marcus-desktop-page .frame-plate small { color: #62cb85; }
+html[data-theme="dark"] .marcus-desktop-page .frame-plate em { color: #72d091; }
+html[data-theme="dark"] .marcus-desktop-page .frame-open { color: #98ddaf; border-top: 1px dotted #43a463; }
+html[data-theme="dark"] .marcus-desktop-page .gallery-note { color: #64cb87; }
+html[data-theme="dark"] .marcus-desktop-page .contact-card { border: 1px solid #43a463; background: #131a16; }
+html[data-theme="dark"] .marcus-desktop-page .contact-card > span { color: #63cb86; }
+html[data-theme="dark"] .marcus-desktop-page .contact-qr img { border: 1px solid #43a463; background: #141c17; }
+html[data-theme="dark"] .marcus-desktop-page .contact-qr small { color: #63cb86; }
+html[data-theme="dark"] .marcus-desktop-page .browser-page-footer { border-top: 1px solid #46ac68; color: #55c67b; }
+html[data-theme="dark"] .marcus-desktop-page .browser-status { border-top: 1px solid #42a161; color: #73d092; }
+html[data-theme="dark"] .marcus-desktop-page .music-account-entry { border: 1px solid #43a363; background: #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .music-account-entry p { color: #71d091; }
+html[data-theme="dark"] .marcus-desktop-page .music-app { background: #131a15; color: #b8e7c7; scrollbar-color: #3d965b #121915; }
+html[data-theme="dark"] .marcus-desktop-page .music-app button:focus-visible, html[data-theme="dark"] .marcus-desktop-page .music-app a:focus-visible, html[data-theme="dark"] .marcus-desktop-page .music-app input:focus-visible { outline: 2px solid #3adf71; }
+html[data-theme="dark"] .marcus-desktop-page .music-app .pixel-button { border: 1px solid #388a54; background: #121915; color: #c6ecd2; box-shadow: inset 1px 1px #439c60, inset -1px -1px #0a170e; }
+html[data-theme="dark"] .marcus-desktop-page .music-app .pixel-button:hover:not(:disabled) { background: #182c1f; }
+html[data-theme="dark"] .marcus-desktop-page .music-app .pixel-button.pressed { background: #09110b; box-shadow: inset 1px 1px #08130c; }
+html[data-theme="dark"] .marcus-desktop-page .music-app .inset-panel { border: 1px solid #3f9b5e; }
+html[data-theme="dark"] .marcus-desktop-page .music-heading { border-bottom: 1px dashed #419f60; }
+html[data-theme="dark"] .marcus-desktop-page .music-heading .eyebrow { color: #63cb86; }
+html[data-theme="dark"] .marcus-desktop-page .music-heading h2 > span { color: #67cc89; }
+html[data-theme="dark"] .marcus-desktop-page .music-stereo { color: #66cc88; }
+html[data-theme="dark"] .marcus-desktop-page .music-provider-dot { background: #d35846; box-shadow: inset 1px 1px #0e2215; }
+html[data-theme="dark"] .marcus-desktop-page .music-provider-dot.spotify { background: #3adf71; box-shadow: inset 1px 1px #0a170e; }
+html[data-theme="dark"] .marcus-desktop-page .music-link-form > label, html[data-theme="dark"] .marcus-desktop-page .music-save-form > label { color: #a0e7b7; }
+html[data-theme="dark"] .marcus-desktop-page .music-input-row > input { border-color: #3c9359 #4eb771 #4eb771 #3c9359; box-shadow: inset 1px 1px #060e0933; background: #141b16; color: #b3e6c4; }
+html[data-theme="dark"] .marcus-desktop-page .music-input-row > input::placeholder { color: #4fc476; }
+html[data-theme="dark"] .marcus-desktop-page .music-source-help { color: #65cc87; }
+html[data-theme="dark"] .marcus-desktop-page .music-source-help > a { color: #9addb0; }
+html[data-theme="dark"] .marcus-desktop-page .music-empty { background: #121915; background-image: radial-gradient(#0e131033 .7px, transparent .7px); }
+html[data-theme="dark"] .marcus-desktop-page .music-empty p { color: #67cc89; }
+html[data-theme="dark"] .marcus-desktop-page .pixel-cassette { border: 3px solid #347f4d; background: #0e1310; box-shadow: inset 2px 2px #142e1c, inset -2px -2px #07100a, 3px 4px #08130c77; }
+html[data-theme="dark"] .marcus-desktop-page .cassette-label { background: #121914; border: 1px solid #378752; color: #a3e0b7; }
+html[data-theme="dark"] .marcus-desktop-page .cassette-label > span:first-child { border-bottom: 2px solid #3c945a; }
+html[data-theme="dark"] .marcus-desktop-page .cassette-reels { background: #0a0d0b; border: 2px solid #45a966; }
+html[data-theme="dark"] .marcus-desktop-page .cassette-reels > i { border: 4px solid #44a664; background: #0d120e; box-shadow: inset 0 0 0 2px #050c08; }
+html[data-theme="dark"] .marcus-desktop-page .cassette-reels > span { background: repeating-linear-gradient(90deg,#0b0f0c 0 5px,#101612 5px 7px); }
+html[data-theme="dark"] .marcus-desktop-page .cassette-bottom { background: #1d190f; border: 2px solid #388852; }
+html[data-theme="dark"] .marcus-desktop-page .music-player-panel { background: #121915; border: 1px solid #3f9b5e; }
+html[data-theme="dark"] .marcus-desktop-page .music-player-caption { color: #86d7a1; }
+html[data-theme="dark"] .marcus-desktop-page .music-frame { background: #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .music-save-form { border-top: 1px dashed #41a061; }
+html[data-theme="dark"] .marcus-desktop-page .music-notice { color: #7cd399; }
+html[data-theme="dark"] .marcus-desktop-page .music-error { color: #db958a; border: 1px solid #409d5f; background: #1f1b10; }
+html[data-theme="dark"] .marcus-desktop-page .music-library { border-top: 1px solid #44a665; }
+html[data-theme="dark"] .marcus-desktop-page .music-library-heading { color: #6ecf8e; }
+html[data-theme="dark"] .marcus-desktop-page .music-library-heading h3 { color: #9cdeb2; }
+html[data-theme="dark"] .marcus-desktop-page .music-library-heading h3 > span { color: #61ca84; }
+html[data-theme="dark"] .marcus-desktop-page .music-library-empty { color: #5bc880; }
+html[data-theme="dark"] .marcus-desktop-page .music-library li { border-bottom: 1px solid #46aa67; }
+html[data-theme="dark"] .marcus-desktop-page .music-library li.selected { background: #0d1911; }
+html[data-theme="dark"] .marcus-desktop-page .music-library-load strong { color: #a3e0b7; }
+html[data-theme="dark"] .marcus-desktop-page .music-library-load small { color: #63cb86; }
+html[data-theme="dark"] .marcus-desktop-page .music-library-load > span:last-child { color: #6dce8d; }
+html[data-theme="dark"] .marcus-desktop-page .music-library-load:hover { background: #0a130d; }
+html[data-theme="dark"] .marcus-desktop-page .music-remove { color: #67cc88; }
+html[data-theme="dark"] .marcus-desktop-page .music-remove:hover { background: #1f1a0f; color: #db958a; }
+html[data-theme="dark"] .marcus-desktop-page .music-platform-note { border-top: 1px dashed #44a765; color: #5cc980; }
+/* 网易云歌单的曲目列表：官方播放器只列 10 首，这里补到 50 首。 */
+html[data-theme="dark"] .marcus-desktop-page .music-tracks { border: 1px solid #43a363; background: #131a15; }
+html[data-theme="dark"] .marcus-desktop-page .music-tracks-head h3 { color: #a3e0b7; }
+html[data-theme="dark"] .marcus-desktop-page .music-tracks-head h3 > span { color: #63cb86; }
+html[data-theme="dark"] .marcus-desktop-page .music-tracks-head small { color: #64cb87; }
+html[data-theme="dark"] .marcus-desktop-page .music-tracks-list { background: #141b16; border-top: 1px solid #46aa67; }
+html[data-theme="dark"] .marcus-desktop-page .music-tracks-list li { border-bottom: 1px solid #47ae69; }
+html[data-theme="dark"] .marcus-desktop-page .music-tracks-list li.selected { background: #0d1911; }
+html[data-theme="dark"] .marcus-desktop-page .music-tracks-item:hover { background: #101d14; }
+html[data-theme="dark"] .marcus-desktop-page .music-tracks-index { color: #54c67a; }
+html[data-theme="dark"] .marcus-desktop-page .music-tracks-text strong { color: #a7e2bb; }
+html[data-theme="dark"] .marcus-desktop-page .music-tracks-text small { color: #63cb86; }
+html[data-theme="dark"] .marcus-desktop-page .music-tracks-time { color: #5dc981; }
+html[data-theme="dark"] .marcus-desktop-page .music-tracks-empty { color: #5bc880; }
+html[data-theme="dark"] .marcus-desktop-page .music-playlist { border-left: 1px dashed #419f60; }
+html[data-theme="dark"] .marcus-desktop-page .music-playlist-head { border-bottom: 1px dashed #419f60; }
+html[data-theme="dark"] .marcus-desktop-page .music-playlist-head .eyebrow { color: #63cb86; }
+html[data-theme="dark"] .marcus-desktop-page .music-playlist li { border-bottom: 1px solid #46aa67; }
+html[data-theme="dark"] .marcus-desktop-page .music-playlist li.selected { background: #0d1911; }
+html[data-theme="dark"] .marcus-desktop-page .music-playlist-song:hover { background: #0a130d; }
+html[data-theme="dark"] .marcus-desktop-page .music-playlist-index { color: #54c67a; }
+html[data-theme="dark"] .marcus-desktop-page .music-playlist-text strong { color: #a3e0b7; }
+html[data-theme="dark"] .marcus-desktop-page .music-playlist-text small { color: #63cb86; }
+html[data-theme="dark"] .marcus-desktop-page .music-playlist-playing { color: #80d59c; }
+html[data-theme="dark"] .marcus-desktop-page .music-playlist-empty { color: #5bc880; }
+@media (max-width: 700px) {
+  html[data-theme="dark"] .marcus-desktop-page .music-playlist { border-top: 1px dashed #419f60; }
+}
+/* 执行进度面板（对照分支的结构）：一行摘要 + 可展开的真实步骤，带 ↳/· 图标列。
+桌面窗口与全站助手面板都会加载这个文件，配色差异用 .site-music 作用域覆盖。 */
+html[data-theme="dark"] .marcus-desktop-page .agent-app { --execution-ink: #9fdfb5; --execution-muted: #76d194; --execution-border: #42a262; --execution-surface: #131b16; }
+html[data-theme="dark"] .marcus-desktop-page .agent-execution { border: 1px solid var(--execution-border); color: var(--execution-ink); background: var(--execution-surface); }
+html[data-theme="dark"] .marcus-desktop-page .agent-execution summary::after { color: var(--execution-muted); }
+html[data-theme="dark"] .marcus-desktop-page .agent-execution summary:focus-visible { outline: 2px solid var(--execution-ink); }
+html[data-theme="dark"] .marcus-desktop-page .agent-execution summary small { color: var(--execution-muted); }
+html[data-theme="dark"] .marcus-desktop-page .agent-execution ol { border-top: 1px solid var(--execution-border); }
+html[data-theme="dark"] .marcus-desktop-page .agent-execution li small { color: var(--execution-muted); }
+html[data-theme="dark"] .marcus-desktop-page .execution-step-icon { color: var(--execution-muted); }
+html[data-theme="dark"] .marcus-desktop-page .agent-app .agent-latest { color: var(--execution-ink); border: 1px solid var(--execution-border); background: var(--execution-surface); }
+html[data-theme="dark"] .marcus-desktop-page .agent-app .agent-latest:hover { background: #16291c; }
+html[data-theme="dark"] .marcus-desktop-page .agent-actions button { color: var(--execution-ink, #9fdfb5); background: var(--execution-surface, #131b16); border: 1px solid var(--execution-border, #42a262); }
+html[data-theme="dark"] .marcus-desktop-page .agent-actions button:hover { background: #16291c; }
+html[data-theme="dark"] .marcus-desktop-page .agent-notice { color: #9ddeb3; background: #131a15; border: 1px dashed var(--sage, #3d945a); }
+html[data-theme="dark"] .marcus-desktop-page .copy-notice { color: #db958a; }
+html[data-theme="dark"] .marcus-desktop-page .agent-app .send-button.stop-reply { background: #1e1311; color: #db958a; }
+
+/* 反白高亮与屏幕玻璃感：手写，色值取自调色板 */
+html[data-theme="dark"] .marcus-desktop-page .browser-tabs button[aria-current], html[data-theme="dark"] .marcus-desktop-page .browser-tabs button[aria-current] * {
+  background: #69d38c; color: #08110b; border-color: #69d38c;
+  box-shadow: 0 0 7px #8de2a959; text-shadow: none;
+}
+html[data-theme="dark"] .marcus-desktop-page .pixel-button.send-button:not(.stop-reply), html[data-theme="dark"] .marcus-desktop-page .pixel-button.send-button:not(.stop-reply) * {
+  background: #69d38c; color: #08110b; border-color: #69d38c;
+  box-shadow: 0 0 7px #8de2a959; text-shadow: none;
+}
+html[data-theme="dark"] .marcus-desktop-page .execution-summary, html[data-theme="dark"] .marcus-desktop-page .execution-summary * {
+  background: #69d38c; color: #08110b; border-color: #69d38c;
+  box-shadow: 0 0 7px #8de2a959; text-shadow: none;
+}
+html[data-theme="dark"] .marcus-desktop-page .computer-screen::before {
+  content: ""; position: absolute; inset: 0; z-index: 2147483646; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 58%, #00000047 100%);
+  box-shadow: inset 0 0 70px #8de2a90f;
+}
+html[data-theme="dark"] .marcus-desktop-page .computer-screen.crt-enabled::after {
+  --scan-ink: #00000040;
+}

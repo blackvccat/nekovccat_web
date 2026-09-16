@@ -1,0 +1,112 @@
+.site-music { --music-bg: #f8f8f1; --music-card: #eeefe5; --music-ink: #25382f; --music-muted: #6a796c; --music-border: #cad2c4; --music-field: #fffef8; --music-accent: #4e775e; color: var(--music-ink); font-family: var(--font-geist-sans), "PingFang SC", sans-serif; }
+.site-music.music-over-scenery { --music-bg: #122725eF; --music-card: #ffffff09; --music-ink: #f1f3e6; --music-muted: #bdcbc0; --music-border: #e7efda30; --music-field: #071e1d80; --music-accent: #c1dba8; }
+.site-music *, .site-music *::before, .site-music *::after { box-sizing: border-box; }
+.site-music button { cursor: pointer; font-family: inherit; }
+.site-music button:focus-visible, .site-music a:focus-visible, .site-music input:focus-visible { outline: 2px solid var(--music-accent); outline-offset: 3px; }
+.site-music-dock { position: fixed; right: 28px; bottom: max(24px, env(safe-area-inset-bottom)); z-index: 81; display: flex; max-width: calc(100vw - 32px); color: var(--music-ink); border: 1px solid var(--music-border); background: var(--music-bg); border-radius: 17px; box-shadow: 0 8px 32px #06191426; backdrop-filter: blur(18px); }
+.site-music-launcher { display: flex; align-items: center; gap: 13px; padding: 12px 16px; min-height: 66px; min-width: 249px; max-width: 330px; flex: 1; border: 0; border-radius: inherit; background: transparent; text-align: left; color: inherit; }
+.site-music-symbol { display: grid; place-items: center; width: 37px; height: 37px; flex-shrink: 0; }
+.site-music-label { min-width: 0; flex: 1; }
+.site-music-label strong { display: block; font-size: 10px; letter-spacing: 1.6px; font-weight: 600; }
+.site-music-label strong span { margin-left: 8px; color: var(--music-muted); font-size: 7px; letter-spacing: 1px; font-weight: 400; }
+.site-music-label small { display: block; margin-top: 5px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--music-muted); }
+.site-music-toggle { font: 20px/1 monospace; color: var(--music-muted); margin-left: 5px; }
+.site-music-stop { background: transparent; color: var(--music-ink); border: 0; border-left: 1px solid var(--music-border); width: 44px; flex-shrink: 0; border-radius: 0 17px 17px 0; font-size: 10px; }
+.site-music-shortcut { display: grid; place-items: center; border: 0; border-left: 1px solid var(--music-border); width: 44px; flex-shrink: 0; border-radius: 0 17px 17px 0; background: transparent; color: var(--music-ink); }
+.site-music-shortcut:has(+ .site-music-stop) { border-radius: 0; }
+.site-music-dock button:hover { background: var(--music-card); }
+.site-music-panel { position: fixed; z-index: 80; right: 28px; bottom: max(103px, calc(env(safe-area-inset-bottom) + 79px)); width: min(410px, calc(100vw - 32px)); height: min(630px, calc(100dvh - 128px)); display: flex; flex-direction: column; overflow: hidden; color: var(--music-ink); background: var(--music-bg); border: 1px solid var(--music-border); border-radius: 19px; box-shadow: 0 18px 65px #07191230; backdrop-filter: blur(24px); }
+.site-music-panel-bar { display: flex; align-items: center; justify-content: space-between; flex: 0 0 42px; padding-left: 21px; border-bottom: 1px solid var(--music-border); }
+.site-music-panel-bar > span { font-size: 8px; letter-spacing: 1.6px; color: var(--music-muted); }
+.site-music-panel-bar i { display: inline-block; width: 5px; height: 5px; margin-right: 8px; border-radius: 50%; background: var(--music-accent); vertical-align: middle; }
+.site-music-panel-bar button { width: 46px; height: 42px; padding: 0; border: 0; background: transparent; color: var(--music-muted); font-size: 23px; }
+.site-music-panel-content { flex: 1; min-height: 0; }
+.site-assistant-tabs { display: flex; flex: 0 0 48px; gap: 5px; padding: 6px 12px; border-bottom: 1px solid var(--music-border); }
+.site-assistant-tabs button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; border-radius: 8px; color: var(--music-muted); background: transparent; font-size: 11px; }
+.site-assistant-tabs button[aria-selected="true"] { color: var(--music-ink); background: var(--music-card); border-color: var(--music-border); }
+.site-assistant-tabs i { width: 5px; height: 5px; background: var(--music-accent); border-radius: 50%; }
+.site-music .agent-app { display: flex; flex-direction: column; height: 100%; min-height: 0; color: var(--music-ink); }
+.site-music .agent-app button:disabled, .site-music .agent-app textarea:disabled { opacity: .45; cursor: not-allowed; }
+.site-music .agent-app .app-menubar { display: flex; align-items: center; flex: 0 0 33px; min-height: 33px; padding: 3px 16px; gap: 9px; font-size: 8px; letter-spacing: .7px; color: var(--music-muted); }
+.site-music .agent-app .app-menubar > span:nth-child(2) { margin-left: auto; }
+.site-music .agent-app .app-menubar button { margin-left: auto; padding: 4px; border: 0; background: transparent; color: var(--music-muted); font-size: 10px; letter-spacing: 0; }
+.site-music .agent-app .status-dot { display: inline-block; width: 5px; height: 5px; margin-right: 5px; background: var(--music-accent); border-radius: 50%; }
+.site-music .agent-app .status-dot.busy { background: #d6b780; }
+.site-music .agent-messages { flex: 1; min-height: 0; margin: 0; padding: 16px 19px; background: transparent; border: 0; box-shadow: none; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--music-border) transparent; }
+.site-music .agent-welcome { display: flex; align-items: flex-start; gap: 12px; padding-bottom: 20px; margin-bottom: 16px; border-bottom: 1px dashed var(--music-border); }
+.site-music .agent-welcome > .pixel-icon { flex-shrink: 0; width: 37px; height: 37px; margin-top: 6px; }
+.site-music .agent-welcome .eyebrow { color: var(--music-muted); font-size: 6px; letter-spacing: .4px; }
+.site-music .agent-welcome h2 { color: var(--music-ink); font-family: "Jersey 25", monospace; font-size: 30px; letter-spacing: -.6px; line-height: 1.2; font-weight: 400; margin: 4px 0 7px; }
+.site-music .agent-welcome p { color: var(--music-muted); font-size: 11px; line-height: 1.8; margin: 0; }
+.site-music .pixel-cursor { color: var(--music-accent); animation: none; }
+.site-music .agent-intro { margin-top: 18px; }
+.site-music .agent-intro > p:first-child { color: var(--music-muted); font-size: 10px; margin: 0 0 12px; }
+.site-music .suggestions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.site-music .suggestions button { display: flex; justify-content: space-between; padding: 10px 12px; min-height: 38px; border-radius: 8px; background: var(--music-card); border: 1px solid var(--music-border); box-shadow: none; color: var(--music-ink); font-size: 11px; }
+.site-music .suggestions button > span { color: var(--music-accent); }
+.site-music .local-history-note { color: var(--music-muted); font-size: 9px; margin-top: 17px; }
+.site-music .agent-message { position: relative; margin: 13px 0; padding: 12px 13px 22px; max-width: 95%; border: 1px solid var(--music-border); border-radius: 0 12px 12px; background: var(--music-card); }
+.site-music .agent-message.user { margin-left: auto; border-radius: 12px 0 12px 12px; background: var(--music-field); }
+.site-music .message-meta { display: flex; justify-content: space-between; gap: 12px; color: var(--music-muted); font-size: 8px; margin-bottom: 6px; }
+.site-music .message-meta time { opacity: .75; }
+.site-music .message-text { font-size: 12px; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; }
+.site-music .site-message-link { color: var(--music-accent) !important; text-decoration: underline !important; text-underline-offset: 3px; }
+.site-music .copy-message { position: absolute; bottom: 3px; right: 9px; border: 0; background: transparent; color: var(--music-muted); font-size: 8px !important; opacity: 1; padding: 3px; }
+.site-music .interrupted-label { display: block; color: #ba986e; padding-top: 8px; font-size: 10px; }
+.site-music .tool-status { display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px dashed var(--music-border); background: var(--music-card); color: var(--music-muted); font-size: 11px; }
+.site-music .agent-error { padding: 10px; font-size: 11px; border: 1px solid #c9a78c; border-radius: 8px; background: #f2e1c9; color: #884f3f; overflow-wrap: anywhere; }
+.site-music .agent-notice { border: 1px dashed var(--music-border); border-radius: 8px; background: var(--music-card); color: var(--music-muted); font-size: 11px; }
+.site-music .agent-latest, .site-music .agent-actions button { color: var(--music-ink); background: var(--music-field); border-color: var(--music-border); border-radius: 8px; }
+.site-music .agent-latest:hover, .site-music .agent-actions button:hover { background: var(--music-card); }
+.site-music .agent-app .send-button.stop-reply { background: #f2e1c9; color: #884f3f; }
+.site-music .agent-composer { padding: 10px 14px 13px; border-top: 1px solid var(--music-border); }
+.site-music .composer-field { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--music-border); background: var(--music-field); box-shadow: none; }
+.site-music .composer-field > span { font-size: 20px; color: var(--music-accent); }
+.site-music .composer-field textarea { flex: 1; min-width: 0; height: 39px; resize: none; border: 0; padding: 3px 0; color: var(--music-ink); background: transparent; font-family: inherit; font-size: 12px; line-height: 1.5; }
+.site-music .composer-field textarea::placeholder { color: var(--music-muted); }
+.site-music .composer-field textarea:focus-visible { outline: none; }
+.site-music .composer-field:focus-within { border-color: var(--music-accent); }
+.site-music .send-button { height: 35px; min-width: 56px; padding: 5px 9px; font-size: 10px; color: var(--music-ink); border: 1px solid var(--music-border); border-radius: 7px; background: var(--music-card); box-shadow: none; }
+.site-music .composer-hint { display: flex; justify-content: space-between; gap: 6px; padding-top: 6px; color: var(--music-muted); font-size: 6px; }
+.site-music .hint-separator { opacity: .5; padding: 0 3px; }
+.site-music .music-app { padding: 19px 20px 16px; color: var(--music-ink); background: transparent; font-family: inherit; scrollbar-color: var(--music-border) transparent; }
+.site-music .music-heading { gap: 10px; padding-bottom: 16px; border-color: var(--music-border); }
+.site-music .music-heading > .pixel-icon { width: 36px; height: 36px; }
+.site-music .music-heading h2 { font-size: 25px; letter-spacing: -1px; }
+.site-music .music-heading .eyebrow { font-size: 6px; letter-spacing: .6px; color: var(--music-muted); }
+.site-music .music-heading h2 > span, .site-music .music-stereo { display: none; }
+.site-music .music-app .pixel-button { min-height: 35px; padding: 7px 10px; border-radius: 8px; background: transparent; border: 1px solid var(--music-border); color: var(--music-ink); box-shadow: none; font-family: inherit; }
+.site-music .music-app .pixel-button:hover:not(:disabled) { background: var(--music-card); }
+.site-music .music-app .pixel-button.pressed { background: var(--music-card); border-color: var(--music-accent); box-shadow: none; }
+.site-music .music-input-row > input { min-height: 38px; color: var(--music-ink); background: var(--music-field); border: 1px solid var(--music-border); box-shadow: none; border-radius: 8px; font-size: 11px; }
+.site-music .music-input-row > input::placeholder { color: var(--music-muted); opacity: .65; }
+.site-music .music-source-help, .site-music .music-link-form > label, .site-music .music-save-form > label { color: var(--music-muted); }
+.site-music .music-source-help { font-size: 9px; }
+.site-music .music-source-help > a { color: var(--music-accent); }
+.site-music .music-empty { background: var(--music-card); border: 1px solid var(--music-border); border-radius: 12px; padding: 21px 10px; }
+.site-music .music-empty h3 { font-size: 12px; margin-top: 20px; }
+.site-music .music-empty p { font-size: 10px; color: var(--music-muted); }
+.site-music .music-example-actions { margin-top: 16px; }
+.site-music .music-player-panel { border-radius: 12px; border-color: var(--music-border); background: var(--music-card); padding: 10px; }
+.site-music .music-player-caption { color: var(--music-muted); font-size: 10px; }
+.site-music .music-player-caption > button { font-size: 10px; }
+.site-music .music-frame { background: transparent; }
+.site-music .music-save-form, .site-music .music-library, .site-music .music-platform-note { border-color: var(--music-border); }
+.site-music .music-notice { color: var(--music-muted); font-size: 10px; line-height: 1.7; margin: 13px 0 17px; }
+.site-music .music-library-heading, .site-music .music-library-heading h3 > span, .site-music .music-library-empty, .site-music .music-library-load small { color: var(--music-muted); }
+.site-music .music-library-heading h3, .site-music .music-library-load strong { color: var(--music-ink); }
+.site-music .music-library li { border-color: var(--music-border); }
+.site-music .music-library li.selected, .site-music .music-library-load:hover { background: var(--music-card); }
+.site-music .music-library-load strong { font-size: 11px; }
+.site-music .music-library-load small { font-size: 9px; }
+.site-music .music-remove { color: var(--music-muted); width: 36px; }
+.site-music .music-remove:hover { background: var(--music-card); color: var(--music-ink); }
+.site-music .music-platform-note { color: var(--music-muted); font-size: 9px; }
+.site-music .music-error { border-radius: 8px; }
+@media (max-width: 700px) {
+  .site-music-dock { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); }
+  .site-music-launcher { min-width: 225px; min-height: 62px; padding: 10px 12px; gap: 10px; }
+  .site-music-panel { right: 12px; width: calc(100vw - 24px); bottom: max(86px, calc(env(safe-area-inset-bottom) + 74px)); height: min(630px, calc(100dvh - 106px)); }
+  .site-music .music-app { padding: 16px; }
+  .site-music .music-source-help { font-size: 8px; }
+}

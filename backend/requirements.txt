@@ -1,0 +1,25 @@
+# FastAPI 核心
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+
+# 数据库
+sqlalchemy[asyncio]==2.0.25
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+# MySQL 接入（DATABASE_ENABLED=true 且 DATABASE_URL 用 mysql:// 时需要）
+aiomysql==0.2.0
+PyMySQL==1.1.1
+
+# 数据验证
+pydantic==2.13.5
+pydantic-settings==2.15.0
+
+# 工具
+python-dotenv==1.0.0
+httpx==0.26.0
+
+# Official SDK installs the matching native dsh runtime for this platform.
+deepseek-harness-sdk==0.1.5rc1
+
+# 日志
+python-json-logger==2.0.7

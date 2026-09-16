@@ -1,0 +1,85 @@
+.marcus-browser { display: flex; flex-direction: column; height: 100%; min-height: 0; background: #e9e8d9; color: #3f4c40; }
+.browser-menubar { display: flex; gap: 17px; padding: 7px 13px; font-size: 11px; border-bottom: 1px solid #b7bea9; }
+.browser-menubar span:last-child { margin-left: auto; color: #7b856d; }
+.browser-toolbar { display: flex; gap: 7px; align-items: center; padding: 9px; }
+.browser-toolbar button { width: 34px; height: 30px; padding: 0; }
+.browser-address { flex: 1; min-width: 0; padding: 7px 12px; background: #faf9ed; font: 13px monospace; }
+.browser-online { color: #728760; padding: 0 6px; }
+.browser-tabs { display: flex; gap: 3px; padding: 0 8px; border-bottom: 1px solid #929e83; }
+.browser-tabs button { flex: 1; padding: 10px 6px; font-size: 12px; background: #dbdfcf; border: 1px solid #b3baa5; border-bottom: 0; }
+.browser-tabs button[aria-current] { background: #faf7eb; color: #344b37; border-color: #929e83; box-shadow: 0 1px #faf7eb; font-weight: 600; }
+.browser-document { flex: 1; min-height: 0; overflow: auto; padding: 28px 32px 18px; background: #faf7eb; scrollbar-width: thin; scrollbar-color: #aab59a #e9e8d9; }
+.browser-document article { max-width: 880px; margin: auto; }
+.browser-kicker { font-size: 10px; letter-spacing: 1.4px; color: #839176; }
+.browser-document h1 { font-size: 32px; font-weight: 500; margin: 11px 0 17px; letter-spacing: -1px; line-height: 1.35; }
+.document-subtitle { display: block; font-size: 12px; line-height: 1.8; letter-spacing: 0; color: #7c896e; margin-top: 9px; font-weight: 400; }
+.browser-document p { font-size: 13px; line-height: 1.9; }
+.profile-hero { display: flex; align-items: center; gap: 22px; margin-top: 19px; }
+.profile-stamp { width: 87px; height: 93px; border: 1px solid #8e9d7c; outline: 3px double #d0d5bc; background: #dce4ca; flex-shrink: 0; overflow: hidden; }
+.profile-stamp img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.profile-alias { color: #8b8f72; font: 11px monospace !important; margin: 0; letter-spacing: 2px; }
+.profile-hero h1 { font: 53px/1.05 'Jersey 25',monospace; margin: 5px 0; }
+.profile-hero h1 span { font: 14px sans-serif; padding-left: 13px; }
+.profile-hero p:last-child { margin: 4px 0; font-size: 12px; }
+.profile-intro { margin: 24px 0 19px; }
+.profile-callout { background: #e9eddb; border-left: 2px solid #8a9b79; padding: 15px 17px; font-size: 12px; line-height: 1.9; margin: 17px 0; }
+.profile-directory { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 25px 0; }
+.profile-directory button { border: 1px solid #bbc2ac; background: #f4f0df; padding: 15px; text-align: left; }
+.profile-directory button:hover { background: #e8ecdc; }
+.profile-directory span,.profile-directory small { display: block; font-size: 11px; color: #89947b; }
+.profile-directory strong { display: block; font-size: 15px; margin: 12px 0 7px; font-weight: 500; }
+.browser-section { margin: 25px 0; }
+.browser-section h2 { font-size: 17px; font-weight: 500; border-bottom: 1px solid #b8c2a9; padding-bottom: 9px; }
+.browser-section h2 small { font-size: 10px; margin-left: 7px; color: #8b947f; letter-spacing: .8px; }
+.profile-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.profile-tags span { border: 1px solid #d1d6c1; padding: 5px 9px; font-size: 11px; color: #66775b; background: #eef0e3; }
+.profile-education { color: #7a896b; font-size: 11px !important; border-top: 1px dotted #aebba0; padding-top: 14px; margin-top: 20px; }
+/* 首页底部两个按钮：留个招呼 + GitHub，窄屏自动换行；stretch 让 a 和 button 一样高。 */
+.profile-actions { display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px; margin-top: 18px; }
+.profile-job { border-left: 1px solid #a9b798; margin: 17px 0 25px; padding-left: 17px; }
+.profile-job time { font: 11px monospace; color: #8b927b; }
+.profile-job h3,.profile-project h3 { font-size: 16px; margin: 7px 0; font-weight: 500; }
+.profile-job .job-role { color: #81916e; font-size: 11px; margin: 3px 0; }
+.profile-project { border: 1px solid #c5cbb5; padding: 14px 17px; margin: 13px 0; }
+.profile-project small { display: block; color: #869676; font-size: 11px; }
+.profile-project a { display: inline-block; font-size: 12px; color: #536f54; margin-top: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.gallery-filters { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; padding: 10px 0 16px; }
+.gallery-filters button { font-size: 12px; padding: 6px 10px; }
+.gallery-filters button[aria-pressed=true] { background: #c8d4b8; box-shadow: inset 1px 1px #7e8c72; }
+.gallery-filters small { margin-left: auto; font-size: 11px; color: #8a997c; }
+.gallery-wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 20px 16px; }
+.gallery-frame { display: flex; flex-direction: column; min-width: 0; padding: 7px; text-decoration: none; color: inherit; border: 1px solid #b5ac8e; background: #f5f0dd; box-shadow: inset 0 0 0 4px #fffdf3, 2px 2px #d5d2bb; }
+.gallery-frame:hover { border-color: #7f9169; background: #fbf8e9; }
+.frame-mat { display: block; border: 1px solid #9d9578; background: #313831; overflow: hidden; }
+.frame-mat img { display: block; width: 100%; height: 152px; object-fit: cover; object-position: center; }
+.frame-plate { display: block; padding: 9px 3px 2px; }
+.frame-plate b { display: block; font: 10px monospace; letter-spacing: 1.2px; color: #9a927c; }
+.frame-plate strong { display: block; margin: 6px 0 7px; font-size: 13px; font-weight: 500; line-height: 1.55; }
+.frame-plate small { display: block; font: 10px monospace; letter-spacing: .5px; color: #8a997c; }
+.frame-plate em { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-top: 8px; font-style: normal; font-size: 11px; line-height: 1.7; color: #7f8a71; }
+.frame-open { display: block; margin-top: 11px; font-size: 11px; color: #54704f; border-top: 1px dotted #c3c9b1; padding-top: 8px; }
+.gallery-note { font-size: 11px !important; color: #8a957c; margin-top: 21px; }
+.contact-card { border: 1px solid #c1c9b0; padding: 17px; margin: 17px 0; background: #f4f3e5; }
+.contact-card > span { display: block; font-size: 11px; color: #89977b; letter-spacing: 1.1px; }
+.contact-card strong { display: block; font-size: 17px; font-weight: 400; margin: 12px 0 16px; overflow-wrap: anywhere; }
+.contact-card .pixel-button { display: inline-block; font-size: 12px; margin-right: 10px; }
+.contact-qr { margin-top: 12px; }
+.contact-qr img { display: block; width: 168px; height: auto; border: 1px solid #c1c9b0; background: #fff; }
+.contact-qr small { display: block; margin-top: 8px; font-size: 11px; color: #89977b; }
+.browser-page-footer { max-width: 880px; margin: 31px auto 0; padding-top: 10px; border-top: 1px solid #d8dcc9; font-size: 10px; letter-spacing: .8px; color: #95a188; display: flex; justify-content: space-between; gap: 10px; }
+.browser-status { display: flex; justify-content: space-between; border-top: 1px solid #b7c1a7; padding: 6px 12px; font-size: 10px; color: #7d8a70; }
+.music-account-entry { margin: 14px 0 18px; border: 1px solid #bec6af; padding: 13px; background: #e8eddf; }
+.music-account-entry a { display: inline-block; font-size: 13px; }
+.music-account-entry p { font-size: 11px; line-height: 1.8; color: #7e8a72; margin: 9px 0 0; }
+@media(max-width:600px) {
+  .browser-document { padding: 20px 15px 12px; }
+  .browser-tabs button { font-size: 12px; }
+  .profile-hero { gap: 15px; }
+  .profile-directory { gap: 8px; }
+  .profile-directory button { padding: 11px; }
+  .profile-directory strong { font-size: 13px; }
+  .gallery-wall { grid-template-columns: 1fr 1fr; gap: 13px 9px; }
+  .frame-mat img { height: 88px; }
+  .frame-plate em { -webkit-line-clamp: 2; }
+  .browser-menubar span:last-child { font-size: 10px; }
+}

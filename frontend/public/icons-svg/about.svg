@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" shape-rendering="crispEdges">
+  <!-- 由 scripts/pixel-icons.py sync 从 work/icons-svg/about.svg 同步生成；要改请改那份画稿再重跑 sync -->
+<!-- 由 scripts/pixel-icons.py svg 从 pixel-icon.tsx 导出：改图标请改代码或 PNG，不要直接改这个文件 -->
+  <path d="M2 3h20v15H2zM8 18h8v3H8zM5 21h14v1H5z" fill="#394749" />
+  <path d="M3 4h18v13H3z" fill="#ded9bd" />
+  <path d="M5 6h14v9H5z" fill="#779c96" />
+  <path d="M11 7h2v2h-2zM10 10h3v3h1v1h-4v-1h1v-2h-1z" fill="#f3ecd4" />
+  <path d="M18 16h2v1h-2z" fill="#6b9762" />
+</svg>

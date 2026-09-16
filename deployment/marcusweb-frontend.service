@@ -1,0 +1,26 @@
+[Unit]
+Description=MARCUS website Next.js frontend
+Wants=network-online.target marcusweb-backend.service
+After=network-online.target marcusweb-backend.service
+
+[Service]
+Type=simple
+User=marcusweb
+Group=marcusweb
+WorkingDirectory=/srv/marcusweb/current/frontend/.next/standalone
+Environment=NODE_ENV=production
+Environment=HOSTNAME=127.0.0.1
+EnvironmentFile=/etc/marcusweb/frontend.env
+Environment=PORT=3010
+Environment=PYTHON_API_URL=http://127.0.0.1:8010
+Environment=NEXT_TELEMETRY_DISABLED=1
+ExecStart=/srv/marcusweb/tools/node/bin/node /srv/marcusweb/current/frontend/.next/standalone/server.js
+Restart=on-failure
+RestartSec=3
+KillMode=control-group
+TimeoutStopSec=30
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,127 @@
+.music-app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; overflow: hidden; padding: 16px 18px 12px; background: #f2f0df; color: #3e5044; scrollbar-width: thin; scrollbar-color: #94a38b #e9e8d7; font: 13px/1.5 "SFMono-Regular", Consolas, "PingFang SC", sans-serif; }
+.music-app.playlist-open { grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); }
+.music-main { min-width: 0; overflow-y: auto; overscroll-behavior: contain; }
+.music-app *, .music-app *::before, .music-app *::after { box-sizing: border-box; }
+.music-app button { cursor: pointer; }
+.music-app button:disabled { opacity: .45; cursor: not-allowed; }
+.music-app button:focus-visible, .music-app a:focus-visible, .music-app input:focus-visible { outline: 2px solid #73917b; outline-offset: 3px; }
+.music-app .pixel-icon { flex-shrink: 0; }
+.music-app .pixel-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #76816e; background: #e8e5d4; color: #35433a; box-shadow: inset 1px 1px #fffdf1, inset -1px -1px #aab09d; padding: 5px 11px; text-decoration: none; }
+.music-app .pixel-button:hover:not(:disabled) { background: #f4f0dc; }
+.music-app .pixel-button.pressed { background: #d5dac6; box-shadow: inset 1px 1px #87927c; }
+.music-app .text-button { border: 0; background: transparent; color: inherit; text-decoration: underline; }
+.music-app .inset-panel { border: 1px solid #a6b296; }
+.music-player-slot { width: 100%; }
+.persistent-music-player { position: fixed; overflow: hidden; }
+.persistent-music-player[hidden] { display: none; }
+.persistent-music-player iframe { display: block; position: absolute; border: 0; color-scheme: normal; }
+.music-player-activate { position: absolute; inset: 0; border: 0; background: transparent; cursor: pointer; }
+.music-heading { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px dashed #b8bda4; }
+.music-heading .eyebrow { font-size: 9px; letter-spacing: 1px; color: #8b977c; }
+.music-heading h2 { margin: 1px 0 0; font-size: 28px; font-weight: 700; letter-spacing: -1.2px; line-height: 1.3; }
+.music-heading h2 > span { display: inline-block; font-size: 10px; vertical-align: middle; margin-left: 10px; color: #84927a; letter-spacing: 1px; }
+.music-heading-side { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 7px; }
+.music-stereo { margin-left: auto; color: #8a9579; text-align: right; font-size: 10px; line-height: 1.7; letter-spacing: 2px; }
+/* 桌面上 .marcus-desktop-page button 会把按钮字号设成继承，这里要压过它才不至于缩回小字。 */
+.music-app button.music-playlist-toggle { padding: 6px 12px; font-size: 13px; white-space: nowrap; }
+.music-sources { display: flex; gap: 7px; margin: 14px 0; }
+.music-source { flex: 1; font-size: 13px; padding: 8px 10px; }
+.music-provider-dot { display: inline-block; flex-shrink: 0; width: 7px; height: 7px; margin-right: 3px; background: #b96f60; box-shadow: inset 1px 1px #e3ad8c; }
+.music-provider-dot.spotify { background: #4a885f; box-shadow: inset 1px 1px #a6c18b; }
+.music-link-form > label, .music-save-form > label { display: block; font-size: 12px; color: #697b5e; margin-bottom: 6px; }
+.music-input-row { display: flex; gap: 6px; align-items: stretch; }
+.music-input-row > input { min-width: 0; flex: 1; border: 1px solid; border-color: #919c81 #ffffed #ffffed #919c81; box-shadow: inset 1px 1px #5d725133; background: #fcfaed; padding: 8px 9px; font-size: 13px; color: #405641; border-radius: 0; }
+.music-input-row > input::placeholder { color: #a3ab96; font-size: 12px; }
+.music-input-row > button { flex-shrink: 0; font-size: 12px; padding: 7px 12px; }
+.music-source-help { display: flex; justify-content: space-between; gap: 10px; margin: 8px 0 14px; font-size: 10px; color: #89957b; }
+.music-source-help > a { flex-shrink: 0; text-decoration: underline; text-underline-offset: 2px; color: #536c51; }
+.music-empty { display: flex; flex-direction: column; align-items: center; padding: 18px 12px 15px; background: #e6e9d6; background-image: radial-gradient(#a0ad8933 .7px, transparent .7px); background-size: 4px 4px; text-align: center; }
+.music-empty h3 { margin: 14px 0 4px; font-size: 14px; font-weight: 500; }
+.music-empty p { font-size: 11px; color: #879577; margin: 0; line-height: 1.7; }
+.music-example-actions { margin-top: 12px; }
+.music-example-actions .pixel-button { font-size: 12px; }
+.pixel-cassette { width: 158px; height: 89px; border: 3px solid #536053; background: #bb8d73; box-shadow: inset 2px 2px #e4b698, inset -2px -2px #956b54, 3px 4px #89937877; position: relative; padding: 9px; }
+.cassette-label { height: 30px; padding: 3px 5px; background: #eee6c0; border: 1px solid #807d5c; display: flex; justify-content: space-between; font-size: 8px; color: #646748; line-height: 2; gap: 5px; }
+.cassette-label > span:first-child { white-space: nowrap; border-bottom: 2px solid #90a083; }
+.cassette-reels { display: flex; align-items: center; justify-content: space-between; gap: 3px; padding: 3px 8px; height: 24px; margin-top: -1px; background: #4e5c51; border: 2px solid #e9d6ad; }
+.cassette-reels > i { width: 16px; height: 16px; border: 4px solid #ccd4af; background: #889679; box-shadow: inset 0 0 0 2px #4e5c51; }
+.cassette-reels > span { flex: 1; height: 6px; background: repeating-linear-gradient(90deg,#6b7560 0 5px,#c4c9a1 5px 7px); margin: 0 5px; }
+.cassette-bottom { position: absolute; width: 72px; height: 12px; background: #e8cf9f; border: 2px solid #89735a; bottom: 1px; left: 40px; clip-path: polygon(10% 0,90% 0,100% 100%,0 100%); }
+.music-player-panel { padding: 10px; background: #e3e7d5; border: 1px solid #a6b296; }
+.music-player-caption { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; font-size: 11px; color: #69805c; }
+.music-player-caption > span { display: flex; align-items: center; gap: 4px; }
+.music-player-caption > button { flex-shrink: 0; font-size: 11px; }
+.music-frame { margin: 0 auto; min-width: 0; width: 100%; background: #eeeede; }
+.music-frame.netease { max-width: 530px; }
+.music-frame iframe { display: block; border: 0; width: 100%; image-rendering: auto; }
+.music-open-original { width: 100%; margin-bottom: 8px; font-size: 12px; }
+.music-save-form { margin-top: 12px; padding-top: 10px; border-top: 1px dashed #b4c1a2; }
+.music-notice { min-height: 15px; font-size: 10px; line-height: 1.6; margin: 9px 0 14px; color: #738368; }
+.music-error { padding: 8px 10px; color: #884f3f; border: 1px solid #c9a78c; background: #f2e1c9; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+.music-library { border-top: 1px solid #c8cfb6; padding-top: 10px; }
+.music-library-heading { display: flex; align-items: center; justify-content: space-between; color: #829071; font-size: 10px; gap: 10px; }
+.music-library-heading h3 { margin: 0; font-size: 12px; font-weight: 500; color: #536b4e; letter-spacing: .5px; }
+.music-library-heading h3 > span { color: #8c997d; font-size: 11px; margin-left: 8px; letter-spacing: 0; }
+.music-library-empty { margin: 12px 0 8px; color: #919e81; font-size: 11px; }
+.music-library ul { padding: 0; margin: 7px 0; list-style: none; }
+.music-library li { display: flex; border-bottom: 1px solid #d3dac2; }
+.music-library li.selected { background: #e1e8d1; }
+.music-library-load { display: flex; gap: 9px; align-items: center; flex: 1; min-width: 0; padding: 10px 8px; border: 0; background: transparent; text-align: left; }
+.music-library-load > span:nth-child(2) { flex: 1; min-width: 0; }
+.music-library-load strong { display: block; font-size: 12px; font-weight: 500; color: #51644b; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.music-library-load small { display: block; font-size: 10px; color: #8a997a; margin-top: 2px; }
+.music-library-load > span:last-child { color: #7f9271; font-size: 13px; }
+.music-library-load:hover { background: #dbe5cd; }
+.music-remove { width: 34px; flex-shrink: 0; border: 0; background: transparent; color: #9c8871; font-size: 18px; }
+.music-remove:hover { background: #e7d7c0; color: #7b513d; }
+.music-platform-note { border-top: 1px dashed #cbd0b9; padding-top: 9px; margin: 14px 0 0; color: #919a84; font-size: 10px; line-height: 1.7; }
+/* 网易云歌单的曲目列表：官方播放器只列 10 首，这里补到 50 首。 */
+.music-tracks { margin-top: 14px; border: 1px solid #bfc7ae; background: #ecefdf; padding: 12px 13px; }
+.music-tracks-head h3 { margin: 0; font-size: 13px; font-weight: 500; color: #51644b; }
+.music-tracks-head h3 > span { margin-left: 9px; font-size: 10px; font-weight: 400; color: #8a997a; }
+.music-tracks-head small { display: block; margin-top: 5px; font-size: 10px; line-height: 1.7; color: #8a957c; }
+.music-tracks-list { list-style: none; margin: 10px 0 0; padding: 0; max-height: 320px; overflow-y: auto; overscroll-behavior: contain; background: #f7f8ee; border-top: 1px solid #d3dac2; }
+.music-tracks-list li { border-bottom: 1px solid #dde2cd; }
+.music-tracks-list li.selected { background: #e1e8d1; }
+.music-tracks-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 8px; border: 0; background: transparent; text-align: left; color: inherit; }
+.music-tracks-item:hover { background: #e4ead4; }
+.music-tracks-index { flex-shrink: 0; width: 18px; font-size: 10px; color: #97a487; }
+.music-tracks-text { flex: 1; min-width: 0; }
+.music-tracks-text strong { display: block; font-size: 12px; font-weight: 500; color: #4e6147; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.music-tracks-text small { display: block; margin-top: 3px; font-size: 10px; color: #8a997a; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.music-tracks-time { flex-shrink: 0; font-size: 10px; color: #8f9c80; }
+.music-tracks-empty { margin: 10px 0 0; font-size: 11px; line-height: 1.8; color: #919e81; }
+.music-playlist { min-width: 0; overflow-y: auto; overscroll-behavior: contain; border-left: 1px dashed #b8bda4; padding-left: 14px; }
+.music-playlist-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding-bottom: 9px; border-bottom: 1px dashed #b8bda4; }
+.music-playlist-head .eyebrow { font-size: 9px; letter-spacing: 1px; color: #8b977c; }
+.music-playlist-head h3 { margin: 3px 0 0; font-size: 19px; font-weight: 700; letter-spacing: -.4px; }
+.music-playlist-head > button { flex-shrink: 0; font-size: 11px; }
+.music-playlist ul { list-style: none; margin: 8px 0 0; padding: 0; }
+.music-playlist li { border-bottom: 1px solid #d3dac2; }
+.music-playlist li.selected { background: #e1e8d1; }
+.music-playlist-song { display: flex; align-items: center; gap: 9px; width: 100%; padding: 10px 8px; border: 0; background: transparent; text-align: left; color: inherit; }
+.music-playlist-song:hover { background: #dbe5cd; }
+.music-playlist-index { flex-shrink: 0; font-size: 10px; letter-spacing: .5px; color: #97a487; }
+.music-playlist-text { flex: 1; min-width: 0; }
+.music-playlist-text strong { display: block; font-size: 13px; font-weight: 500; color: #51644b; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.music-playlist-text small { display: block; margin-top: 3px; font-size: 10px; color: #8a997a; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.music-playlist-playing { flex-shrink: 0; font-size: 11px; color: #6b8a5c; }
+.music-playlist-empty { margin: 14px 0 0; font-size: 11px; line-height: 1.8; color: #919e81; }
+@media (max-width: 700px) {
+  .music-app { padding: 13px 11px 10px; }
+  .music-heading { gap: 8px; }
+  .music-heading > .pixel-icon { width: 40px; height: 40px; }
+  .music-heading h2 { font-size: 26px; }
+  .music-heading .eyebrow { font-size: 9px; letter-spacing: .4px; }
+  .music-heading h2 > span, .music-stereo { display: none; }
+  .music-heading-side { gap: 4px; }
+  .music-app button.music-playlist-toggle { padding: 6px 10px; font-size: 13px; }
+  .music-player-panel { padding: 6px; }
+  .music-player-caption { font-size: 11px; }
+  /* 手机上点得准一点：歌单和收藏的行都不低于 52px，移除按钮加宽。 */
+  .music-playlist-song, .music-library-load { min-height: 52px; }
+  .music-remove { width: 44px; }
+  /* 窄屏没有并排的余地：歌单落到下面，占下半屏自己滚动。 */
+  .music-app.playlist-open { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 46%); }
+  .music-playlist { border-left: 0; border-top: 1px dashed #b8bda4; padding: 9px 0 0; }
+}

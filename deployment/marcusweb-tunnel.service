@@ -1,0 +1,19 @@
+[Unit]
+Description=MARCUS website private Cloudflare connector
+Wants=network-online.target marcusweb-frontend.service
+After=network-online.target marcusweb-frontend.service
+
+[Service]
+Type=simple
+User=marcusweb-tunnel
+Group=marcusweb-tunnel
+EnvironmentFile=/etc/marcusweb/tunnel.env
+ExecStart=/srv/marcusweb/tools/cloudflared tunnel --no-autoupdate --metrics 127.0.0.1:20241 run
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
