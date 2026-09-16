@@ -135,7 +135,7 @@ cp backend/.env.example backend/.env
 ```dotenv
 DEEPSEEK_API_KEY=replace_locally
 DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_MODEL=deepseek-v4-pro
+DEEPSEEK_MODEL=deepseek-flash
 DEEPSEEK_REASONING_EFFORT=low
 DATABASE_ENABLED=false
 ```
