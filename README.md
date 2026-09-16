@@ -226,9 +226,9 @@ outputs/                  预览素材与使用说明（本地交付文件）
 - 动明暗只影响桌面，访问者看不到一帧米白：主题在手写引导脚本里于首屏之前就写进 `<html data-theme>`。
   - 改了亮色 CSS 就要重新生成：`npm run theme:dark`；`npm run theme:report` 会打印色表并自检出「暗色下还亮着的面板 / 还看不清的字」。`npm test` 里有一条测试校验生成物与亮色 CSS 同步，忘了重跑会被逮住。
 
-## 与 NEKO / My World（对照分支 v1.1）的关系
+## 与 NEKO / My World（主分支）的关系
 
-这份代码是 **MARCUS** 那条线。另有一条**对照分支 v1.1，代号 NEKO / My World**。两条线**同源**——所以能逐文件对照，不是各写各的；文档里提到「对照分支」时指的就是它。
+这份代码是 **MARCUS** 那条线。另有一条**主分支代号 NEKO / My World**。两条线**同源**——所以能逐文件对照，不是各写各的；文档里提到「对照分支」时指的就是它。
 
 **历史**：2026-09-12 把对照分支那条线并进本仓库作为基础，同时做了一次改名与品牌统一——目录 `marcus_app/` → `frontend/`、systemd 单元统一成 `marcusweb-*`、品牌收敛到 MARCUS（MARCUS OS / MARCUS Browser / MARCUS Music / MK Agent）。桌面组件的目录名 `frontend/src/components/my-world/` **是那次合并留下的旧名**，不是笔误。
 
