@@ -1,2 +1,0 @@
-# Nekovccat Backend Application
-
