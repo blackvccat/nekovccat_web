@@ -1,6 +1,6 @@
 # Marcus · Terminal
 
-Next.js + FastAPI 的个人网站，地址是 **<https://example.com/terminal>**——一台可交互的像素风复古电脑，内置 DeepSeek Harness 站内 Agent、音乐软件、站点导航、便签与外观设置。文件内已有相关依赖，只需安装Python 3.12 + Node 20.9+环境即可快速使用。
+Next.js + FastAPI 的个人网站，为NEKO/My World的附属分支，地址是 **<https://example.com/terminal>**——一台可交互的像素风复古电脑，内置 DeepSeek Harness 站内 Agent、音乐软件、站点导航、便签与外观设置。文件内已有相关依赖，只需安装Python 3.12 + Node 20.9+环境即可快速使用。
 本分支不含3D首页只有一个页面：打开 `/terminal` 就直接是桌面，没有单独的首页。域名根路径 <https://example.com/> 留给主站，顶栏 **HOME** 就指向那里（在当前标签页直接跳转），**Terminal** 是当前桌面；About 与 Contact 合并进桌面的 **MARCUS Browser**，旧地址会自动跳转
 
 
