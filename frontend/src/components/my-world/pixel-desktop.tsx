@@ -1,39 +1,36 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback, type ReactNode, type MouseEvent, type PointerEvent } from 'react'
+import { useState, useRef, useEffect, useCallback, type MouseEvent, type PointerEvent } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import MarcusBrowser from './marcus-browser'
 import { browserPage, type BrowserPage } from '@/lib/desktop-links'
-import PixelIcon, { PixelImage, iconFile } from './pixel-icon'
-import MusicApp from './music-app'
-import VisitorLogin from './visitor-login'
-import VisitorHome from '@/components/visitor/visitor-home'
-import VisitorApp from '@/components/visitor/visitor-app'
+import PixelIcon, { PixelImage } from './pixel-icon'
 import { useMusicSession } from '@/components/music/music-session'
 import { useVisitorMode } from '@/components/visitor/visitor-mode'
-import { visitorAppIcon } from '@/lib/visitor-view'
-import { AboutComputer, DEFAULT_SETTINGS, DESKTOP_APPS, NotesApp, SettingsApp, type DesktopAppId, type DesktopSettings } from './desktop-apps'
+import VisitorApp from '@/components/visitor/visitor-app'
+import { VISITOR_APP_FALLBACK_SIZE, visitorAppIcon } from '@/lib/visitor-view'
+import { VISITOR_APP_PREFIX, type AppManifest, type DesktopAppHost } from '@/app-kit'
+import { DESKTOP_APP_MODULES, appIcon, findAppModule } from '@/app-kit/registry'
 import NightHarborWallpaper from './night-harbor-wallpaper'
-import { readDesktopSettings, resolveScanlineWidth } from '@/lib/desktop-settings'
+import { DEFAULT_SETTINGS, readDesktopSettings, resolveScanlineWidth, type DesktopSettings } from '@/lib/desktop-settings'
 
-/** Visitor app windows derive their own id so one desktop can host every granted application. */
-const VISITOR_APP_PREFIX = 'visitor-app:'
-type WindowId = DesktopAppId | `visitor-app:${string}`
-interface DesktopWindow { id: WindowId; x: number; y: number; z: number; minimized: boolean; maximized: boolean }
+interface DesktopWindow { id: string; x: number; y: number; z: number; minimized: boolean; maximized: boolean }
 const initialWindows: DesktopWindow[] = [{ id: 'agent', x: 204, y: 36, z: 1, minimized: false, maximized: false }]
 
-interface AppInfo { id: WindowId; title: string; subtitle: string; width: number; height: number; icon: string }
-const VISITOR_APP_SIZE = { width: 560, height: 580 }
-/** 点一下就往右展开侧栏的窗口，以及展开后的宽度：左边照旧，右边多一栏列表。 */
-const SIDE_PANELS: Partial<Record<DesktopAppId, number>> = { music: 1010, notes: 900 }
+/** 桌面上一个可打开的窗口：头部来自 AppModule 的 manifest（内置与插件同构），访客应用单独合成。 */
+interface AppInfo { id: string; title: string; subtitle: string; width: number; height: number; icon: string; manifest: AppManifest | null }
 
-function visibleWindowWidth(id: WindowId, width: number, stageWidth: number) {
-  return Math.min(width, stageWidth - (id === 'agent' && stageWidth >= 600 ? 160 : 16))
+function visibleMargin(manifest: AppManifest | null, stageWidth: number) {
+  const margin = manifest?.window.visibleMargin
+  if (!margin) return 16
+  return stageWidth >= margin.wideFrom ? margin.wide : margin.narrow
+}
+function visibleWindowWidth(app: AppInfo, stageWidth: number) {
+  return Math.min(app.width, stageWidth - visibleMargin(app.manifest, stageWidth))
 }
 
-export default function PixelDesktop({ agent }: { agent: ReactNode }) {
-  const { current: currentMusic, stop: stopMusic } = useMusicSession()
+export default function PixelDesktop() {
+  const { current: currentMusic } = useMusicSession()
   const { isUnlocked, isReady: visitorReady, name: visitorName, apps: visitorApps, themedAppId, setThemedAppId } = useVisitorMode()
   const [windows, setWindows] = useState<DesktopWindow[]>(() => currentMusic ? [...initialWindows, { id: 'music', x: 280, y: 40, z: 2, minimized: false, maximized: false }] : initialWindows)
   const searchParams = useSearchParams()
@@ -41,38 +38,40 @@ export default function PixelDesktop({ agent }: { agent: ReactNode }) {
   const lastLaunchQuery = useRef<string | null>(null)
   const [browserLaunch, setBrowserLaunch] = useState<{ page: BrowserPage; key: number }>({ page: 'about', key: 0 })
   const [startOpen, setStartOpen] = useState(false)
-  const [openPanels, setOpenPanels] = useState<Partial<Record<DesktopAppId, boolean>>>({})
+  const [openPanels, setOpenPanels] = useState<Record<string, boolean>>({})
   const [settings, setSettings] = useState<DesktopSettings>(DEFAULT_SETTINGS)
   const [time, setTime] = useState('--:--')
   const stageRef = useRef<HTMLDivElement>(null)
   const startRef = useRef<HTMLDivElement>(null)
   const zRef = useRef(currentMusic ? 2 : 1)
-  const dragRef = useRef<{ id: WindowId; pointerId: number; startX: number; startY: number; x: number; y: number } | null>(null)
+  const dragRef = useRef<{ id: string; pointerId: number; startX: number; startY: number; x: number; y: number } | null>(null)
   const pressRef = useRef<{ x: number; y: number } | null>(null)
   const previousUnlockedRef = useRef<boolean | null>(null)
+  /** 应用登记的「关窗时要做什么」；音乐窗口用它停止播放。 */
+  const closeHandlersRef = useRef(new Map<string, Set<() => void>>())
   const themedApp = visitorApps.find(app => app.id === themedAppId)
 
-  /** Static desktop apps plus whichever visitor apps this account was granted; 图标统一是文件地址。 */
-  const appInfo = useCallback((id: WindowId): AppInfo | undefined => {
-    const known = DESKTOP_APPS.find(app => app.id === id)
-    if (known) return { ...known, icon: iconFile(known.id) }
+  /** 内置应用（AppModule）与已授权访客应用共用一套窗口；图标统一是文件地址。 */
+  const appInfo = useCallback((id: string): AppInfo | undefined => {
+    const entry = findAppModule(id)
+    if (entry) return { id, title: entry.manifest.title, subtitle: entry.manifest.subtitle, width: entry.manifest.window.width, height: entry.manifest.window.height, icon: appIcon(entry.manifest), manifest: entry.manifest }
     if (!id.startsWith(VISITOR_APP_PREFIX)) return undefined
     const app = visitorApps.find(entry => `${VISITOR_APP_PREFIX}${entry.id}` === id)
-    return app ? { id, title: app.title, subtitle: app.subtitle, icon: visitorAppIcon(app), ...VISITOR_APP_SIZE } : undefined
+    return app ? { id, title: app.title, subtitle: app.subtitle, ...(app.window ?? VISITOR_APP_FALLBACK_SIZE), icon: visitorAppIcon(app), manifest: null } : undefined
   }, [visitorApps])
   const apps: AppInfo[] = [
-    ...DESKTOP_APPS.map(app => ({ ...app, icon: iconFile(app.id) })),
-    ...visitorApps.map(app => ({ id: `${VISITOR_APP_PREFIX}${app.id}` as WindowId, title: app.title, subtitle: app.subtitle, icon: visitorAppIcon(app), ...VISITOR_APP_SIZE })),
+    ...DESKTOP_APP_MODULES.map(entry => ({ id: entry.manifest.id, title: entry.manifest.title, subtitle: entry.manifest.subtitle, width: entry.manifest.window.width, height: entry.manifest.window.height, icon: appIcon(entry.manifest), manifest: entry.manifest })),
+    ...visitorApps.map(app => ({ id: `${VISITOR_APP_PREFIX}${app.id}`, title: app.title, subtitle: app.subtitle, ...(app.window ?? VISITOR_APP_FALLBACK_SIZE), icon: visitorAppIcon(app), manifest: null })),
   ]
 
   /** 侧栏展开后窗口变宽，其余窗口用登记尺寸。 */
-  const windowWidth = useCallback((id: WindowId, width: number) => {
-    const widened = SIDE_PANELS[id as DesktopAppId]
-    return widened && openPanels[id as DesktopAppId] ? widened : width
+  const windowWidth = useCallback((id: string, width: number) => {
+    const panelWidth = findAppModule(id)?.manifest.window.panelWidth
+    return panelWidth && openPanels[id] ? panelWidth : width
   }, [openPanels])
 
   /** 开始菜单只放公共说明：登录后门口的提示语和访客应用的副标题都不出现在系统界面里。 */
-  const startMenuNote = (id: WindowId) => id.startsWith(VISITOR_APP_PREFIX) || (id === 'visitor' && isUnlocked) ? '' : appInfo(id)?.subtitle ?? ''
+  const startMenuNote = (id: string) => id.startsWith(VISITOR_APP_PREFIX) || (id === 'visitor' && isUnlocked) ? '' : appInfo(id)?.subtitle ?? ''
   const visible = windows.filter(window => !window.minimized)
   const activeId = visible.reduce<DesktopWindow | undefined>((current, window) => !current || window.z > current.z ? window : current, undefined)?.id
 
@@ -129,15 +128,17 @@ export default function PixelDesktop({ agent }: { agent: ReactNode }) {
     const fitWindows = () => setWindows(previous => previous.map(window => {
       const app = appInfo(window.id)
       if (!app) return window
-      const preferredX = app.id === 'agent' && stage.clientWidth >= 600 ? Math.max(140, window.x) : window.x
-      return { ...window, x: Math.max(8, Math.min(preferredX, stage.clientWidth - visibleWindowWidth(app.id, windowWidth(app.id, app.width), stage.clientWidth) - 20)), y: Math.max(8, Math.min(window.y, stage.clientHeight - Math.min(app.height, stage.clientHeight - 16) - 8)) }
+      const margin = app.manifest?.window.visibleMargin
+      const wide = margin && stage.clientWidth >= margin.wideFrom
+      const preferredX = wide && margin.minX ? Math.max(margin.minX, window.x) : window.x
+      return { ...window, x: Math.max(8, Math.min(preferredX, stage.clientWidth - visibleWindowWidth(app, stage.clientWidth) - 20)), y: Math.max(8, Math.min(window.y, stage.clientHeight - Math.min(app.height, stage.clientHeight - 16) - 8)) }
     }))
     const observer = new ResizeObserver(fitWindows)
     observer.observe(stage)
     return () => observer.disconnect()
   }, [appInfo, windowWidth])
 
-  const focusWindow = (id: WindowId) => {
+  const focusWindow = (id: string) => {
     const z = ++zRef.current
     setWindows(previous => previous.map(window => window.id === id ? { ...window, z, minimized: false } : window))
     if (id.startsWith(VISITOR_APP_PREFIX)) {
@@ -145,7 +146,7 @@ export default function PixelDesktop({ agent }: { agent: ReactNode }) {
       setThemedAppId(app?.hasWallpaper ? app.id : null)
     }
   }
-  const openApp = useCallback((id: WindowId) => {
+  const openApp = useCallback((id: string) => {
     const app = appInfo(id)
     if (!app) return
     setStartOpen(false)
@@ -157,7 +158,7 @@ export default function PixelDesktop({ agent }: { agent: ReactNode }) {
       const height = stage?.clientHeight || 650
       const preferredX = id === 'visitor' ? 140 : 260 + previous.length * 24
       const preferredY = id === 'visitor' ? 20 : 62 + previous.length * 24
-      return [...previous, { id, z, minimized: false, maximized: false, x: Math.max(8, Math.min(preferredX, width - visibleWindowWidth(id, app.width, width) - 20)), y: Math.max(8, Math.min(preferredY, height - app.height - 12)) }]
+      return [...previous, { id, z, minimized: false, maximized: false, x: Math.max(8, Math.min(preferredX, width - visibleWindowWidth(app, width) - 20)), y: Math.max(8, Math.min(preferredY, height - app.height - 12)) }]
     })
   }, [appInfo])
 
@@ -177,28 +178,28 @@ export default function PixelDesktop({ agent }: { agent: ReactNode }) {
   }, [launchQuery, visitorReady, openApp, appInfo])
 
   /** 展开侧栏会把窗口撑宽，顺手把它挪回画面内，别让右边跑到屏幕外。 */
-  const toggleSidePanel = (id: DesktopAppId, next: boolean, element?: HTMLElement | null) => {
+  const toggleSidePanel = (id: string, next: boolean, element?: HTMLElement | null) => {
     setOpenPanels(previous => ({ ...previous, [id]: next }))
     if (!next || window.matchMedia('(max-width: 700px)').matches) return
     const stage = stageRef.current
     if (!stage) return
-    const width = Math.min(SIDE_PANELS[id] ?? 0, stage.clientWidth - 16)
+    const width = Math.min(findAppModule(id)?.manifest.window.panelWidth ?? 0, stage.clientWidth - 16)
     const height = element?.offsetHeight || appInfo(id)?.height || 0
     setWindows(previous => previous.map(window => window.id === id
       ? { ...window, x: Math.max(8, Math.min(window.x, stage.clientWidth - width - 16)), y: Math.max(8, Math.min(window.y, stage.clientHeight - Math.min(height, stage.clientHeight - 16) - 8)) }
       : window))
   }
   /** 点窗口的空白处就展开侧栏；点在按钮/输入框上、或者刚拖过窗口，都不算。 */
-  const expandSidePanel = (event: MouseEvent<HTMLElement>, id: WindowId) => {
-    if (!SIDE_PANELS[id as DesktopAppId] || openPanels[id as DesktopAppId]) return
+  const expandSidePanel = (event: MouseEvent<HTMLElement>, id: string) => {
+    if (!findAppModule(id)?.manifest.window.panelWidth || openPanels[id]) return
     if ((event.target as HTMLElement).closest('button, a, input, textarea, select, label, iframe')) return
     const pressed = pressRef.current
     if (pressed && Math.hypot(event.clientX - pressed.x, event.clientY - pressed.y) > 6) return
-    toggleSidePanel(id as DesktopAppId, true, event.currentTarget)
+    toggleSidePanel(id, true, event.currentTarget)
   }
-  const minimizeWindow = (id: WindowId) => setWindows(previous => previous.map(window => window.id === id ? { ...window, minimized: true } : window))
-  const maximizeWindow = (id: WindowId) => setWindows(previous => previous.map(window => window.id === id ? { ...window, maximized: !window.maximized } : window))
-  const moveWindow = (id: WindowId, x: number, y: number, element: HTMLElement) => {
+  const minimizeWindow = (id: string) => setWindows(previous => previous.map(window => window.id === id ? { ...window, minimized: true } : window))
+  const maximizeWindow = (id: string) => setWindows(previous => previous.map(window => window.id === id ? { ...window, maximized: !window.maximized } : window))
+  const moveWindow = (id: string, x: number, y: number, element: HTMLElement) => {
     const stage = stageRef.current
     if (!stage) return
     setWindows(previous => previous.map(window => window.id === id ? { ...window, x: Math.max(0, Math.min(x, stage.clientWidth - element.offsetWidth)), y: Math.max(0, Math.min(y, stage.clientHeight - element.offsetHeight)) } : window))
@@ -213,6 +214,55 @@ export default function PixelDesktop({ agent }: { agent: ReactNode }) {
     try { localStorage.setItem('marcus-desktop-settings', JSON.stringify(next)) } catch { /* Settings still apply for this visit. */ }
   }
   const showDesktop = () => setWindows(previous => previous.map(window => ({ ...window, minimized: true })))
+
+  /** 关闭窗口：先让应用做自己的收尾（例如音乐停播），再清掉窗口、侧栏与访客主题。 */
+  const closeWindow = (id: string) => {
+    closeHandlersRef.current.get(id)?.forEach(handler => handler())
+    closeHandlersRef.current.delete(id)
+    if (id.startsWith(VISITOR_APP_PREFIX)) setThemedAppId(null)
+    setOpenPanels(previous => ({ ...previous, [id]: false }))
+    setWindows(previous => previous.filter(window => window.id !== id))
+  }
+  const registerClose = (id: string, handler: () => void) => {
+    const handlers = closeHandlersRef.current.get(id) ?? new Set<() => void>()
+    handlers.add(handler)
+    closeHandlersRef.current.set(id, handlers)
+    return () => { handlers.delete(handler); if (!handlers.size) closeHandlersRef.current.delete(id) }
+  }
+
+  /** 交给应用的宿主对象：只暴露 `@/app-kit` 里声明过的能力。 */
+  const buildHost = (window: DesktopWindow): DesktopAppHost => {
+    const readPreference = <T,>(key: string, fallback: T): T => {
+      try {
+        const raw = localStorage.getItem(`marcus-app:${window.id}:${key}`)
+        return raw === null ? fallback : JSON.parse(raw) as T
+      } catch { return fallback }
+    }
+    const writePreference = (key: string, value: unknown) => {
+      try { localStorage.setItem(`marcus-app:${window.id}:${key}`, JSON.stringify(value)) } catch { /* Preference is lost if storage is unavailable. */ }
+    }
+    return {
+      appId: window.id,
+      layer: window.z,
+      active: activeId === window.id,
+      maximized: window.maximized,
+      panelOpen: !!openPanels[window.id],
+      theme: settings.theme,
+      appCount: DESKTOP_APP_MODULES.length,
+      settings,
+      updateSettings,
+      openApp,
+      focusSelf: () => focusWindow(window.id),
+      closeSelf: () => closeWindow(window.id),
+      setPanel: (open: boolean) => toggleSidePanel(window.id, open),
+      onClose: handler => registerClose(window.id, handler),
+      showDesktop,
+      asset: file => `/apps/${window.id}/${file}`,
+      readPreference,
+      writePreference,
+      browse: { page: browserLaunch.page, key: browserLaunch.key },
+    }
+  }
 
   return <main className="marcus-desktop-page" data-theme={settings.theme} data-scanline={resolveScanlineWidth(settings)}>
     <div className="computer-shell">
@@ -231,11 +281,15 @@ export default function PixelDesktop({ agent }: { agent: ReactNode }) {
           {windows.map(window => {
             const app = appInfo(window.id)
             if (!app) return null
+            const manifest = app.manifest
             const active = activeId === window.id
             const isVisitorApp = window.id.startsWith(VISITOR_APP_PREFIX)
+            const Module = findAppModule(window.id)
             // 登录后的访客窗口不再重复门口的提示语，访客应用的副标题也不出现在系统栏里。
-            const statusLeft = isVisitorApp || (window.id === 'visitor' && isUnlocked) ? null : app.subtitle
-            return <section key={window.id} hidden={window.minimized} className={`desktop-window ${window.id === 'agent' ? 'agent-window' : ''} ${active ? 'active-window' : ''} ${window.maximized ? 'maximized' : ''}`} aria-label={app.title} style={{ left: window.x, top: window.y, width: windowWidth(window.id, app.width), height: app.height, zIndex: window.z }} onPointerDownCapture={event => { pressRef.current = { x: event.clientX, y: event.clientY }; if (!active) focusWindow(window.id) }} onFocusCapture={() => { if (!active) focusWindow(window.id) }} onClick={event => expandSidePanel(event, window.id)}>
+            const statusLeft = isVisitorApp || (manifest?.system === 'visitor' && isUnlocked) ? null : app.subtitle
+            const titleSuffix = manifest?.titleSuffix ?? (manifest?.system === 'visitor' && visitorName ? ` / ${visitorName}` : '')
+            const statusRight = manifest?.system === 'visitor' ? (isUnlocked ? '● VISITOR MODE' : '○ VISITOR MODE') : isVisitorApp ? '● SIGNED IN' : (manifest?.statusText ?? 'MARCUS OS')
+            return <section key={window.id} hidden={window.minimized} className={`desktop-window ${manifest?.window.className ?? ''} ${active ? 'active-window' : ''} ${window.maximized ? 'maximized' : ''}`} aria-label={app.title} style={{ left: window.x, top: window.y, width: windowWidth(window.id, app.width), height: app.height, zIndex: window.z }} onPointerDownCapture={event => { pressRef.current = { x: event.clientX, y: event.clientY }; if (!active) focusWindow(window.id) }} onFocusCapture={() => { if (!active) focusWindow(window.id) }} onClick={event => expandSidePanel(event, window.id)}>
               <div className="window-titlebar" tabIndex={0} aria-label={`${app.title} 标题栏，可用方向键移动`} title="拖动标题栏移动窗口；双击最大化" onPointerDown={event => beginDrag(event, window)} onPointerMove={event => {
                 const drag = dragRef.current
                 if (drag?.id === window.id && drag.pointerId === event.pointerId) moveWindow(window.id, drag.x + event.clientX - drag.startX, drag.y + event.clientY - drag.startY, event.currentTarget.parentElement!)
@@ -243,9 +297,11 @@ export default function PixelDesktop({ agent }: { agent: ReactNode }) {
                 if (event.target !== event.currentTarget || window.maximized || !['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return
                 event.preventDefault()
                 moveWindow(window.id, window.x + (event.key === 'ArrowRight' ? 16 : event.key === 'ArrowLeft' ? -16 : 0), window.y + (event.key === 'ArrowDown' ? 16 : event.key === 'ArrowUp' ? -16 : 0), event.currentTarget.parentElement!)
-              }}><span className="window-name"><PixelImage file={app.icon} size={20} />{app.title}<small>{window.id === 'agent' ? ' / 你的站内向导' : window.id === 'visitor' && visitorName ? ` / ${visitorName}` : ''}</small></span><div className="window-controls"><button type="button" aria-label={`最小化 ${app.title}`} onClick={() => minimizeWindow(window.id)}>_</button><button type="button" className="maximize-control" aria-label={`${window.maximized ? '还原' : '最大化'} ${app.title}`} onClick={() => maximizeWindow(window.id)}>□</button><button type="button" aria-label={`关闭 ${app.title}`} onClick={() => { if (window.id === 'music') stopMusic(); if (SIDE_PANELS[window.id as DesktopAppId]) toggleSidePanel(window.id as DesktopAppId, false); if (isVisitorApp) setThemedAppId(null); setWindows(previous => previous.filter(item => item.id !== window.id)) }}>×</button></div></div>
-              <div className="window-content">{window.id === 'agent' ? agent : window.id === 'visitor' ? (isUnlocked ? <VisitorHome onOpenApp={appId => openApp(`${VISITOR_APP_PREFIX}${appId}`)} onShowDesktop={showDesktop} /> : <VisitorLogin />) : isVisitorApp ? <VisitorApp appId={window.id.slice(VISITOR_APP_PREFIX.length)} onShowWallpaper={showDesktop} /> : window.id === 'explorer' ? <MarcusBrowser initialPage={browserLaunch.page} launch={browserLaunch.key} /> : window.id === 'music' ? <MusicApp playerLayer={window.z} active={active} onActivate={() => focusWindow('music')} playlistOpen={!!openPanels.music} onTogglePlaylist={next => toggleSidePanel('music', next)} /> : window.id === 'notes' ? <NotesApp listOpen={!!openPanels.notes} onToggleList={next => toggleSidePanel('notes', next)} /> : window.id === 'settings' ? <SettingsApp settings={settings} onChange={updateSettings} /> : <AboutComputer />}</div>
-              <div className={`window-statusbar ${statusLeft ? '' : 'status-only'}`}>{statusLeft && <span>{statusLeft}</span>}<span>{window.id === 'visitor' ? (isUnlocked ? '● VISITOR MODE' : '○ VISITOR MODE') : isVisitorApp ? '● SIGNED IN' : window.id === 'agent' ? '● TERMINAL' : 'MARCUS OS'}<span className="resize-grip" aria-hidden="true">◢</span></span></div>
+              }}><span className="window-name"><PixelImage file={app.icon} size={20} />{app.title}<small>{titleSuffix}</small></span><div className="window-controls"><button type="button" aria-label={`最小化 ${app.title}`} onClick={() => minimizeWindow(window.id)}>_</button><button type="button" className="maximize-control" aria-label={`${window.maximized ? '还原' : '最大化'} ${app.title}`} onClick={() => maximizeWindow(window.id)}>□</button><button type="button" aria-label={`关闭 ${app.title}`} onClick={() => closeWindow(window.id)}>×</button></div></div>
+              <div className="window-content">{isVisitorApp
+                ? <VisitorApp appId={window.id.slice(VISITOR_APP_PREFIX.length)} />
+                : Module ? <Module.Component host={buildHost(window)} /> : null}</div>
+              <div className={`window-statusbar ${statusLeft ? '' : 'status-only'}`}>{statusLeft && <span>{statusLeft}</span>}<span>{statusRight}<span className="resize-grip" aria-hidden="true">◢</span></span></div>
             </section>
           })}
         </div>

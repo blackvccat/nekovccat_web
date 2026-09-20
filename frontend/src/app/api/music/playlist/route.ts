@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { chatAttemptError } from '@/lib/server/chat-attempt-limiter'
+import { clientAddress } from '@/lib/server/chat-security'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,6 +11,10 @@ const noStore = { 'Cache-Control': 'no-store' }
 
 /** 网易云歌单的曲目列表：浏览器跨域直连不了，只经这个代理向后端要。 */
 export async function GET(request: NextRequest) {
+  // 每次请求都会让服务器拿自己的 IP 去打第三方，所以先过一道便宜的按地址限流。
+  const ip = clientAddress(request)
+  const limited = ip ? chatAttemptError(ip, 'music') : null
+  if (limited) return limited
   const id = request.nextUrl.searchParams.get('id') || ''
   if (!PLAYLIST_ID.test(id)) return NextResponse.json({ detail: '歌单地址不对。' }, { status: 400, headers: noStore })
   const requested = Number(request.nextUrl.searchParams.get('limit') || DEFAULT_LIMIT)

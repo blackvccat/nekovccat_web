@@ -30,9 +30,12 @@ class Settings(BaseSettings):
     DSH_MAX_REPLY_BYTES: int = Field(default=65536, ge=1024)
     # 静默期发注释心跳的间隔。前端代理的空闲超时与家用路由/NAT 都靠它才不会被误判成断流。
     CHAT_HEARTBEAT_SECONDS: float = Field(default=15.0, gt=0)
-    # 访客应用的视图数据与私有素材：只经后端授权接口返回，前端不接触。
-    VISITOR_APPS_PATH: str = str(PROJECT_ROOT / "work/visitor-apps.json")
-    VISITOR_ASSETS_DIR: str = str(PROJECT_ROOT / "work/visitor-assets")
+    # 访客应用：一个应用一个文件夹（app.json + assets/），只经后端授权接口返回，前端不接触。
+    VISITOR_APPS_DIR: str = str(PROJECT_ROOT / "work/visitor-apps")
+    # 访客应用上传的文件，按 (应用, 访客) 隔离。
+    VISITOR_APP_FILES_DIR: str = str(PROJECT_ROOT / "work/visitor-app-files")
+    # 访客应用的键值数据，按 (应用, 访客, key) 隔离。
+    VISITOR_APP_DATA_DB: str = str(PROJECT_ROOT / "work/visitor-app-data.sqlite")
     # 访客名与密码哈希；DATABASE_ENABLED=true 时这份文件与 visitor_accounts 表一起读（同名则拒绝）。
     VISITOR_ACCOUNTS_PATH: str = str(PROJECT_ROOT / "work/visitor-accounts.json")
     VISITOR_LOGIN_PER_MINUTE: int = Field(default=6, gt=0)

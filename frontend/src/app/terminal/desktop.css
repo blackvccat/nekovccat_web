@@ -57,8 +57,11 @@
 .wallpaper-visitor { background-color: #91abc5; background-position: right bottom; }
 .desktop-watermark { position: absolute; top: 22px; right: 25px; display: flex; flex-direction: column; gap: 14px; color: #f9f7df; text-shadow: 1px 2px #314d3c; user-select: none; text-align: right; opacity: .9; }
 .desktop-watermark > span { font-size: 9px; letter-spacing: 1.5px; }
-.desktop-icons { position: absolute; left: 19px; top: 23px; display: flex; flex-direction: column; gap: 11px; max-height: calc(100% - 40px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #d8dec5 #49634944; }
-.desktop-icon { display: flex; align-items: center; flex-direction: column; gap: 5px; width: 101px; min-height: 77px; padding: 5px 3px; color: #fcf9eb; text-shadow: 1px 1px #344b35, -1px -1px #344b354a; border: 1px solid transparent; background: transparent; }
+/* 桌面图标：竖排一列，放不下时自动折到右边第二列，而不是出现纵向滚动条。
+   做法是 column + flex-wrap：容器的 top/bottom 界定可用高度，超出就换列，列从左边开始排。
+   容器本身不吃点击（pointer-events: none），只有图标按钮吃，免得挡住底下的窗口和壁纸。 */
+.desktop-icons { position: absolute; left: 19px; right: 19px; top: 23px; bottom: 17px; display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; gap: 11px; pointer-events: none; }
+.desktop-icon { pointer-events: auto; display: flex; align-items: center; flex-direction: column; gap: 5px; width: 101px; min-height: 77px; padding: 5px 3px; color: #fcf9eb; text-shadow: 1px 1px #344b35, -1px -1px #344b354a; border: 1px solid transparent; background: transparent; }
 .desktop-icon > .pixel-icon { filter: drop-shadow(2px 3px 0 #33432a50); }
 /* 图标文字：不用底色方块，改成按壁纸明暗换字色 —— 没有方块也没有投影，一样看得清。
    小岛与鼠尾草两张壁纸在图标区是浅色（实测亮度 171–208），配深色字对比度约 5:1 以上；
@@ -279,8 +282,8 @@
 .visitor-login-error { display: flex; align-items: flex-start; gap: 7px; margin: 0; padding: 8px 9px; font-size: 10px; line-height: 1.8; color: #8b4c3b; background: #f4e4d9; border: 1px solid #caa896; border-left: 2px solid #a86e57; }
 .visitor-login-error::before { content: "!"; flex: 0 0 13px; height: 13px; display: grid; place-items: center; margin-top: 2px; font-size: 9px; font-weight: 700; color: #f8f1e2; background: #a86e57; }
 .visitor-login-footnote { margin: auto 0 0; padding-top: 10px; border-top: 1px dashed #cfd3bf; font-size: 9px; line-height: 1.85; color: #9aa18b; }
-/* 访客模式的通用样式：区块由后端数据驱动，类名只描述形状，不含任何应用专属素材。 */
-.visitor-home, .visit-app { height: 100%; overflow-y: auto; overflow-x: hidden; background: #f2f0e2; padding: 15px 17px 12px; scrollbar-width: thin; scrollbar-color: #a0aa93 #e9eadc; }
+/* 访客模式：登录窗、登录后的应用列表；应用界面本身是服务器下发的 iframe（.visit-app-frame）。 */
+.visitor-home { height: 100%; overflow-y: auto; overflow-x: hidden; background: #f2f0e2; padding: 15px 17px 12px; scrollbar-width: thin; scrollbar-color: #a0aa93 #e9eadc; }
 .visitor-home { display: flex; flex-direction: column; gap: 11px; }
 .visitor-home-heading { display: flex; align-items: center; gap: 11px; }
 .visitor-home-heading h2 { margin: 2px 0 0; font-size: 19px; font-weight: 400; letter-spacing: -.6px; }
@@ -296,84 +299,8 @@
 .visitor-app-card small { display: block; margin-top: 3px; font-size: 9px; color: #7b886e; }
 .visitor-home-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .visitor-home-actions button { font-size: 10px; }
-.visit-app-status { padding: 26px 20px; font-size: 11px; color: #6a7a5e; }
-.visit-app-error { color: #8d4a3c; }
-/* 占位区块：窗口还空着时，在正中间放一句大字（文案由后端下发，前端不写死在代码里）。 */
-.visit-notice { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; min-height: 100%; text-align: center; }
-.visit-notice strong { font-size: 36px; font-weight: 400; letter-spacing: 7px; color: #77876a; text-shadow: 2px 2px #dfe4cf; }
-.visit-notice small { font-size: 10px; letter-spacing: 1.4px; color: #9aa18b; }
-.visit-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.visit-heading > div { flex: 1; min-width: 0; }
-.visit-heading h2 { margin: 2px 0 0; font-size: 19px; font-weight: 400; letter-spacing: -.6px; }
-.visit-action { font-size: 9px !important; white-space: nowrap; }
-.visit-text { padding: 9px 10px; background: #e5ead9; border-left: 2px solid #94a181; margin-bottom: 12px; }
-.visit-text h3 { margin: 0 0 5px; font-size: 12px; font-weight: 500; color: #536b50; }
-.visit-text p { margin: 0; font-size: 10px; line-height: 1.8; color: #6a7a5e; }
-.visit-letter-button { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 71px; margin: 0 0 12px; padding: 12px 10px; text-align: left; color: #596448; background: #f8f0d9; border: 1px solid #b3b59a; box-shadow: inset 1px 1px #fffdf0, inset -1px -1px #ddd6bb, 2px 2px #c5c7b4; }
-.visit-letter-button:hover { background: #fff5dc; border-color: #889574; }
-.visit-letter-seal { flex-shrink: 0; font-size: 25px; line-height: 1; color: #a67a6a; }
-.visit-letter-button > span:nth-child(2) { flex: 1; min-width: 0; }
-.visit-letter-button strong { display: block; font-size: 12px; font-weight: 500; }
-.visit-letter-button small { display: block; margin-top: 5px; font-size: 9px; line-height: 1.7; color: #8a8b71; }
-.visit-letter-open { flex-shrink: 0; align-self: flex-end; padding-bottom: 3px; font-size: 9px; color: #78815e; }
-.visit-letter-reader { display: flex; flex-direction: column; height: 100%; min-height: 0; margin: -15px -17px -12px; background: #ecead9; }
-.visit-letter-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-shrink: 0; padding: 9px 10px; border-bottom: 1px solid #c0c5ae; }
-.visit-letter-toolbar button { font-size: 10px; }
-.visit-letter-toolbar > span { color: #899077; font-size: 9px; }
-.visit-letter-paper { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; margin: 8px; padding: 24px 21px 18px; border: 1px solid #d7d0b4; background: #fbf6e7; color: #505844; font: 14px/2.05 "Iowan Old Style", "Songti SC", "STSong", "SimSun", serif; scrollbar-width: thin; scrollbar-color: #a8ad92 #f5efdd; overflow-wrap: anywhere; }
-.visit-letter-paper h2 { margin: 0 0 18px; font-size: 18px; font-weight: 600; line-height: 1.8; }
-.visit-letter-paper h2:focus { outline: none; }
-.visit-letter-paper p { margin: 0 0 1.35em; text-align: justify; }
-.visit-letter-paper p:last-of-type { margin-bottom: 0; }
-.visit-counter { text-align: center; padding: 12px 10px 10px; color: #536b50; background-color: #e3e8d7; background-image: radial-gradient(#7b926526 .65px, transparent .65px); background-size: 4px 4px; }
-.visit-counter > span:first-child { font-size: 11px; }
-.visit-counter > div { font-size: 12px; line-height: 1.2; margin: 3px 0 8px; }
-.visit-counter strong { font-size: 48px; font-weight: 400; letter-spacing: -3px; margin: 0 5px 0 1px; font-family: "Jersey 25", "Courier New", monospace; }
-.visit-counter > span:last-child { font-size: 8px; letter-spacing: 1.4px; color: #839077; }
-.visit-anniversary { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 11px 0 19px; padding: 9px 10px; border: 1px solid #c8cfb9; }
-.visit-anniversary > div:first-child > span { font-size: 9px; color: #8a927c; display: block; }
-.visit-anniversary > div:first-child > strong { display: block; font-size: 11px; font-weight: 400; padding-top: 4px; }
-.visit-anniversary small { font-size: 8px; margin-left: 9px; color: #8b957c; }
-.visit-anniversary-countdown { font-size: 9px; color: #738665; white-space: nowrap; }
-.visit-anniversary-countdown > strong { font-size: 16px; font-weight: 400; color: #5a7451; }
-/* 下载列表（files 区块）：只读的文件清单，样式同样只描述形状，文件名与地址都来自后端。 */
-.visit-files { margin-bottom: 15px; }
-.visit-files-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.visit-files-head h3 { font-size: 12px; font-weight: 400; margin: 0; }
-.visit-files-head > span { font-size: 8px; color: #8a947d; }
-.visit-files-intro { font-size: 9px; color: #939c86; margin: 4px 0 8px; }
-.visit-files ul { list-style: none; padding: 0; margin: 0; }
-.visit-files li { display: flex; align-items: center; gap: 9px; min-height: 40px; padding: 5px 0; border-bottom: 1px dashed #d0d3be; }
-.visit-file-glyph { flex-shrink: 0; width: 15px; height: 18px; border: 1px solid #b3b59a; background: linear-gradient(#cdd6b6 0 4px, #f8f1cf 4px); }
-.visit-file-name { flex: 1; min-width: 0; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
-.visit-file-name small { display: block; margin-top: 2px; font-size: 9px; color: #8a8b71; }
-.visit-file-size { flex-shrink: 0; font-size: 9px; color: #8a947d; }
-.visit-file-download { flex-shrink: 0; padding: 4px 10px; font-size: 9px; text-decoration: none; }
-.visit-files-note { margin: 7px 0 0; font-size: 8px; line-height: 1.8; color: #919a81; }
-.visit-checklist-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.visit-checklist-head h3 { font-size: 12px; font-weight: 400; margin: 0; }
-.visit-checklist-head > span { font-size: 8px; color: #8a947d; }
-.visit-checklist-intro { font-size: 9px; color: #939c86; margin: 4px 0 8px; }
-.visit-checklist ul { list-style: none; padding: 0; margin: 0 0 10px; }
-.visit-checklist li { display: flex; align-items: center; gap: 5px; min-height: 35px; border-bottom: 1px dashed #d0d3be; }
-.visit-checklist label { flex: 1; min-width: 0; display: flex; align-items: flex-start; gap: 9px; padding: 8px 0; cursor: pointer; }
-.visit-checklist label input { width: 13px; height: 13px; margin: 2px 0 0; flex-shrink: 0; accent-color: #72866b; cursor: pointer; }
-.visit-checklist label span { font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; }
-.visit-item-done > span { text-decoration: line-through; color: #98a08a; }
-.visit-item-remove { flex-shrink: 0; padding: 0 4px; border: 0; background: transparent; color: #969d87; font-size: 15px !important; }
-.visit-item-remove:hover { color: #936851; }
-.visit-checklist-empty { font-size: 10px; color: #8a947d; }
-.visit-checklist-form { display: flex; gap: 6px; }
-.visit-checklist-form input { min-width: 0; width: 0; flex: 1; background: #faf7e9; padding: 6px 8px; font-size: 10px; color: #536b50; border-radius: 0; }
-.visit-checklist-form input::placeholder { color: #99a088; }
-.visit-checklist-form button { flex-shrink: 0; font-size: 10px; padding: 5px 8px; }
-.visit-checklist-note { font-size: 8px; color: #919a81; line-height: 1.8; margin: 7px 0 0; }
-.visit-checklist-note.storage-unavailable { color: #8c674b; padding: 6px 8px; background: #efe3ce; border: 1px solid #c6b095; }
-.visit-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px 12px; border-top: 1px solid #d2d6c1; padding-top: 10px; margin-top: 15px; color: #9aa18b; font-size: 8px; }
-.visit-footer button { font-size: 9px; }
-.visit-image { margin: 0 0 12px; }
-.visit-image img { width: 100%; height: auto; image-rendering: pixelated; }
-.visit-image figcaption { padding-top: 6px; font-size: 9px; color: #8a947d; }
+/* 真实访客应用：界面是服务器登录后下发的 HTML，同源 iframe 铺满窗口内容区。 */
+.visit-app-frame { display: block; width: 100%; height: 100%; border: 0; }
 .about-computer { display: flex; align-items: center; flex-direction: column; padding: 24px 28px 16px; height: 100%; overflow-y: auto; background: #f0f0e2; text-align: center; }
 .about-computer > .eyebrow { margin-top: 10px; font-size: 9px; }
 .about-computer h2 { font-size: 32px; letter-spacing: -1px; font-weight: 700; margin: 2px 0 8px; }
@@ -384,12 +311,12 @@
 .computer-specs strong { font-size: 11px; font-weight: 400; color: #5f7453; }
 .about-computer > p.about-footnote { font-size: 10px; letter-spacing: .6px; margin: 13px 0 0; color: #98a18b; }
 @keyframes pixel-blink { 0%, 48% { opacity: 1; } 49%, 100% { opacity: 0; } }
-@media (min-width: 1500px) { .desktop-icons { left: 28px; top: 32px; gap: 18px; } }
+@media (min-width: 1500px) { .desktop-icons { left: 28px; right: 28px; top: 32px; bottom: 26px; gap: 18px; } }
 @media (max-height: 650px) {
   .marcus-desktop-page { padding: 10px; }
   .computer-top { height: 45px; flex-basis: 45px; }
   .computer-chin { flex-basis: 28px; }
-  .desktop-icons { top: 12px; gap: 4px; max-height: calc(100% - 24px); }
+  .desktop-icons { top: 12px; bottom: 12px; gap: 4px; }
   .desktop-icon { min-height: 60px; flex-shrink: 0; gap: 4px; padding: 3px; }
   .desktop-icon > .pixel-icon { width: 32px; height: 32px; }
   .desktop-icon > span { font-size: 10px; }
@@ -436,11 +363,10 @@
   .task-button > span { display: none; }
   .system-tray { gap: 5px; padding: 5px 7px; font-size: 10px; }
   .system-tray .status-dot, .show-desktop { display: none; }
-  .desktop-icons { top: 21px; left: 15px; gap: 15px; }
+  .desktop-icons { top: 21px; left: 15px; right: 15px; gap: 15px; }
   .desktop-watermark { top: 16px; right: 15px; }
   .desktop-watermark > span { font-size: 8px; letter-spacing: .8px; }
-  .visitor-home, .visit-app { padding: 15px 13px 12px; }
-  .visit-notice strong { font-size: 27px; letter-spacing: 5px; }
+  .visitor-home { padding: 15px 13px 12px; }
   .visitor-login { padding: 13px 12px 11px; gap: 10px; }
   .visitor-login-plate { width: 44px; height: 44px; }
   .visitor-login-heading h2 { font-size: 18px; }

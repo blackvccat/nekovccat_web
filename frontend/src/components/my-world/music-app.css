@@ -121,7 +121,12 @@
   /* 手机上点得准一点：歌单和收藏的行都不低于 52px，移除按钮加宽。 */
   .music-playlist-song, .music-library-load { min-height: 52px; }
   .music-remove { width: 44px; }
-  /* 窄屏没有并排的余地：歌单落到下面，占下半屏自己滚动。 */
-  .music-app.playlist-open { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 46%); }
-  .music-playlist { border-left: 0; border-top: 1px dashed #b8bda4; padding: 9px 0 0; }
+  /* 窄屏没有并排的余地：歌单落到下面自己滚动，占下半屏多一点（46% 放下曲目后上半区太挤，
+     而且不许上半区被压没）。两栏之间留一条缝，别贴在一起。 */
+  .music-app.playlist-open { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(96px, 1fr) minmax(0, 55%); row-gap: 8px; }
+  .music-playlist { border-left: 0; border-top: 1px dashed #b8bda4; padding: 0; }
+  /* 「收起」不能跟着曲目滚走：歌单头部固定在自己的滚动区顶部（背景同窗口底色，盖住滚过去的行）。 */
+  .music-playlist-head { position: sticky; top: 0; z-index: 1; padding: 9px 0; background: #f2f0df; }
+  .music-playlist-head > button { padding: 6px 4px; font-size: 12px; }
+  .music-playlist ul { margin-top: 6px; }
 }

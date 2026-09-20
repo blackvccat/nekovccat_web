@@ -1,0 +1,10 @@
+{
+  "apiVersion": 1,
+  "id": "notebook",
+  "title": "Notebook",
+  "subtitle": "上传与数据示例",
+  "entry": "index.html",
+  "permissions": ["files", "data"],
+  "embeds": [],
+  "window": { "width": 640, "height": 560 }
+}

@@ -9,7 +9,7 @@ param(
 $ErrorActionPreference = 'Continue'
 $root    = Split-Path -Parent $PSScriptRoot
 $work    = Join-Path $root 'work'
-$bPort   = 8010
+$bPort   = 8110
 $fPort   = 3010
 $bLog    = Join-Path $work 'marcus-backend.log'
 $fLog    = Join-Path $work 'marcus-frontend.log'
@@ -103,10 +103,15 @@ function Start-Backend([string]$token) {
   # 只盯 app 目录，避免 Harness 运行时写文件（work/ 下）或 __pycache__ 触发无限重载。
   # --timeout-graceful-shutdown：worker 有时关不干净（还有连接挂着），旧的会一直占着端口，
   # 新 worker 起不来，日志里却已经写了 Reloading…，于是「改了代码像没生效」。给个上限强制退出。
+  # cmd /c "... 2>&1"：先让 cmd 把 uvicorn 的 stderr 并进 stdout，PowerShell 就不会把 INFO 日志
+  # 当成 NativeCommandError 报红（stderr 在 PS 5.1 里会被包成错误记录，附上"所在位置 行:1"那种排版）。
   $cmd = "cd '$root\backend'; `$env:PYTHONUNBUFFERED='1'; `$env:PYTHONDONTWRITEBYTECODE='1'; `$env:INTERNAL_API_TOKEN='$token'; " +
-         "& '.\.venv\Scripts\python.exe' -m uvicorn app.main:app --host 127.0.0.1 --port $bPort --reload --reload-dir app --timeout-graceful-shutdown 3 2>&1 | " +
+         "cmd /c `".venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port $bPort --reload --reload-dir app --timeout-graceful-shutdown 3 2>&1`" | " +
          "ForEach-Object { `"`$_`" } | Tee-Object -FilePath '$bLog'"
-  Start-Process powershell -ArgumentList '-NoExit', '-NoProfile', '-Command', $cmd | Out-Null
+  # -EncodedCommand：命令里含引号，直接经 -Command 传会被命令行重新解析掉（内层 cmd /c "… 2>&1" 的引号
+  # 一旦丢失，stderr 又会被 PowerShell 当成 NativeCommandError 报红）。编码后原样送达，引号不再被吃。
+  $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($cmd))
+  Start-Process powershell -ArgumentList '-NoExit', '-NoProfile', '-EncodedCommand', $encoded | Out-Null
   Write-Host "  [启动] 后端 http://127.0.0.1:$bPort （新窗口，日志同步写入 work\marcus-backend.log）" -ForegroundColor Gray
   return $true
 }
@@ -121,14 +126,17 @@ function Start-Frontend([string]$token) {
     return $true
   }
   Remove-Item $fLog -ErrorAction SilentlyContinue
+  # 同上：npm/next 也会往 stderr 写日志，经 cmd 合并后再交给 PowerShell，避免报红。
   $cmd = "cd '$root\frontend'; " +
          "`$env:PYTHON_API_URL='http://127.0.0.1:$bPort'; " +
          "`$env:NEXT_PUBLIC_APP_URL='http://127.0.0.1:$fPort/terminal'; " +
          "`$env:INTERNAL_API_TOKEN='$token'; " +
          "`$env:NEXT_TELEMETRY_DISABLED='1'; " +
-         "npm run dev -- --hostname 127.0.0.1 --port $fPort 2>&1 | " +
+         "cmd /c `"npm run dev -- --hostname 127.0.0.1 --port $fPort 2>&1`" | " +
          "ForEach-Object { `"`$_`" } | Tee-Object -FilePath '$fLog'"
-  Start-Process powershell -ArgumentList '-NoExit', '-NoProfile', '-Command', $cmd | Out-Null
+  # 同后端：命令含引号，用 -EncodedCommand 原样送达，避免内层 cmd /c 的引号被命令行吃掉后又报红。
+  $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($cmd))
+  Start-Process powershell -ArgumentList '-NoExit', '-NoProfile', '-EncodedCommand', $encoded | Out-Null
   Write-Host "  [启动] 前端 http://127.0.0.1:$fPort （新窗口，日志同步写入 work\marcus-frontend.log）" -ForegroundColor Gray
   return $true
 }

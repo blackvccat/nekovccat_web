@@ -16,11 +16,11 @@ cp .env.example .env
 在本机 `backend/.env` 设置 `DEEPSEEK_API_KEY`。先按项目根目录说明准备 Harness 的站内插件与 profile，再启动整个项目；只启动 API 可用：
 
 ```bash
-.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8010
+.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8110
 ```
 
-- API 健康检查：`http://127.0.0.1:8010/api/health`
-- Swagger 文档：`http://127.0.0.1:8010/docs`
+- API 健康检查：`http://127.0.0.1:8110/api/health`
+- Swagger 文档：`http://127.0.0.1:8110/docs`
 - Harness 子进程：由 API 按请求创建，完成、失败、超时或断开后关闭
 
 `/api/health` 只报告 FastAPI 存活；验证 AI 必须实际调用聊天接口。当前聊天不保存到 PostgreSQL，默认 `DATABASE_ENABLED=false`；需要数据库功能时可显式启用初始化。
@@ -59,12 +59,13 @@ data: {"content":"","done":true}
 
 隐藏空间不再由 Agent 解锁：桌面的「访客模式」窗口提交访客名与密码，`POST /api/visitor/login` 校验后才放行。账号来自 `VISITOR_ACCOUNTS_PATH` 指向的私有 JSON，以及 `DATABASE_ENABLED=true` 时的 `visitor_accounts` 表（含 `apps` 列：逗号分隔的授权应用 id；MySQL / PostgreSQL 都由 `app/database.py` 的 `normalize_database_url` 换成异步驱动，MySQL 需要 `aiomysql`）——**两份会合并读取**，同一个访客名同时出现在两边时直接拒绝（不猜用哪份密码），本地文件不存在就只读数据库。密码只以 PBKDF2-SHA256（600k 次迭代、每条随机盐）保存，明文不落盘、不进日志、不进模型上下文；未知访客名也会走一次同样的哈希计算，避免用响应时间探测账号是否存在。用 `python scripts/add-visitor.py <访客名> --generate --apps <应用 id>` 生成哈希与授权。
 
-应用定义在 `VISITOR_APPS_PATH`（视图区块与主题）与 `VISITOR_ASSETS_DIR`（壁纸、图标等私有素材）里，两者都只由后端读取。登录后：
+应用是**一个应用一个文件夹**，定义在 `VISITOR_APPS_DIR` 里（`<id>/app.json` 是元数据与能力声明，`<id>/` 放入口 HTML 与它引用的静态文件，`<id>/assets/` 放壁纸、图标等私有素材），只由后端读取。登录后：
 
 - `GET /api/visitor/apps` 返回该访客被授权应用的**元数据**（标题、副标题、是否有壁纸/图标），不含内容；
-- `GET /api/visitor/apps/{id}` 返回该应用的视图数据，`GET /api/visitor/apps/{id}/assets/{kind}` 返回私有素材；两者都要求 `X-Marcus-Visitor` 里的访客名存在、启用且被授予该应用，否则 401/403。
+- `GET /api/visitor/apps/{id}/assets/{kind}` 返回私有素材；要求 `X-Marcus-Visitor` 里的访客名存在、启用且被授予该应用，否则 401/403。
+- **应用界面**：`GET .../apps/{id}/shell` 下发 HTML，`GET .../apps/{id}/{path}` 下发应用自带的 js/css/图片；在 `permissions` 里申请后，`GET/PUT/GET/DELETE .../apps/{id}/files[/{name}]` 做上传（请求体即文件字节）、列表、下载（`?inline=1` 内联）、删除，`GET/PUT/DELETE .../apps/{id}/data[/{key}]` 读写按「应用×访客」隔离的键值 JSON。数据在 `VISITOR_APP_DATA_DB`，文件在 `VISITOR_APP_FILES_DIR`。
 
-这几个接口都要求内部令牌；只有登录接口另有限流窗口。应用区块类型与校验规则见 `app/services/visitor_apps.py`，格式不对时整份注册表关闭（503），不会退化成「返回部分内容」。
+这几个接口都要求内部令牌；只有登录接口另有限流窗口。应用清单字段与校验规则见 `app/services/visitor_apps.py` 与 [`docs/APP-DEVELOPMENT.md`](../docs/APP-DEVELOPMENT.md)，格式不对时整份注册表关闭（503），不会退化成「返回部分内容」。
 
 访客名单缺失或格式不对时返回 503「尚未配置 / 暂不可用」，不会降级去读另一种来源；`DATABASE_ENABLED=true` 时数据库不可用同样直接失败，不会退回文件。
 

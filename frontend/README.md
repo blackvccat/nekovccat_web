@@ -142,7 +142,7 @@ frontend/
 │   ├── my-world/                # 桌面与内置软件（浏览器 / 音乐 / 便签 / 设置 / 访客入口）
 │   │   └── retro-computer.tsx   # 复古终端界面【未使用】
 │   ├── music/                   # 音乐会话与非桌面页面的站内面板
-│   ├── visitor/                 # 访客模式（登录、用户页、通用区块渲染器）
+│   ├── visitor/                 # 访客模式（登录、用户页、应用 iframe 宿主）
 │   └── shared/                  # 共享组件
 │       ├── loading.tsx
 │       └── error-boundary.tsx

@@ -2,18 +2,16 @@
 
 写给**要改这个项目的人**：站点由哪些部分组成、每块为什么这么设计、实现落在哪里、不变量是什么、改完怎么验证。
 
-示例账号为"MK"  密码为"12345678"
-
 | 想知道 | 看 |
 | --- | --- |
-| 站点是什么、怎么本地跑、怎么用 | [README.md](README.md) |
+| 站点是什么、怎么本地跑 | [README.md](README.md) |
 | 每个文件是干什么的（穷举） | [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) |
-| 访客账号与数据库 | [deployment/DATABASE.md](deployment/DATABASE.md)、接 MySQL 见 [deployment/MYSQL.md](deployment/MYSQL.md) |
+| 哪一天改了什么、为什么 | [CHANGELOG.md](CHANGELOG.md) |
 | **架构与设计原理（本文）** | —— |
 
 其它目录里的文档（backend / deployment / scripts / frontend，以及仓库外那两份）逐条列在文末 **§17 文档地图**。
 
-当前规模：**后端 109 条单测、前端 153 条、`tsc` 0 错、`npm run build` 通过**。
+当前规模：**后端 109 条单测、前端 160 条、`tsc` 0 错、`npm run build` 通过**。
 
 ---
 
@@ -40,7 +38,7 @@
 
 ### 2.1 两条线
 
-本仓库是 **MARCUS** 线。另一条线是**主分支（NEKO / My World）**，两份代码同源，所以能逐文件对照。本项目的做法是**按清单逐项采纳**：每条写成 BACKLOG 里的稳定 ID（`A*` Agent 能力 / `S*` 安全缺口），带改动文件、依赖与验证方式；**不接受的也写下来**（伴侣彩蛋线、队列式并发器…），免得以后重复讨论。
+本仓库是 **MARCUS** 那条线。做法是**按清单逐项采纳**：每条带改动文件、依赖与验证方式，不接受的也写下来，免得以后重复讨论。
 
 ### 2.2 进程与目录
 
@@ -145,13 +143,13 @@ EMPTY ──探测 /api/visitor/status──▶ isReady ──登录──▶ un
 
 登录侧限额：**6 次/分钟、30 次/小时**，同一访客名连续失败 10 次锁 15 分钟；前端另有一把 3 发/10 秒的廉价桶，走 `login:` 前缀，**与聊天不共用**（共用会让"刚聊过几条就去登录"被误伤，也会让攻击者的登录尝试混进聊天流量）。
 
-### 4.2 应用视图的通用区块协议（`lib/visitor-view.ts` + `components/visitor/visitor-blocks.tsx`）
+### 4.2 应用都是「服务器下发的真实应用」（`lib/visitor-view.ts` + `components/visitor/visitor-app.tsx`）
 
-前端只认**协议**：10 种区块（heading / text / letter / counter / checklist / files / notice / footer / link / image）与 3 种动作（wallpaper / link / logout）。**应用自身的文案与素材全部来自后端**，所以登录前的前端文件里没有应用组件、没有应用文案、没有应用素材文件名；未知区块类型返回 `null` 以向前兼容（`visitor-blocks.tsx:65`）。
+访客应用没有编译进前端的组件：`app.json` 的 `entry` 指向应用自己的 HTML，登录且被授权后由后端下发，宿主用**同源 iframe** 承载。前端只保留一份元数据类型（`VisitorAppMeta`）与一个 iframe 宿主，所以登录前的前端文件里没有应用界面、没有应用文案、没有应用素材文件名。（旧的「区块协议」已删除。）
 
 ### 4.3 私有素材与主题壁纸
 
-- 素材只经 `/api/visitor/asset?app=<id>&kind=wallpaper|icon` 下发；服务端三重校验：`kind` 枚举 + 该账号是否被授权 + 文件名取自注册表，且 `resolve()` 后要求 parent 等于素材目录（`backend/app/services/visitor_apps.py:214-228`）。缓存头 `private, no-store`。
+- 素材只经 `/api/visitor/asset?app=<id>&kind=wallpaper|icon` 下发；服务端三重校验：`kind` 枚举 + 该账号是否被授权 + 文件名取自该应用的 `app.json`，且 `resolve()` 后要求 parent 等于**这个应用自己的** `assets/` 目录（`backend/app/services/visitor_apps.py` 的 `app_asset`）。缓存头 `private, no-store`。
 - `hasWallpaper` 的应用在**打开/聚焦**时把桌面 stage 换成它的壁纸并显示水印，失焦或关闭即清（`pixel-desktop.tsx:222-229, 143-146, 246`）——访客的私有画面不会在桌面上停留。
 
 ### 4.4 账号注册表（`backend/app/services/visitor_*.py`）
@@ -159,13 +157,26 @@ EMPTY ──探测 /api/visitor/status──▶ isReady ──登录──▶ un
 | 件 | 管什么 | 要点 |
 | --- | --- | --- |
 | `visitor_accounts` | 账号与密码哈希 | PBKDF2-SHA256 **600k 次**、16 字节盐、格式 `pbkdf2_sha256$600000$salt$digest`；未知用户名也走 `DUMMY_HASH`（时间上分不出账号是否存在）；NFKC + casefold 归一；**文件与数据库合并、重名直接拒绝**（不猜用哪份密码）；数据库故障**不回退文件**（避免静默降级门禁） |
-| `visitor_apps` | 应用注册表（授权 id 的唯一来源） | 纯文件；区块类型白名单；素材路径解析限制 |
+| `visitor_apps` | 应用注册表（授权 id 的唯一来源） | 纯文件；每个应用一个文件夹（`entry` + `embeds` + `permissions`）；素材路径解析限制 |
 | `visitor_access` | 短时凭证 | 2 分钟 HMAC proof；Cookie 里只带访客标识与被授权应用 id |
 | `visitor_throttle` | 登录窗口 | 按用户名滚动窗口 + 失败锁定 |
 
 ### 4.5 退出
 
 `lock()` 调 `/api/visitor/logout`（只清 Cookie，后端不存会话）→ 前端清 state 与 `themedAppId` → **卸载全部访客窗口**（`visitor-mode.tsx:83-87`）。
+
+### 4.6 应用运行时（界面下发 / 上传 / 数据 / 第三方嵌入）
+
+应用是服务器下发的页面，能力按需申请：`app.json` 的 `entry` 指向 HTML，`permissions` 申请 `files` / `data`，`embeds` 声明允许内嵌的第三方源。
+
+- **下发**：`GET /api/visitor/apps/{id}/shell` 与 `/{path}` 只在登录且被授权时返回界面与静态文件；前端产物里没有任何应用界面。
+- **承载**：宿主用**同源 iframe**（`sandbox="… allow-same-origin"`）渲染 shell，应用因此能带 Cookie 直接请求受控转发口 `/api/visitor/app-proxy/[...path]`——它只转发到后端 `/api/visitor/apps/<id>/…`，后端每次按账号复核授权与 `permissions`。**应用拿不到凭据**，凭据只在宿主 HttpOnly Cookie。
+- **存储**：键值 JSON 存独立 SQLite（`VISITOR_APP_DATA_DB`），上传文件存 `VISITOR_APP_FILES_DIR/<id>/<访客>/`；都有限额（值 ≤64KB / ≤200 键；文件 ≤8MB / ≤200 个）。
+- **第三方内嵌按应用收口**：后端在 shell 响应里带一条 `Content-Security-Policy: frame-src 'self' <embeds>; frame-ancestors 'self'`，转发口原样透传。全局 CSP 写的是宽松的 `'self' https:`，两条策略取交集（必须同时放行），于是只有该应用 `embeds` 里列出的源能嵌进来。
+- **主题同步**：iframe 是独立文档，宿主的 CSS 变量不跨文档，所以宿主要在 iframe 载入与主题切换时把 `--app-*` 变量与 `data-theme` 写进它的 `documentElement`（顺带 `postMessage({type:'marcus:theme'})`）。应用 CSS 直接写 `var(--app-surface)` 即可跟随明暗。
+- **下载**：`GET .../files/{name}` 默认 `attachment`；带 `?inline=1` 时不写 `Content-Disposition`，交给浏览器内联显示（图片/PDF 预览）。
+- **信任边界**：当前只支持站点主人自己写应用（同源 iframe + `allow-same-origin`，应用与前端同权）。要接受他人提交的应用，必须改成独立源 + `postMessage` 过桥的强隔离。
+- 字段表与应用写法见 [`docs/visitor-app-example/README.md`](docs/visitor-app-example/README.md)。
 
 ---
 
@@ -200,7 +211,7 @@ EMPTY ──探测 /api/visitor/status──▶ isReady ──登录──▶ un
 
 | 组 | 键（默认值） |
 | --- | --- |
-| 路径 | `DSH_HOME=work/deepseek-harness-home`、`DSH_PATCH_PATH=agent/website.patch.yml`、`VISITOR_{APPS,ACCOUNTS}_PATH`、`VISITOR_ASSETS_DIR`、`CHAT_LIMIT_DB=work/chat-limits.sqlite` |
+| 路径 | `DSH_HOME=work/deepseek-harness-home`、`DSH_PATCH_PATH=agent/website.patch.yml`、`VISITOR_APPS_DIR=work/visitor-apps`、`VISITOR_ACCOUNTS_PATH`、`CHAT_LIMIT_DB=work/chat-limits.sqlite` |
 | SDK 上限/超时 | `DSH_REQUEST_TIMEOUT=180`、`DSH_MAX_TOKENS=4096`、`DSH_INITIALIZE_TIMEOUT=30`、`DSH_CLEANUP_TIMEOUT=5`、`DSH_MAX_NOTIFICATION_EVENTS=4096`、`DSH_MAX_NOTIFICATION_BYTES=2MiB`、`DSH_MAX_REPLY_BYTES=64KiB` |
 | 额度 | 窗口 12h、设备 20、IP 100、IP 24h 150、访客 100、全站 800、并发 3 |
 | 出站水位 | `CHAT_STREAM_MAX_EVENTS=128`、`CHAT_STREAM_MAX_BYTES=64KiB`、心跳 15s |
@@ -354,8 +365,8 @@ EMPTY ──探测 /api/visitor/status──▶ isReady ──登录──▶ un
 
 | 项 | 状态 |
 | --- | --- |
-| **S12 nginx 边缘限速** | **未做**（唯一未做的清单项），步骤与实测命令见 SERVER-OPS 第八节第 1 条 |
-| 线上复核 | 未做：SERVER-OPS 第八节第 3 条的复核表 |
+| **S12 nginx 边缘限速** | **未做**（唯一未做的清单项） |
+| 线上复核 | 未做 |
 | `TRUST_PROXY_IP` / `TRUST_CLOUDFLARE` | **必须开且只开一个**（线上用前者）；都不开时试次闸门的身份是常量，3 发/10 秒会落到整个站点上 |
 | 歌单接口 | 只接受 1–20 位数字 id（SSRF 不成立），自身无限流，靠 S12 压 |
 | 额度窗口粒度 | 滚动窗口以「小时」为粒度，跨边界仍有理论上的轻微超额 |
@@ -524,7 +535,7 @@ node ../scripts/desktop-theme.mjs --check   # 校验是否同步（npm test 里�
 
 | 子命令 | 作用 |
 | --- | --- |
-| `sync` | 画稿 `work/icons-svg/*.svg` → 公开 `frontend/public/icons-svg/` 或私有 `work/visitor-assets/`（按 `visitor-apps.json` 的引用判定），并删掉已消失/泄漏到公开目录的文件 |
+| `sync` | 画稿 `work/icons-svg/*.svg` → 公开 `frontend/public/icons-svg/` 或私有 `work/visitor-apps/<id>/assets/`（按各应用 `app.json` 的 `icon` 引用判定），并删掉已消失/泄漏到公开目录的文件 |
 | `preview` | 生成 `work/icons-preview.html`，按 43/30/21/20px 真实尺寸对照 |
 | `export` | 矢量画稿 → 24×24 PNG 落 `work/icons/`（另存 @8x） |
 | `build` | PNG → 矢量像素画稿（裁到边界居中、矩形路径），`--dry-run` 可预览 |
@@ -546,9 +557,8 @@ node ../scripts/desktop-theme.mjs --check   # 校验是否同步（npm test 里�
 | `chat-limits.sqlite` | 限流计数（付费轮次 / 登录窗口 / 失败次数） |
 | `deepseek-harness-home/` | Agent 轨迹、`workspace/`、`profiles/`、`sessions/`，以及运行时生成的 patch 副本 |
 | `visitor-accounts.json` | 访客账号与密码哈希 |
-| `visitor-apps.json` | 应用注册表（授权 id 的唯一来源） |
-| `visitor-apps.parked.json` | 摘下的区块，后端不读 |
-| `visitor-assets/` | 私有素材，仅登录后经后端下发 |
+| `visitor-apps/<id>/app.json` | 应用注册表：一个应用一个文件夹（授权 id 的唯一来源） |
+| `visitor-apps/<id>/assets/` | 该应用私有素材，仅登录后经后端下发 |
 | `relationship-private/`、`relationship-private.json` | 私有素材（与本产品定位不符的部分） |
 | `icons/`、`icons-svg/`、`icons-preview.html` | 图标画稿与本地中间产物 |
 | `marcus-*.log` | 本地开发日志 |
@@ -593,7 +603,7 @@ node ../scripts/desktop-theme.mjs --check   # 校验是否同步（npm test 里�
 | 组 | 键 |
 | --- | --- |
 | 后端密钥 | `DEEPSEEK_API_KEY`、`INTERNAL_API_TOKEN`（≥32 且两端一致）、`DATABASE_ENABLED/URL` |
-| 后端路径 | `VISITOR_ACCOUNTS_PATH` / `VISITOR_APPS_PATH` / `VISITOR_ASSETS_DIR`（必须绝对路径）、`HOST` / `PORT` |
+| 后端路径 | `VISITOR_ACCOUNTS_PATH` / `VISITOR_APPS_DIR`（必须绝对路径）、`HOST` / `PORT` |
 | 后端限额与超时 | `CHAT_*`（额度、试次闸门、body、流缓冲）、`DSH_*`（体积与超时） |
 | 前端 | `SITE_ORIGIN`（只写 origin，`CORS_ORIGINS` 同规则）、`CHAT_PROXY_*`（三段超时预算） |
 | 二选一 | `TRUST_PROXY_IP` / `TRUST_CLOUDFLARE`；`NEXT_PUBLIC_APP_URL` 是构建时变量 |
@@ -693,13 +703,14 @@ node ../scripts/desktop-theme.mjs --check   # 校验是否同步（npm test 里�
 | `scripts/` | 本地启停、访客账号维护、图标生成、暗色生成器 |
 | `deployment/` | systemd 单元、nginx 配置、环境变量样例、部署与运维文档、安全清单 |
 | `work/` | 运行时数据（**不进 Git、不进发布包**） |
-| 根文档 | `README.md`（使用者）、`PROJECT_STRUCTURE.md`（文件地图）、`DESIGN.md`（本文） |
+| 根文档 | `README.md`（使用者）、`PROJECT_STRUCTURE.md`（文件地图）、`CHANGELOG.md`（按天）、`DESIGN.md`（本文） |
 
 ### 16.2 本轮的子系统落点
 
 | 子系统 | 主要文件 |
 | --- | --- |
 | 主题生成器 | `scripts/desktop-theme.mjs` → `frontend/src/app/terminal/desktop-dark.css` |
+| 应用插件系统 | `src/app-kit/*`、`scripts/apps-registry.mjs` → `frontend/apps/`（§18） |
 | 亮色样式与扫描线 | `frontend/src/app/terminal/desktop.css` |
 | 偏好模型 | `frontend/src/lib/desktop-settings.ts` |
 | 设置面板 | `frontend/src/components/my-world/desktop-apps.tsx` |
@@ -714,7 +725,7 @@ node ../scripts/desktop-theme.mjs --check   # 校验是否同步（npm test 里�
 
 ## 17. 文档地图：其它目录里的 md
 
-主文档只有三份，都在根目录：`README.md`（站点是什么、怎么跑、怎么用）、`PROJECT_STRUCTURE.md`（文件地图）、`DESIGN.md`（本文）。其余 md 按目录分工如下——**路径都相对本文件**。
+主文档只有四份，都在根目录：`README.md`（站点是什么、怎么跑）、`PROJECT_STRUCTURE.md`（文件地图）、`CHANGELOG.md`（按天记录）、`DESIGN.md`（本文）。其余 md 按目录分工如下——**路径都相对本文件**。
 
 ### backend/
 
@@ -728,8 +739,7 @@ node ../scripts/desktop-theme.mjs --check   # 校验是否同步（npm test 里�
 | 相对路径 | 是什么 | 什么时候看 |
 | --- | --- | --- |
 | `deployment/README.md` | 生产部署总览 + **「公共仓库边界」清单**：哪些东西永远不许提交（真 `.env`、模型密钥、内部令牌、SSH/隧道凭据、`relationship-private`、受保护的壁纸、简历原材料、日志、运行时数据库、构建产物、发布压缩包） | 部署前先读这一页 |
-| `deployment/DATABASE.md` | 可选的数据库方案：什么时候需要、开 `DATABASE_ENABLED` 后与 JSON 文件怎么合并（同名直接拒绝）、断库不降级、`--db` 的全部参数规则 | 想用 SQL 管访客账号 |
-| `deployment/MYSQL.md` | **从零接入 MySQL 的实操教程**：建库建号、装驱动（含 `cryptography` 这个易漏项）、配 `backend/.env`、加账号、四层验证与排错表 | 决定用 MySQL 存访客账号 |
+| `deployment/DATABASE.md` | 可选的数据库方案：什么时候需要、开 `DATABASE_ENABLED` 后与 JSON 文件怎么合并（同名直接拒绝）、断库不降级 | 想用 SQL 管访客账号 |
 
 ### scripts/
 
@@ -745,6 +755,13 @@ node ../scripts/desktop-theme.mjs --check   # 校验是否同步（npm test 里�
 | `frontend/docs/deployment.md` | 7 行的指针页，把部署说明指向 `deployment/README.md`（并声明旧的 Node 18 / 必需 PostgreSQL / 60 秒超时代的步骤已不适用） | 顺手一看 |
 | `frontend/docs/supabase-setup.md` | 早期用 Supabase 的方案，**已不采用** | 只在考古时看 |
 | `frontend/public/fonts/README.md` | 三份本地字体的来源（Fontsource 5.3.0）、OFL 许可与每个文件的 SHA-256 | 换字体或核对字体完整性时 |
+
+### docs/
+
+| 相对路径 | 是什么 | 什么时候看 |
+| --- | --- | --- |
+| `docs/APP-DEVELOPMENT.md` | **应用开发与部署教程**：系统应用（`frontend/apps/` 插件）与访客应用（服务器下发）两条路线，含契约、安装/卸载、部署与排错 | 要写或搬一个应用时 |
+| `docs/visitor-app-example/` | 可复制的访客应用示例（Notebook：数据 + 上传） | 写访客应用时照着改 |
 
 ### 根目录里的历史文档（可忽略）
 
@@ -764,3 +781,49 @@ node ../scripts/desktop-theme.mjs --check   # 校验是否同步（npm test 里�
 - `deployment/backend.env.example`、`deployment/frontend.env.example`：环境变量样例（不是 md，但改配置看这两份）。
 - `work/` 下**没有任何 md**：限额库、访客账号、Agent 轨迹、日志都在那里，**不进 Git、不进发布包**（§12.5）。
 - 图标的说明没有单独的 md：看 `scripts/LOCAL-DEV.md` 与 `scripts/pixel-icons.py --help`。
+
+---
+
+## 18. 桌面应用插件系统（`frontend/apps/`）
+
+### 18.1 要解决的问题
+
+原来一个桌面应用被写死在 7 个地方：`DesktopAppId` 联合类型、`pixel-icon.tsx` 的图标表、`desktop-apps.tsx` 的 `DESKTOP_APPS`、`pixel-desktop.tsx` 的渲染三元链，以及散落的侧栏宽度、关窗副作用、状态栏文案。结果是**应用没法从一个站点搬到另一个站点**：复制组件文件不够，还得改类型、改图标表、改 switch。
+
+现在改成「**构建期装配的插件**」：一个应用 = 一个文件夹（`manifest.json` + `app.tsx` + 可选 `app.css` / `assets/`），登记进 `apps/registry.json`，构建时由生成器接进来。允许重新编译，所以不需要运行时动态加载——这也是唯一可靠的做法（Turbopack 不认动态路径）。
+
+### 18.2 三层结构
+
+| 层 | 文件 | 职责 |
+| --- | --- | --- |
+| 公开契约 | `src/app-kit/index.ts` | `AppManifest` / `DesktopAppHost` / `AppModule` / `APP_API_VERSION`。**插件唯一允许 import 的宿主路径** |
+| 生成器 | `scripts/apps-registry.mjs` | 校验 manifest → 复制素材到 `public/apps/<id>/` → 生成 `src/app-kit/generated.tsx`（静态 import） |
+| 合并注册表 | `src/app-kit/registry.ts` | 内置（`builtin.tsx`）+ 插件（`generated.tsx`）合成一张表；桌面只查这张表 |
+
+`pixel-desktop.tsx` 因此退化成通用窗口管理器：`findAppModule(id)` 拿到模块就 `<Component host={...}/>`，窗口的尺寸、侧栏宽度、状态栏、标题栏后缀全部读 `manifest`。
+
+### 18.3 不变量
+
+- **应用只能依赖 `@/app-kit`**：有测试扫描每个 `apps/*/app.tsx` 的 import，出现 `@/components/*` 或 `@/lib/*` 即失败——这是「可搬运」的硬条件。
+- **插件样式只能用 `--app-*` token**（`src/app/terminal/app-tokens.css`，明暗各定义一次）：插件的类名进不了暗色生成器，所以约定用 token；测试禁止 `app.css` 出现写死颜色。
+- **契约版本化**：`apiVersion` 与宿主不一致的插件在加载时被跳过并 `console.warn`，而不是带着半个接口跑起来。
+- **生成物同步**：`generated.tsx` 是提交物，`--check` / `npm test` 校验它与 `registry.json` 同步（与 `desktop-dark.css` 同一套约定）。
+- **素材副本是构建产物**：`frontend/public/apps/` 由生成器复制并清理，已加进 `.gitignore`。
+
+### 18.4 内置应用为什么不搬走
+
+`agent` / `visitor` / `explorer` / `music` / `notes` / `settings` 依赖宿主的 Provider（Agent 会话、音乐会话、访客模式）与内部组件，所以实现留在 `src/components/`，但**登记方式与插件完全相同**（`builtin.tsx` 里就是普通 `AppModule`）。`About Computer` 已经搬进 `apps/about/` 作为第一个可搬运样例；`apps/tomato/` 是一个默认关闭的第三方样式示例。要把某个内置应用也变成可搬运的，把实现移进 `apps/<id>/`（只用 `@/app-kit`）、从 `builtin.tsx` 删掉即可，宿主无需再改。
+
+### 18.5 操作手册
+
+```bash
+cd frontend
+npm run app:registry    # 生成注册表并复制素材（dev / build 已自动跑）
+node ../scripts/apps-registry.mjs --check   # 校验生成物是否同步（npm test 里也有）
+```
+
+装一个应用 = 复制 `apps/<id>/` 文件夹 + 在 `apps/registry.json` 的 `enabled` 里加一个 id + 重新构建。卸一个 = 删掉 id 再构建。详细字段与宿主接口见 [`frontend/apps/README.md`](frontend/apps/README.md)。
+
+### 18.6 部署侧的一处注意
+
+生成器在仓库根 `scripts/`，并读 `frontend/apps/`，所以交叉构建的工作区仍必须镜像仓库布局（`scripts/` + `frontend/` 一起），这与暗色生成器 `desktop-theme.mjs` 的要求一致；`docs`（打包清单）里新增的 `frontend/public/apps/` 会随 `public/` 一起进发布包。

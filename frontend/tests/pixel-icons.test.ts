@@ -28,11 +28,14 @@ test('访客登录用 login.svg，占位图标用 visitor-app.svg', () => {
 })
 
 test('访客应用的私有图标不进公开目录', () => {
-  const registry = path.join(root, '..', 'work', 'visitor-apps.json')
-  if (!existsSync(registry)) return
-  const apps = JSON.parse(readFileSync(registry, 'utf8')).apps ?? []
+  const appsDir = path.join(root, '..', 'work', 'visitor-apps')
+  if (!existsSync(appsDir)) return
   const served = new Set(readdirSync(publicDir))
-  for (const app of apps) {
+  for (const entry of readdirSync(appsDir, { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name.startsWith('_')) continue
+    const manifest = path.join(appsDir, entry.name, 'app.json')
+    if (!existsSync(manifest)) continue
+    const app = JSON.parse(readFileSync(manifest, 'utf8')) as { icon?: unknown }
     if (typeof app.icon === 'string') {
       assert.ok(!served.has(app.icon), `${app.icon} 是访客应用的私有图标，不该出现在 public/icons-svg（登录前前端不能有它的痕迹）`)
     }

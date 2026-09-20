@@ -1,23 +1,10 @@
 'use client'
 
+/** 内置应用的**内容组件**。应用清单、窗口尺寸与其余元数据统一在 `@/app-kit` 里登记。 */
 import { useState } from 'react'
-import PixelIcon, { type PixelIconName } from './pixel-icon'
 import { NOTES_MAX, NOTES_STORAGE_KEY, createNoteId, noteLabel, restoreSavedNotes, type SavedNote } from '@/lib/desktop-notes'
 import { DEFAULT_SETTINGS, SCANLINE_WIDTHS, THEMES, WALLPAPERS, WALLPAPER_MOTIONS, type DesktopSettings } from '@/lib/desktop-settings'
 import { NIGHT_HARBOR_ASSETS } from './night-harbor-assets'
-
-export type DesktopAppId = Exclude<PixelIconName, 'home' | 'visitor-app'>
-export { DEFAULT_SETTINGS } from '@/lib/desktop-settings'
-export type { DesktopSettings } from '@/lib/desktop-settings'
-export const DESKTOP_APPS: { id: DesktopAppId; title: string; subtitle: string; width: number; height: number }[] = [
-  { id: 'agent', title: 'MK Agent', subtitle: '你的站内 AI 向导', width: 740, height: 610 },
-  { id: 'visitor', title: 'SIGNED IN', subtitle: '需要访客名与密码', width: 430, height: 516 },
-  { id: 'explorer', title: 'MARCUS Browser', subtitle: '关于、探索、长廊与联系', width: 800, height: 660 },
-  { id: 'music', title: 'MARCUS Music', subtitle: '给小世界配一首歌', width: 660, height: 640 },
-  { id: 'notes', title: 'Notes', subtitle: '留下一点想法', width: 560, height: 500 },
-  { id: 'settings', title: 'Settings', subtitle: '布置你的桌面', width: 570, height: 520 },
-  { id: 'about', title: 'About Computer', subtitle: '关于这台小电脑', width: 530, height: 470 },
-]
 
 function readStored(key: string) {
   try { return localStorage.getItem(key) } catch { return null }
@@ -119,6 +106,3 @@ export function SettingsApp({ settings, onChange }: { settings: DesktopSettings;
     <fieldset className="scanline-width-settings" disabled={!settings.scanlines} aria-describedby="scanline-width-hint"><legend>扫描线粗细</legend><div className="scanline-width-options">{SCANLINE_WIDTHS.map(width => <button type="button" key={width.value} className={`pixel-button ${settings.scanlineWidth === width.value ? 'pressed' : ''}`} aria-pressed={settings.scanlineWidth === width.value} onClick={() => onChange({ ...settings, scanlineWidth: width.value })}>{width.title}</button>)}</div><p id="scanline-width-hint">自动：明亮用细、暗色用中（1px 的细线在黑屏上看不见）。三档是线宽 1px / 2px / 3px，粗那一档明显更宽。</p></fieldset><div className="settings-footer"><span>设置仅保存在这个浏览器中。</span><button type="button" className="pixel-button" onClick={() => onChange(DEFAULT_SETTINGS)}>恢复默认</button></div></div>
 }
 
-export function AboutComputer() {
-  return <div className="about-computer"><PixelIcon name="about" size={76} /><div className="eyebrow">WELCOME TO MY LITTLE INTERNET CORNER.</div><h2>MARCUS OS<span>personal edition</span></h2><p>一台装着好奇心的小电脑。<br />把个人网站、站内向导、音乐和随手便签，放进熟悉的像素桌面里。</p><div className="computer-specs inset-panel"><span>桌面应用<strong>{DESKTOP_APPS.length} 个</strong></span><span>本地保存<strong>对话 · 音乐收藏 · 便签 · 偏好</strong></span><span>操作提示<strong>拖动标题栏，点击任务栏切换</strong></span></div><p className="about-footnote">MADE FOR WANDERING. STAY A WHILE.</p></div>
-}

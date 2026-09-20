@@ -27,6 +27,10 @@ PROTECTED_PREFIXES = (CHAT_PREFIX, VISITOR_PREFIX, MUSIC_PREFIX)
 # 一个账号几分钟就能把几百条连发完，每条都是一次完整的生成。
 BURST_PER_MINUTE = 12
 BURST_PER_HOUR = 60
+# 歌单是只读代理，但每次都拿**服务器的 IP** 去打第三方（网易云）：给它自己的窗口，
+# 正常用户一分钟点不了几次，脚本也刷不动。放在请求表的另一张表里，绝不占用聊天的日额度。
+MUSIC_PER_MINUTE = 30
+MUSIC_PER_HOUR = 300
 
 
 class Disconnected(Exception):
@@ -82,6 +86,10 @@ class ChatProtectionMiddleware:
             # 不归一的话同一条消息会被算两次（重定向那一发 + 浏览器跟过去那一发）。
             path = CHAT_PREFIX + '/'
             scope = {**scope, 'path': path, 'raw_path': scope.get('raw_path', b'/api/chat') + b'/'}
+        # 歌单转发每次都拿服务器地址去打第三方：走它自己的窗口（含被拒尝试的廉价闸门），
+        # 与聊天/登录的额度完全分开。
+        if path.startswith(MUSIC_PREFIX):
+            return await self._music(scope, receive, send, identity, reject)
         # 两个付费入口都只接受 POST：别的方交给路由去回 405，中间件不扣额度。
         # 不这么做的话，一个明明会被 405 打回的请求会白吃一行配额——而它扣的是全站每日信封，
         # 也就是能让所有人当天都聊不了。令牌校验在它之前，受保护路径一律要令牌。
@@ -114,6 +122,40 @@ class ChatProtectionMiddleware:
         finally:
             # 单独一次 pop 在 GIL 下是原子的，不必再抢锁（否则又要等持有锁的 I/O）。
             self.active.pop('login:' + identity, None)
+
+    async def _music(self, scope, receive, send, identity, reject):
+        """歌单转发：每次都拿服务器 IP 去打第三方，所以也过一道按身份的窗口。
+
+        这里不挂聊天那把试次闸门（burst 只有 4）：前端已经有一把 20/分的桶挡在它前面，
+        再叠一层会让「连点几个歌单」的正常用户在第 5 发就被冷却。这里只用耐久窗口。
+        """
+        try:
+            reason = await asyncio.to_thread(self._decide_music, identity)
+            if reason:
+                return await reject(*reason)
+            await self.app(scope, receive, send)
+        except sqlite3.Error:
+            return await reject('站内 Agent 正在维护，请稍后再试。', 503, code='quota_storage')
+
+    def _decide_music(self, identity: str):
+        """同步判定：按分钟/小时的窗口。用独立的表，绝不占用聊天的日额度。"""
+        with self.lock:
+            db = self._connect()
+            try:
+                db.execute('CREATE TABLE IF NOT EXISTS music_hits (ip TEXT NOT NULL, ts REAL NOT NULL)')
+                db.execute('CREATE INDEX IF NOT EXISTS music_hits_ip_ts ON music_hits (ip, ts)')
+                db.execute('BEGIN IMMEDIATE')
+                now = time.time()
+                db.execute('DELETE FROM music_hits WHERE ts < ?', (now - 3600,))
+                minute = db.execute('SELECT count(*) FROM music_hits WHERE ip=? AND ts>?', (identity, now - 60)).fetchone()[0]
+                hour = db.execute('SELECT count(*) FROM music_hits WHERE ip=? AND ts>?', (identity, now - 3600)).fetchone()[0]
+                if minute >= MUSIC_PER_MINUTE or hour >= MUSIC_PER_HOUR:
+                    return ('请求过于频繁，请稍后再试。', 429, 60, 'music_window')
+                db.execute('INSERT INTO music_hits(ip, ts) VALUES (?, ?)', (identity, now))
+                db.commit()
+                return None
+            finally:
+                db.close()
 
     async def _read_body(self, headers, receive) -> bytes:
         """读完并校验请求体，把 415 / 413 / 422 / 408 挡在配额与 sqlite 之前。

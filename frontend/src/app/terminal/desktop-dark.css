@@ -16,7 +16,6 @@ html[data-theme="dark"] .marcus-desktop-page .computer-top nav a:hover { border-
 html[data-theme="dark"] .marcus-desktop-page .computer-top nav a[aria-current] { border-bottom-color: var(--ink); }
 html[data-theme="dark"] .marcus-desktop-page .computer-model { border: 1px solid #3c9258; color: #78d296; }
 html[data-theme="dark"] .marcus-desktop-page .computer-screen { border: 3px solid #327a4a; box-shadow: 0 0 0 2px #0a180f, inset 2px 2px #030705; }
-html[data-theme="dark"] .marcus-desktop-page .desktop-icons { scrollbar-color: #46ab68 #0a0d0b44; }
 html[data-theme="dark"] .marcus-desktop-page .desktop-icon:hover, html[data-theme="dark"] .marcus-desktop-page .desktop-icon:focus-visible { border: 1px dotted #64d88b; }
 html[data-theme="dark"] .marcus-desktop-page .desktop-window { border: 1px solid #307547; background: var(--cream); box-shadow: inset 1px 1px #429b60, inset -1px -1px #08130c, 4px 5px 0 #04090555; }
 html[data-theme="dark"] .marcus-desktop-page .window-titlebar { color: #d3eedc; background: #0c110e; }
@@ -136,58 +135,14 @@ html[data-theme="dark"] .marcus-desktop-page .visitor-login-field input { color:
 html[data-theme="dark"] .marcus-desktop-page .visitor-login-error { color: #db958a; background: #1e1312; border: 1px solid #419f60; border-left: 2px solid #3a8d56; }
 html[data-theme="dark"] .marcus-desktop-page .visitor-login-error::before { color: #d3eedc; background: #d35845; }
 html[data-theme="dark"] .marcus-desktop-page .visitor-login-footnote { border-top: 1px dashed #45a866; color: #53c679; }
-/* 访客模式的通用样式：区块由后端数据驱动，类名只描述形状，不含任何应用专属素材。 */
-html[data-theme="dark"] .marcus-desktop-page .visitor-home, html[data-theme="dark"] .marcus-desktop-page .visit-app { background: #131a15; scrollbar-color: #3e995c #131a15; }
+/* 访客模式：登录窗、登录后的应用列表；应用界面本身是服务器下发的 iframe（.visit-app-frame）。 */
+html[data-theme="dark"] .marcus-desktop-page .visitor-home { background: #131a15; scrollbar-color: #3e995c #131a15; }
 html[data-theme="dark"] .marcus-desktop-page .visitor-home-note, html[data-theme="dark"] .marcus-desktop-page .visitor-home-footnote { color: #88d7a3; }
 html[data-theme="dark"] .marcus-desktop-page .visitor-home-footnote { border-top: 1px solid #45a967; color: #53c679; }
 html[data-theme="dark"] .marcus-desktop-page .visitor-home-empty { border: 1px dashed #419e60; color: #75d194; }
 html[data-theme="dark"] .marcus-desktop-page .visitor-app-card { background: #131a15; border: 1px solid #42a161; box-shadow: inset 1px 1px #439c60; }
 html[data-theme="dark"] .marcus-desktop-page .visitor-app-card:hover { background: #1c3424; }
 html[data-theme="dark"] .marcus-desktop-page .visitor-app-card small { color: #75d194; }
-html[data-theme="dark"] .marcus-desktop-page .visit-app-status { color: #88d7a3; }
-html[data-theme="dark"] .marcus-desktop-page .visit-app-error { color: #db958a; }
-html[data-theme="dark"] .marcus-desktop-page .visit-notice strong { color: #78d296; text-shadow: 2px 2px #2a623d; }
-html[data-theme="dark"] .marcus-desktop-page .visit-notice small { color: #53c679; }
-html[data-theme="dark"] .marcus-desktop-page .visit-text { background: #121a15; border-left: 2px solid #3c9459; }
-html[data-theme="dark"] .marcus-desktop-page .visit-text h3 { color: #9bdeb1; }
-html[data-theme="dark"] .marcus-desktop-page .visit-text p { color: #88d7a3; }
-html[data-theme="dark"] .marcus-desktop-page .visit-letter-button { color: #a4e1b9; background: #131a15; border: 1px solid #409c5e; box-shadow: inset 1px 1px #429b60, inset -1px -1px #1f482d, 2px 2px #132d1c; }
-html[data-theme="dark"] .marcus-desktop-page .visit-letter-button:hover { background: #1d3625; border-color: #8ae2a8; }
-html[data-theme="dark"] .marcus-desktop-page .visit-letter-seal { color: #65cc87; }
-html[data-theme="dark"] .marcus-desktop-page .visit-letter-button small { color: #71d091; }
-html[data-theme="dark"] .marcus-desktop-page .visit-letter-open { color: #84d69f; }
-html[data-theme="dark"] .marcus-desktop-page .visit-letter-reader { background: #131a15; }
-html[data-theme="dark"] .marcus-desktop-page .visit-letter-toolbar { border-bottom: 1px solid #42a362; }
-html[data-theme="dark"] .marcus-desktop-page .visit-letter-toolbar > span { color: #6acd8b; }
-html[data-theme="dark"] .marcus-desktop-page .visit-letter-paper { border: 1px solid #44a765; background: #131b16; color: #afe4c1; scrollbar-color: #3f995d #131a15; }
-html[data-theme="dark"] .marcus-desktop-page .visit-counter { color: #9bdeb1; background-color: #121915; background-image: radial-gradient(#0c110e26 .65px, transparent .65px); }
-html[data-theme="dark"] .marcus-desktop-page .visit-counter > span:last-child { color: #6acd8b; }
-html[data-theme="dark"] .marcus-desktop-page .visit-anniversary { border: 1px solid #44a765; }
-html[data-theme="dark"] .marcus-desktop-page .visit-anniversary > div:first-child > span { color: #66cc88; }
-html[data-theme="dark"] .marcus-desktop-page .visit-anniversary small { color: #64cb87; }
-html[data-theme="dark"] .marcus-desktop-page .visit-anniversary-countdown { color: #7cd399; }
-html[data-theme="dark"] .marcus-desktop-page .visit-anniversary-countdown > strong { color: #95dcac; }
-html[data-theme="dark"] .marcus-desktop-page .visit-files-head > span { color: #64cb87; }
-html[data-theme="dark"] .marcus-desktop-page .visit-files-intro { color: #59c87e; }
-html[data-theme="dark"] .marcus-desktop-page .visit-files li { border-bottom: 1px dashed #45a866; }
-html[data-theme="dark"] .marcus-desktop-page .visit-file-glyph { border: 1px solid #409c5e; background: linear-gradient(#111713 0 4px, #131a15 4px); }
-html[data-theme="dark"] .marcus-desktop-page .visit-file-name small { color: #71d091; }
-html[data-theme="dark"] .marcus-desktop-page .visit-file-size { color: #64cb87; }
-html[data-theme="dark"] .marcus-desktop-page .visit-files-note { color: #5ec982; }
-html[data-theme="dark"] .marcus-desktop-page .visit-checklist-head > span { color: #64cb87; }
-html[data-theme="dark"] .marcus-desktop-page .visit-checklist-intro { color: #59c87e; }
-html[data-theme="dark"] .marcus-desktop-page .visit-checklist li { border-bottom: 1px dashed #45a866; }
-html[data-theme="dark"] .marcus-desktop-page .visit-checklist label input { accent-color: #3adf71; }
-html[data-theme="dark"] .marcus-desktop-page .visit-item-done > span { color: #54c67a; }
-html[data-theme="dark"] .marcus-desktop-page .visit-item-remove { color: #58c77d; }
-html[data-theme="dark"] .marcus-desktop-page .visit-item-remove:hover { color: #9be6b4; }
-html[data-theme="dark"] .marcus-desktop-page .visit-checklist-empty { color: #64cb87; }
-html[data-theme="dark"] .marcus-desktop-page .visit-checklist-form input { background: #131b16; color: #9bdeb1; }
-html[data-theme="dark"] .marcus-desktop-page .visit-checklist-form input::placeholder { color: #55c67b; }
-html[data-theme="dark"] .marcus-desktop-page .visit-checklist-note { color: #5ec982; }
-html[data-theme="dark"] .marcus-desktop-page .visit-checklist-note.storage-unavailable { color: #db958a; background: #1f1b10; border: 1px solid #419e60; }
-html[data-theme="dark"] .marcus-desktop-page .visit-footer { border-top: 1px solid #45a967; color: #53c679; }
-html[data-theme="dark"] .marcus-desktop-page .visit-image figcaption { color: #64cb87; }
 html[data-theme="dark"] .marcus-desktop-page .about-computer { background: #131a15; }
 html[data-theme="dark"] .marcus-desktop-page .about-computer h2 > span { color: #6dce8d; }
 html[data-theme="dark"] .marcus-desktop-page .about-computer > p { color: #70cf90; }
@@ -317,6 +272,8 @@ html[data-theme="dark"] .marcus-desktop-page .music-playlist-playing { color: #8
 html[data-theme="dark"] .marcus-desktop-page .music-playlist-empty { color: #5bc880; }
 @media (max-width: 700px) {
   html[data-theme="dark"] .marcus-desktop-page .music-playlist { border-top: 1px dashed #419f60; }
+  /* 「收起」不能跟着曲目滚走：歌单头部固定在自己的滚动区顶部（背景同窗口底色，盖住滚过去的行）。 */
+  html[data-theme="dark"] .marcus-desktop-page .music-playlist-head { background: #131a15; }
 }
 /* 执行进度面板（对照分支的结构）：一行摘要 + 可展开的真实步骤，带 ↳/· 图标列。
 桌面窗口与全站助手面板都会加载这个文件，配色差异用 .site-music 作用域覆盖。 */

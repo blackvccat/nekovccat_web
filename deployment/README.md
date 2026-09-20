@@ -15,15 +15,15 @@ Keep the following production-only files outside the checkout with owner-only pe
 
 The repository `.gitignore` blocks the common local forms of these files. Always inspect `git diff --cached` and run a secret scan before pushing.
 
-Same-host prerequisites: Node.js 20.9 or newer and Python 3.11 or 3.12 (see Build), plus outbound access to the model API and to the package registries. Build the frontend on a Linux machine — or cross-build it and ship only the artifact, which is what a small host requires.
+Same-host prerequisites: Ubuntu 24.04, Node.js 20.9 or newer, outbound access to the model and package hosts, and loopback binding for both services.
 
 ## Layout
 
 Use a versioned release directory and switch a stable `current` symlink only after the build succeeds. Install the files in `deployment/` as templates and adjust users, paths, ports, and environment-file locations for the target host.
 
-Day-to-day operation: restart both services after any code or environment change, and roll back by switching the `current` symlink back to the previous release and restarting them. Keep the credentials outside the release directory (see the boundary list above).
+Keep the service environment files (below) outside the checkout, owner-only, and expose only the frontend through the reverse proxy.
 
-Known gaps: the agent-side items and the backend rate-limit / anti-bypass fixes identified when comparing this line against the other branch are not all adopted. Two decisions remain open — the per-identity daily cap value, and whether to adopt the progressive reply protocol.
+
 
 Run the frontend and backend as dedicated non-root users. Bind both services to loopback and expose only the frontend through a trusted HTTPS reverse proxy or managed tunnel — either the host's own nginx (`nginx-example.com.conf` has the location list and `nginx-marcusweb-proxy.conf` the shared proxy headers) or a Cloudflare tunnel. The backend must accept chat requests only from the frontend through a long random `INTERNAL_API_TOKEN` shared by their server-only environment files.
 
@@ -46,11 +46,11 @@ Set `PYTHON_API_URL` to the loopback FastAPI endpoint. Set `SITE_ORIGIN` to the 
 
 ## Private visitor data
 
-Everything visitors may see lives behind the backend: the account list (with each visitor's granted app ids), the app registry, and the private assets. Create them directly on the server outside the release directory and point `VISITOR_ACCOUNTS_PATH`, `VISITOR_APPS_PATH`, and `VISITOR_ASSETS_DIR` (all backend-side) at them — the frontend only holds a signed cookie and needs no private paths.
+Everything visitors may see lives behind the backend: the account list (with each visitor's granted app ids), the app registry (one folder per app under `VISITOR_APPS_DIR`), and each app's private assets. Create them directly on the server outside the release directory and point `VISITOR_ACCOUNTS_PATH` and `VISITOR_APPS_DIR` (both backend-side) at them — the frontend only holds a signed cookie and needs no private paths.
 
 Manage accounts with `python scripts/add-visitor.py <name> --generate --apps <app-id>` (grants can be changed later with `--apps a,b` or `--apps none`); never edit plaintext passwords into the file. When the accounts should also live in MySQL or PostgreSQL, set `DATABASE_ENABLED=true` and `DATABASE_URL` (MySQL needs the `aiomysql` driver for the app and `PyMySQL` for the script — both in `requirements.txt`), then write rows directly with `--db` (it hashes the password itself: `add-visitor.py <name> --ask-password --apps <app-id> --db`, plus `--db --list/--disable/--enable/--remove`); the table `visitor_accounts` is created on startup. **Full detail — schema, the `--db` flag rules, adding apps — is in [DATABASE.md](./DATABASE.md).** Passwords are only ever stored as PBKDF2 hashes — keep it that way, because anything that can read the database (a same-host WordPress, a panel-exported `.sql`, a backup file) would otherwise hold every visitor's password. Both sources are read and merged, so the accounts in the JSON file keep working; a name present in both is refused rather than resolved, and a missing file simply means database-only.
 
-New applications are added by extending `visitor-apps.json`: one entry of `{id, title, subtitle, view: [...], wallpaper?, watermark?}` per app, using the block types the backend validates (`heading`, `text`, `letter`, `counter`, `checklist`, `footer`, `link`, `image`, `notice`), plus an asset file in `VISITOR_ASSETS_DIR` if it needs a wallpaper or icon. Grant it to a visitor with `add-visitor.py <name> --apps <app-id>`.
+New applications are added by dropping a folder under `VISITOR_APPS_DIR`: `<id>/app.json` carries `{apiVersion, id, title, subtitle, entry, embeds?, permissions?}` (plus optional `icon`, `wallpaper`, `watermark`, `window`) and the folder holds the entry HTML plus any files it needs, with private assets in `<id>/assets/`. The interface is delivered only after login; grant it to a visitor with `add-visitor.py <name> --apps <app-id>`. Porting an application to another site is then a single folder copy.
 
 The service user needs read access; other users should have no access. These files must never be copied into `frontend/public`, `.next/static`, a release archive, or Git.
 
@@ -63,8 +63,9 @@ curl -fsS http://127.0.0.1:<backend-port>/health
 curl -fsS http://127.0.0.1:<frontend-port>/api/health
 curl -fI https://<public-host>/terminal
 curl -I https://<public-host>/api/visitor/status
-curl -I https://<public-host>/api/visitor/app?app=<app-id>
+curl -I "https://<public-host>/api/visitor/app-proxy/apps/<app-id>/shell"   # 未登录应为 403
 curl -I https://<public-host>/api/visitor/asset?app=<app-id>&kind=wallpaper
+curl -fI https://<public-host>/apps/about/about.svg   # 桌面插件图标：必须 200 image/svg+xml（新增前缀要加进 nginx 转发清单）
 curl -fsS "https://<public-host>/api/music/playlist?id=3778678&limit=50"   # 需要后端能出网访问 music.163.com
 ```
 

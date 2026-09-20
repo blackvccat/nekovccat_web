@@ -1,0 +1,36 @@
+/* 插件应用的主题 token。
+ *
+ *  插件的 CSS 不能进入 scripts/desktop-theme.mjs 的生成器（别人的类名无法预测），所以约定：
+ *  **插件只使用下面这些 --app-* 变量**，宿主在明暗两套里各自定义一次。
+ *  这样应用文件夹搬到另一个同架构站点时，样式会自动适应当地的主题，不需要改一行 CSS。
+ *
+ *  作用域与桌面一致（挂在 .marcus-desktop-page 下）：站内助手面板、404 页面不参与。
+ */
+.marcus-desktop-page {
+  --app-surface: #f5f3e7;         /* 窗口内容底色 */
+  --app-surface-raised: #faf7eb;  /* 抬起的块（编辑器、卡片） */
+  --app-panel: #e5e1cf;           /* 侧栏 / 工具条 */
+  --app-ink: #34423b;             /* 正文 */
+  --app-ink-muted: #7a856f;       /* 次要文字 */
+  --app-edge: #8e9683;            /* 边线 */
+  --app-bevel-light: #fffdf1;     /* 亮边（凸起） */
+  --app-bevel-dark: #aab09d;      /* 暗边（凹陷） */
+  --app-accent: #657e4e;          /* 强调 / 进度 */
+  --app-accent-ink: #fdfaf0;      /* 压在强调色上的字 */
+  --app-title: #34425c;           /* 标题栏 */
+}
+
+/* 暗色：绿屏终端的三条规则（屏幕是黑的、屏上画出来的都是绿的、主次靠绿的亮度分）。 */
+html[data-theme="dark"] .marcus-desktop-page {
+  --app-surface: #131a16;
+  --app-surface-raised: #182c1f;
+  --app-panel: #121915;
+  --app-ink: #c7ecd3;
+  --app-ink-muted: #57c77c;
+  --app-edge: #388a54;
+  --app-bevel-light: #437254;
+  --app-bevel-dark: #08110b;
+  --app-accent: #3adf71;
+  --app-accent-ink: #08110b;
+  --app-title: #193322;
+}

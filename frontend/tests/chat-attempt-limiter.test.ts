@@ -43,6 +43,17 @@ test('a full identity table fails closed for newcomers instead of evicting activ
   assert.deepEqual(limiter.take('c'), { allowed: true })
 })
 
+test('the music proxy has its own bucket and sheds after its limit', async context => {
+  env(context, 'CHAT_PROTECTION', 'true')
+  const ip = 'music-' + Math.random().toString(16).slice(2).padEnd(16, '0')
+  for (let index = 0; index < 20; index += 1) assert.equal(chatAttemptError(ip, 'music'), null)
+  const shed = chatAttemptError(ip, 'music')
+  assert.equal(shed?.status, 429)
+  assert.equal(shed?.headers.get('retry-after'), '60')
+  // 独立的桶：歌单被限不影响聊天。
+  assert.equal(chatAttemptError(ip, 'chat'), null)
+})
+
 test('the limiter is inert in development and sheds a real 429 when guarded', async context => {
   env(context, 'CHAT_PROTECTION', 'true')
   env(context, 'INTERNAL_API_TOKEN', TOKEN)

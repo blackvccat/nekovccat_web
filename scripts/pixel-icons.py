@@ -9,9 +9,9 @@
     python scripts/pixel-icons.py export    # 画稿 → work/icons/*.png（想按像素改时用）
     python scripts/pixel-icons.py build     # PNG → 画稿（把改好的 PNG 变成 24×24 的矢量像素）
 
-sync 的分发规则（重要）：被 work/visitor-apps.json 里的应用当作图标引用的文件是**私有素材**，
-只同步到 work/visitor-assets，由后端在登录鉴权后按需发给访客，绝不进前端；其余同步到
-frontend/public/icons-svg，由站点公开提供。私有文件若出现在公开目录里会被删掉并报警。
+sync 的分发规则（重要）：被 `work/visitor-apps/<id>/app.json` 里的应用当作图标引用的文件是**私有素材**，
+只同步到那个应用自己的 `work/visitor-apps/<id>/assets/`，由后端在登录鉴权后按需发给访客，绝不进前端；
+其余同步到 frontend/public/icons-svg，由站点公开提供。私有文件若出现在公开目录里会被删掉并报警。
 """
 import argparse
 import base64
@@ -25,8 +25,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_DIR = ROOT / "work" / "icons-svg"
 PUBLIC_DIR = ROOT / "frontend" / "public" / "icons-svg"
-VISITOR_ASSETS_DIR = ROOT / "work" / "visitor-assets"
-APPS_FILE = ROOT / "work" / "visitor-apps.json"
+VISITOR_ASSETS_DIR = ROOT / "work" / "visitor-assets"  # 旧版共用素材目录，仅用于清理残留
+APPS_DIR = ROOT / "work" / "visitor-apps"
 PNG_DIR = ROOT / "work" / "icons"
 PREVIEW = ROOT / "work" / "icons-preview.html"
 COMPONENT = ROOT / "frontend" / "src" / "components" / "my-world" / "pixel-icon.tsx"
@@ -90,17 +90,20 @@ def component_icon_map() -> dict[str, str]:
 
 
 def private_icons() -> dict[str, list[str]]:
-    """应用注册表里被当成图标引用的文件 → 用到它的应用 id（这些是私有素材）。"""
-    if not APPS_FILE.exists():
+    """访客应用当作图标引用的文件 → 用到它的应用 id（这些是私有素材）。
+
+    注册表是「一个应用一个文件夹」：扫 `work/visitor-apps/<id>/app.json`。
+    """
+    if not APPS_DIR.is_dir():
         return {}
-    try:
-        raw = json.loads(APPS_FILE.read_text(encoding="utf-8"))
-    except ValueError as error:
-        fail(f"{APPS_FILE} 不是合法 JSON：{error}")
     owners: dict[str, list[str]] = {}
-    for entry in raw.get("apps", []):
-        if isinstance(entry, dict) and isinstance(entry.get("icon"), str):
-            owners.setdefault(entry["icon"], []).append(str(entry.get("id")))
+    for manifest in sorted(APPS_DIR.glob("*/app.json")):
+        try:
+            raw = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+            fail(f"{manifest} 不是合法 JSON：{error}")
+        if isinstance(raw, dict) and isinstance(raw.get("icon"), str):
+            owners.setdefault(raw["icon"], []).append(manifest.parent.name)
     return owners
 
 
@@ -477,23 +480,27 @@ def cmd_sync(args: argparse.Namespace) -> int:
     art = read_art()
     private = private_icons()
     PUBLIC_DIR.mkdir(parents=True, exist_ok=True)
-    VISITOR_ASSETS_DIR.mkdir(parents=True, exist_ok=True)
     published = []
     synced = set()
     for name, drawing in art.items():
         filename = drawing.path.name
         synced.add(filename)
         if filename in private:
-            owners = "、".join(id for id in private[filename] if id)
-            target = VISITOR_ASSETS_DIR / filename
-            target.write_text(drawing.mark(
-                f"由 scripts/pixel-icons.py sync 从 work/icons-svg/{filename} 同步；"
-                f"这是访客应用的私有图标（{owners}），只在登录后由后端发给访客"), encoding="utf-8")
-            print(f"{filename:18} → work/visitor-assets（私有，应用：{owners}）")
+            owners = [app_id for app_id in private[filename] if app_id]
+            for app_id in owners:
+                target = APPS_DIR / app_id / "assets" / filename
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(drawing.mark(
+                    f"由 scripts/pixel-icons.py sync 从 work/icons-svg/{filename} 同步；"
+                    f"这是访客应用 {app_id} 的私有图标，只在登录后由后端发给访客"), encoding="utf-8")
+            print(f"{filename:18} → work/visitor-apps/{{{','.join(owners)}}}/assets（私有）")
             leaked = PUBLIC_DIR / filename
             if leaked.exists():
                 leaked.unlink()
                 print(f"{'':18}   已从 frontend/public/icons-svg 删掉同名文件：私有素材不进前端")
+            legacy = VISITOR_ASSETS_DIR / filename
+            if legacy.exists():
+                legacy.unlink()
         else:
             target = PUBLIC_DIR / filename
             target.write_text(drawing.mark(
@@ -501,11 +508,10 @@ def cmd_sync(args: argparse.Namespace) -> int:
                 f"要改请改那份画稿再重跑 sync"), encoding="utf-8")
             print(f"{filename:18} → frontend/public/icons-svg（公开）")
             published.append(filename)
-    for folder in (PUBLIC_DIR, VISITOR_ASSETS_DIR):
-        for path in sorted(folder.glob("*.svg")):
-            if path.name not in synced:
-                path.unlink()
-                print(f"{path.name:18}    已从 {folder.relative_to(ROOT)} 删除（画稿里已经没有它了）")
+    for path in sorted(PUBLIC_DIR.glob("*.svg")):
+        if path.name not in synced:
+            path.unlink()
+            print(f"{path.name:18}    已从 {PUBLIC_DIR.relative_to(ROOT)} 删除（画稿里已经没有它了）")
     needed = component_icon_map()
     known = set(needed.values())
     missing = [filename for filename in needed.values() if Path(filename).stem not in art]
@@ -514,7 +520,7 @@ def cmd_sync(args: argparse.Namespace) -> int:
     unreferenced = sorted(drawing.path.name for drawing in art.values()
                           if drawing.path.name not in known and drawing.path.name not in private)
     print(f"\n公开 {len(published)} 个，私有 {len(set(synced) & set(private))} 个；"
-          f"公开目录 {PUBLIC_DIR.relative_to(ROOT)}，私有目录 {VISITOR_ASSETS_DIR.relative_to(ROOT)}")
+          f"公开目录 {PUBLIC_DIR.relative_to(ROOT)}，私有在 work/visitor-apps/<id>/assets/")
     if unreferenced:
         print(f"暂时没有人引用的画稿（已同步，先放着）：{'、'.join(unreferenced)}")
     return 0

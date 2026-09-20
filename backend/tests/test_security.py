@@ -91,6 +91,38 @@ class ChatProtectionTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual((await client.post('/api/chat/', headers=headers, json=BODY)).status_code, 200)
             self.assertEqual(middleware.active, {})
 
+    async def test_music_proxy_has_its_own_window_and_does_not_spend_chat_budget(self):
+        with tempfile.TemporaryDirectory() as directory:
+            config = self._config(directory, CHAT_DAILY_LIMIT=2)
+            inner = FastAPI()
+
+            @inner.get('/api/music/netease/playlist/{playlist_id}')
+            async def playlist(playlist_id: str): return {'id': playlist_id}
+
+            @inner.post('/api/chat/')
+            async def chat(): return {'ok': True}
+
+            middleware = ChatProtectionMiddleware(inner, config)
+            headers = {'x-marcus-internal-token': TOKEN, 'x-marcus-client-ip': '203.0.113.55'}
+            with patch('app.security.MUSIC_PER_MINUTE', 2), patch('app.security.MUSIC_PER_HOUR', 3):
+                async with httpx.AsyncClient(transport=httpx.ASGITransport(app=middleware), base_url='http://test') as client:
+                    self.assertEqual((await client.get('/api/music/netease/playlist/1', headers=headers)).status_code, 200)
+                    self.assertEqual((await client.get('/api/music/netease/playlist/2', headers=headers)).status_code, 200)
+                    throttled = await client.get('/api/music/netease/playlist/3', headers=headers)
+                    self.assertEqual(throttled.status_code, 429)
+                    self.assertIn('Retry-After', throttled.headers)
+                    # 歌单请求不占用聊天的日额度，也没有并发槽位。
+                    self.assertEqual((await client.post('/api/chat/', headers=headers, json=BODY)).status_code, 200)
+            self.assertEqual(middleware.active, {})
+            # 歌单的计数进自己的表，绝不写进 requests（否则会撑大全站硬顶）。
+            db = sqlite3.connect(directory + '/limits.sqlite')
+            kinds = [row[0] for row in db.execute('SELECT DISTINCT kind FROM requests')]
+            hits = db.execute('SELECT count(*) FROM music_hits').fetchone()[0]
+            db.close()
+            self.assertEqual(hits, 2)
+            self.assertNotIn('music', kinds)
+            self.assertNotIn('mus', kinds)
+
     @staticmethod
     def _chat_app(config):
         inner = FastAPI()

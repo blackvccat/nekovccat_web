@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "app:registry": "node ../scripts/apps-registry.mjs",
+    "predev": "node ../scripts/apps-registry.mjs",
+    "prebuild": "node ../scripts/apps-registry.mjs",
     "build:github": "GITHUB_PAGES=true BASE_PATH=/marcus_web ASSET_PREFIX=/marcus_web next build",
     "start": "next start",
     "lint": "eslint .",

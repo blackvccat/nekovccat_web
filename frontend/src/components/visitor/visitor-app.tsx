@@ -1,53 +1,63 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useVisitorMode } from '@/components/visitor/visitor-mode'
-import VisitorBlocks from './visitor-blocks'
-import type { VisitorAction, VisitorAppView } from '@/lib/visitor-view'
+import { VISITOR_APP_THEME_TOKENS } from '@/lib/visitor-view'
 
-/** 一个访客应用的窗口内容：视图数据在打开时才向后端索取。 */
-export default function VisitorApp({ appId, onShowWallpaper }: { appId: string; onShowWallpaper: () => void }) {
-  const { apps, username, lock, setThemedAppId } = useVisitorMode()
+type Theme = 'light' | 'dark'
+
+function hostTheme(): Theme {
+  return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'
+}
+
+/** 把宿主的明暗同步进同源 iframe：设 data-theme、注入 --app-* token，再补一条 postMessage 方便应用监听。 */
+function syncTheme(iframe: HTMLIFrameElement | null) {
+  const doc = iframe?.contentDocument
+  if (!iframe || !doc?.documentElement || !doc.head) return
+  const theme = hostTheme()
+  doc.documentElement.dataset.theme = theme
+  doc.documentElement.style.colorScheme = theme
+  let style = doc.getElementById('marcus-app-tokens') as HTMLStyleElement | null
+  if (!style) {
+    style = doc.createElement('style')
+    style.id = 'marcus-app-tokens'
+    doc.head.append(style)
+  }
+  const rule = (selector: string, tokens: Record<string, string>) =>
+    `${selector}{${Object.entries(tokens).map(([name, value]) => `${name}:${value}`).join(';')}}`
+  style.textContent = rule(':root', VISITOR_APP_THEME_TOKENS.light)
+    + rule(':root[data-theme="dark"]', VISITOR_APP_THEME_TOKENS.dark)
+  iframe.contentWindow?.postMessage({ type: 'marcus:theme', theme }, window.location.origin)
+}
+
+/**
+ * 一个访客应用的窗口内容：界面是服务器登录后下发的 HTML，用**同源 iframe** 承载。
+ *
+ * 前端产物里没有任何应用界面——iframe 的内容也来自受控转发口 `/api/visitor/app-proxy`（带访客 Cookie），
+ * 后端每次都按账号复核授权。宿主只在载入/主题变化时把主题变量写进 iframe 文档。
+ */
+export default function VisitorApp({ appId }: { appId: string }) {
+  const { apps, setThemedAppId } = useVisitorMode()
   const meta = apps.find(app => app.id === appId)
-  const [state, setState] = useState<{ status: 'loading' | 'ready' | 'error'; view?: VisitorAppView; message?: string }>({ status: 'loading' })
+  const frameRef = useRef<HTMLIFrameElement>(null)
 
   const theme = meta?.hasWallpaper ? appId : null
   useEffect(() => { setThemedAppId(theme); return () => setThemedAppId(null) }, [theme, setThemedAppId])
 
+  const sync = useCallback(() => syncTheme(frameRef.current), [])
   useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const response = await fetch(`/api/visitor/app?app=${encodeURIComponent(appId)}`, { cache: 'no-store' })
-        if (!response.ok) {
-          let message = '应用内容暂时不可用，请稍后再试。'
-          try {
-            const data: unknown = await response.json()
-            const detail = data && typeof data === 'object' ? (data as Record<string, unknown>).error : null
-            if (typeof detail === 'string' && detail) message = detail
-          } catch { /* Keep the fallback. */ }
-          if (!cancelled) setState({ status: 'error', message })
-          return
-        }
-        const view: unknown = await response.json()
-        if (!cancelled && view && typeof view === 'object') setState({ status: 'ready', view: view as VisitorAppView })
-        else if (!cancelled) setState({ status: 'error', message: '应用内容格式无效。' })
-      } catch {
-        if (!cancelled) setState({ status: 'error', message: '应用内容暂时不可用，请稍后再试。' })
-      }
-    })()
-    return () => { cancelled = true }
-  }, [appId, username])
+    // 桌面的明暗写在 <html data-theme> 上：它一变就把 iframe 里的文档也切过去。
+    const observer = new MutationObserver(sync)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => observer.disconnect()
+  }, [sync])
 
-  const onAction = useCallback((action: VisitorAction) => {
-    if (action.kind === 'wallpaper') onShowWallpaper()
-    else if (action.kind === 'link' && action.href) window.open(action.href, '_blank', 'noopener,noreferrer')
-    else if (action.kind === 'logout') void lock()
-  }, [lock, onShowWallpaper])
-
-  if (state.status === 'loading') return <div className="visit-app-status">正在安全地加载应用内容…</div>
-  if (state.status === 'error') return <div className="visit-app-status visit-app-error" role="alert">{state.message}</div>
-  return <div className="visit-app">
-    <VisitorBlocks blocks={state.view?.view ?? []} onAction={onAction} onShowWallpaper={onShowWallpaper} />
-  </div>
+  return <iframe
+    ref={frameRef}
+    className="visit-app-frame"
+    title={meta?.title ?? '访客应用'}
+    src={`/api/visitor/app-proxy/apps/${encodeURIComponent(appId)}/shell`}
+    sandbox="allow-scripts allow-forms allow-modals allow-popups allow-same-origin allow-downloads"
+    onLoad={sync}
+  />
 }

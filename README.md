@@ -1,8 +1,6 @@
 # Marcus · Terminal
 
-Next.js + FastAPI 的个人网站，为NEKO/My World的附属分支，地址是 **<https://example.com/terminal>**——一台可交互的像素风复古电脑，内置 DeepSeek Harness 站内 Agent、音乐软件、站点导航、便签与外观设置。文件内已有相关依赖，只需安装Python 3.12 + Node 20.9+环境即可快速使用。
-本分支不含3D首页只有一个页面：打开 `/terminal` 就直接是桌面，没有单独的首页。域名根路径 <https://example.com/> 留给主站，顶栏 **HOME** 就指向那里（在当前标签页直接跳转），**Terminal** 是当前桌面；About 与 Contact 合并进桌面的 **MARCUS Browser**，旧地址会自动跳转
-
+Next.js + FastAPI 的个人网站，为NEKO/My World的附属分支。地址是 **<https://example.com/terminal>**——一台可交互的像素风复古电脑，内置 DeepSeek Harness 站内 Agent、音乐软件、站点导航、便签与外观设置。它只有一个页面：打开 `/terminal` 就直接是桌面，没有单独的首页。域名根路径 <https://example.com/> 留给主站，顶栏 **HOME** 就指向那里（在当前标签页直接跳转），**Terminal** 是当前桌面；About 与 Contact 合并进桌面的 **MARCUS Browser**，旧地址会自动跳转。
 
 ## 站内助手
 
@@ -12,8 +10,8 @@ Next.js + FastAPI 的个人网站，为NEKO/My World的附属分支，地址是 
 
 ## 桌面软件
 
-- **MK Agent**：官方 DeepSeek Harness 负责模型循环、会话轨迹与站内工具，默认使用 Deepseek-flash，本分支不含agent彩蛋模式
-- **MARCUS Browser**：复古站内浏览器，包含关于 MARCUS、项目/探索与经历、长廊及联系栏目。长廊挑选了主站「共鸣」展厅的一部分作品，带标题、简介与调性标注，点开任意画框会在新标签页打开主站对应作品。联系栏目给出公开邮箱与 GitHub 链接（示例值写在 `frontend/src/content/profile.ts`，换成自己的即可）。旧 About / Contact 与 `/my-world` 地址自动跳转。公开身份为 Marcus
+- **MK Agent**：官方 DeepSeek Harness 负责模型循环、会话轨迹与站内工具，默认使用 DeepSeek V4 Pro。
+- **MARCUS Browser**：复古站内浏览器，包含关于 MARCUS、项目/探索与经历、长廊及联系栏目。长廊挑选了主站「共鸣」展厅的一部分作品，带标题、简介与调性标注，点开任意画框会在新标签页打开主站对应作品。联系栏目给出公开邮箱与 GitHub 链接（示例值写在 `frontend/src/content/profile.ts`，换成自己的即可）。旧 About / Contact 与 `/my-world` 地址自动跳转。公开身份为 Marcus，不公开就读学校名称等未公开信息。
 - **MARCUS Music**：粘贴网易云或 Spotify 分享链接，加载官方播放器，保存常听收藏。
 - **Notes**：在当前浏览器自动保存便签。
 - **Settings**：明暗主题（米白 / 暗色）、壁纸、壁纸动效、CRT 扫描线（开关 + 粗细四档）。
@@ -22,11 +20,10 @@ Next.js + FastAPI 的个人网站，为NEKO/My World的附属分支，地址是 
 桌面支持打开、聚焦、拖动、方向键移动、最大化、最小化和关闭窗口，任务栏可恢复窗口。移动端使用单窗口布局，支持减少动态效果偏好。
 
 ### 访客模式（需要访客名与密码）
-示例账号为"MK" 密码为"12345678"
 
 桌面上的 **访客模式** 窗口是留给受邀访客的入口（桌面上点图标、开始菜单里选，或直接访问 `/terminal?app=visitor`）。输入 Marcus 给出的访客名与密码，由后端校验；通过后进入的是**这位访客自己的访客页**，而不是任何固定内容——页面上只列出服务器按账号授权给他的应用，以及一个「退出访客模式」按钮。每个访客可以拿到的应用各不相同：给谁开什么应用，完全由后端记录决定，桌面上也只有被授权的应用才会出现图标。
 
-账号与授权来自服务器：`work/visitor-accounts.json` 里每个访客是一条 `{username, name, password_hash, apps}` 记录（用 `scripts/add-visitor.py <访客名> --generate --apps <应用 id>` 维护，密码只以 PBKDF2-SHA256 哈希保存，明文永不落盘）；`DATABASE_ENABLED=true` 时再叠加上数据库的 `visitor_accounts` 表（`apps` 列存逗号分隔的应用 id，MySQL 与 PostgreSQL 都支持），两份合并读取、同名访客直接拒绝，所以接了数据库以后 JSON 里原来的账号照常可用。应用本身定义在 `work/visitor-apps.json`：每个应用是一组通用视图区块（标题、正文、信件、计数、清单、页脚、链接、图片、占位）加可选主题，素材放在 `work/visitor-assets/`。接 MySQL 的完整步骤见 **[deployment/MYSQL.md](deployment/MYSQL.md)**。
+账号与授权来自服务器：`work/visitor-accounts.json` 里每个访客是一条 `{username, name, password_hash, apps}` 记录（用 `scripts/add-visitor.py <访客名> --generate --apps <应用 id>` 维护，密码只以 PBKDF2-SHA256 哈希保存，明文永不落盘）；`DATABASE_ENABLED=true` 时再叠加上数据库的 `visitor_accounts` 表（`apps` 列存逗号分隔的应用 id，MySQL 与 PostgreSQL 都支持），两份合并读取、同名访客直接拒绝，所以接了数据库以后 JSON 里原来的账号照常可用。应用本身是**一个应用一个文件夹**：`work/visitor-apps/<id>/` 里放 `app.json`、入口 HTML（及它引用的 js/css/图片）与 `assets/`（该应用自己的图标与壁纸）。移植一个应用 = 复制这个文件夹到对方服务器，再给对方账号授权该 id。界面在登录后由服务器下发（`entry`），可按 `permissions` 申请上传（`files`）与键值数据（`data`），也能内嵌 `embeds` 里声明的第三方源；示例见 `docs/visitor-app-example/`。
 
 **前端在登录前不含任何访客应用素材**：没有应用组件、没有应用文案、没有应用自己的壁纸与图标文件名（桌面自己的壁纸是公开素材，见文末）。登录接口只接受访客名与密码两个字段，后端校验成功后签发绑定当前浏览器会话的 120 秒签名，Next 校验后写入 30 天的签名 `HttpOnly` Cookie，Cookie 里只带访客标识和他被授权的应用 id（服务端签名，改不了）。之后应用列表、应用视图、壁纸与图标都经 `/api/visitor/*` 代理到后端，由后端按账号复核授权后才返回；未授权、未登录或直接猜接口都拿不到任何内容。登录按客户端维度限流（默认 6 次/分钟、30 次/小时），同一访客名连续失败 10 次会锁定 15 分钟；密码不写入浏览器存储，Agent 没有凭据、不能代登录、不会索要密码，也不会透露某位访客能用哪些应用。
 
@@ -40,55 +37,6 @@ Next.js + FastAPI 的个人网站，为NEKO/My World的附属分支，地址是 
 
 集成使用平台官方 iframe，不需要额外 API 密钥。提供网易云与 Spotify 官方登录入口，登录发生在官方页面；当前没有音乐账户绑定或个人歌单同步，内嵌播放器也不保证继承会员状态；播放范围与预览时长由平台的版权、地区、登录状态及浏览器支持决定。若播放器空白或不能播放，使用“在原平台打开”。应用不下载或代理音频，也不读取平台登录凭据。MK Agent 可介绍音乐软件，但不能控制播放器或读取本地收藏。
 
-## 使用说明
-
-启动之后所有操作都在这一个页面里：`http://127.0.0.1:3010/terminal`。
-
-### 桌面与窗口
-
-| 操作 | 怎么做 |
-| --- | --- |
-| 打开软件 | 双击桌面图标；或点左下角 **start**，从开始菜单里选 |
-| 移动窗口 | 拖动标题栏；标题栏获得焦点后也可以用 **方向键**（每次 16 像素） |
-| 最大化 / 还原 | **双击标题栏**，或点标题栏右侧的方框 |
-| 最小化 / 关闭 | 标题栏右侧的两个按钮 |
-| 恢复窗口 | 点任务栏上对应的按钮 |
-| 收起开始菜单 | 点别处，或按 **Esc** |
-| 展开侧栏 | 点窗口的空白处展开（音乐窗口是歌单、Agent 窗口是历史）；点在按钮/输入框上不算 |
-
-移动端（窄于 700px）是**单窗口布局**，一次只显示一个窗口，靠窗口内的返回按钮切回去。系统开启「减少动态效果」时会自动减少动画。
-
-### 和 Agent 聊天
-
-- Agent 窗口默认就开着（桌面上叫 **MK Agent**）。输入框里 **Enter 发送**、**Shift + Enter 换行**、**Esc 清空草稿**。
-- 首屏给的建议问题可以直接点。
-- 对话记录保存在**当前浏览器**里，不上传、不跨设备同步；草稿与正在进行的回复属于当前网页会话，刷新页面不会在后台继续。
-- 额度按滚动窗口算：匿名按设备 20 条 / 12 小时（同一出口地址另有聚合上限），登录访客 100 条 / 12 小时，另有突发限制与全站硬顶。超限会直接告诉你还要等多久——这是共享模型预算的取舍，不是故障。
-- 没有配置 `DEEPSEEK_API_KEY` 时 Agent 会提示不可用，桌面其余部分照常工作。
-
-### 听音乐
-
-- 打开 **MARCUS Music**，粘贴网易云或 Spotify 的**完整分享链接**，再点「加载」。
-- 短链接（`163cn.tv`、`spotify.link`）先到原平台打开、复制完整地址。
-- 右侧歌单是构建期写死的静态数据，内容在 `frontend/src/lib/music/marcus-favorites.json`——**默认一条是网易云官方的热歌榜，换成你自己的就改这个文件**，改完刷新页面即可。
-- 收藏最多 20 个，只存在当前浏览器。
-
-### 访客模式
-
-- 入口：桌面上的「访客模式」图标、开始菜单，或直接打开 `/terminal?app=visitor`。
-- 用 `scripts/add-visitor.py` 建出来的访客名与密码登录。本仓库自带一个演示账号：**`MK` / `12345678`**（定义在 `work/visitor-accounts.json`）。
-- 登录后只列出**这个账号被授权**的应用，没授权就没有图标。账号与授权怎么改见 [deployment/DATABASE.md](deployment/DATABASE.md)；要把账号接到 MySQL 上见 [deployment/MYSQL.md](deployment/MYSQL.md)。
-
-### 直达某个窗口
-
-| 地址 | 效果 |
-| --- | --- |
-| `/terminal` | 桌面 |
-| `/terminal?app=visitor` | 直接打开访客模式窗口 |
-| `/terminal?app=<应用 id>` | 已授权时直接打开那个访客应用（例如 `?app=our-space`） |
-| `/terminal?app=explorer&tab=about` | 打开 MARCUS Browser 的指定栏目 |
-| `/my-world`、`/about`、`/contact` | 旧地址，307 跳到桌面对应位置 |
-
 ## 本地启动
 
 当前工作区已经安装依赖并配置好本地密钥。在项目根目录运行：
@@ -99,11 +47,13 @@ backend/.venv/bin/python scripts/dev.py status
 backend/.venv/bin/python scripts/dev.py stop
 ```
 
-| 服务 | 本地地址 |
-| --- | --- |
-| 站点入口（桌面） | http://127.0.0.1:3010/terminal |
-| 旧地址 | `/my-world`、`/about`、`/contact`（307 跳转，查询参数原样保留） |
-| 后端 API 文档 | http://127.0.0.1:8010/docs |
+| 服务        | 本地地址                                             |
+| --------- | ------------------------------------------------ |
+| 站点入口（桌面）  | http://127.0.0.1:3010/terminal                   |
+| 旧地址       | `/my-world`、`/about`、`/contact`（307 跳转，查询参数原样保留） |
+| 后端 API 文档 | http://127.0.0.1:8110/docs                       |
+
+本地开发的后端端口是 **8110**（不是 8010）：Windows 常把 7964–8063 整段列为保留端口，8010 会绑不上（`WinError 10013`），所以本地让开这一段。生产仍用 8010。
 
 本地开发时 `http://127.0.0.1:3010/` 根路径是 404——根路径在线上属于主站，应用不接管它，直接打开 `/terminal` 即可。
 
@@ -137,18 +87,16 @@ cp backend/.env.example backend/.env
 ```dotenv
 DEEPSEEK_API_KEY=replace_locally
 DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_MODEL=deepseek-flash
+DEEPSEEK_MODEL=deepseek-v4-pro
 DEEPSEEK_REASONING_EFFORT=low
 DATABASE_ENABLED=false
 ```
 
 无需 PostgreSQL 即可使用当前桌面与聊天功能。现有数据库相关代码保留为可选功能；`docker-compose.yml` 尚未更新至此次 Harness 架构，当前完整启动入口为上面的本地脚本。
 
-想把访客账号接到 MySQL 上（而不是只用本地 JSON 文件），照 **[deployment/MYSQL.md](deployment/MYSQL.md)** 一步步做即可——那篇是从建库、装驱动、配 `backend/.env` 到验证与排错的完整教程。注意 `DATABASE_ENABLED=true` 时**必须先装好驱动**（本地这份虚拟环境默认没装，第 3 步会说明），否则服务照常启动但访客登录全部 503。
-
 ## DeepSeek Harness 架构
 
-独立生产入口为 `https://example.com/terminal`，经反向代理（服务器本机 nginx，或专属 Cloudflare Managed Tunnel）访问服务器上的新站服务；两种入口都走 `deployment/` 里的模板：服务单元、构建步骤与回滚方法见 [deployment/README.md](deployment/README.md)。
+独立生产入口为 `https://example.com/terminal`，经反向代理（服务器本机 nginx，或专属 Cloudflare Managed Tunnel）访问服务器上的新站服务。服务模板、构建步骤、公网验收和回滚方法见 [deployment/README.md](deployment/README.md)。
 
 服务器侧要留意的四件事：Tunnel 的 hostname 与 ingress 要指向本站（`/etc/marcusweb/tunnel.env` 那份配置）、`frontend.env` 的 `SITE_ORIGIN` 与 `backend.env` 的 `CORS_ORIGINS` 都只能写 `https://example.com` 这样的 origin，**不能带 `/terminal` 路径**（浏览器 `Origin` 头里没有路径，漏改或写错会让同源校验拒绝所有聊天请求）、`NEXT_PUBLIC_APP_URL` 是构建时变量要在构建前设成 `https://example.com/terminal`、反向代理要把 `/terminal` 连同应用自己的接口与静态资源路径（`/_next/*`、`/images/*`、`/fonts/*`、`/favicon.ico`）转给 Next，把 `/` 留给主站。生产聊天默认使用同源 `/api/chat`；后端地址只通过 Next 服务端的 `PYTHON_API_URL` 设置。请勿将本机 `.env.local`、虚拟环境或运行轨迹包含在发布包中。
 
@@ -191,15 +139,18 @@ node --test agent/tests/*.test.mjs
 
 ```text
 frontend/                 Next.js 网站、像素桌面与桌面软件
+frontend/apps/            桌面应用目录（可装卸；见 frontend/apps/README.md）
 backend/                  FastAPI 与官方 Harness SDK 集成
 agent/website.patch.yml   站点专用 Cordis 组合补丁
 agent/website-tools.mjs   无外部 I/O 的站内工具插件
 scripts/dev.py            前后端本地服务管理
+docs/APP-DEVELOPMENT.md   应用开发与部署教程（系统应用 / 访客应用）
+docs/visitor-app-example/ 访客应用示例（可直接复制）
 work/                     运行时、日志、轨迹与临时验证文件（忽略提交）
 outputs/                  预览素材与使用说明（本地交付文件）
 ```
 
-各子系统的设计原理、不变量与实测数字见 [DESIGN.md](DESIGN.md)（其中「两条线」一节讲了与对照分支的关系）；部署侧的模板与说明见 [deployment/README.md](deployment/README.md)，访客账号与数据库见 [deployment/DATABASE.md](deployment/DATABASE.md)，接 MySQL 见 [deployment/MYSQL.md](deployment/MYSQL.md)。
+改动历史（按天记「改了什么 / 为什么 / 怎么验证」）见 [CHANGELOG.md](CHANGELOG.md)；各子系统的设计原理、不变量与实测数字见 [DESIGN.md](DESIGN.md)。
 
 默认壁纸是本项目的 `/images/cloud.jpg`；「猫咪小岛」那张由已授权的 `gpt-image-2` CLI 生成，经 128 色与方像素处理后转为无损 WebP，同样放在 `/images/` 下，无需外链图片服务。
 
@@ -226,16 +177,4 @@ outputs/                  预览素材与使用说明（本地交付文件）
 - 每条暗色规则都挂在 `html[data-theme="dark"] .marcus-desktop-page` 下（属性选择器让它的优先级必定高于对应的亮色规则），所以**站内助手面板与 404 这类页面完全不参与主题**。
 - 壁纸画面、桌面图标标签、水印这些都是「画在图上的颜色」，按原样保留；主题预览的两个色块也是固定的。
 - 动明暗只影响桌面，访问者看不到一帧米白：主题在手写引导脚本里于首屏之前就写进 `<html data-theme>`。
-  - 改了亮色 CSS 就要重新生成：`npm run theme:dark`；`npm run theme:report` 会打印色表并自检出「暗色下还亮着的面板 / 还看不清的字」。`npm test` 里有一条测试校验生成物与亮色 CSS 同步，忘了重跑会被逮住。
-
-## 与 NEKO / My World（主分支）的关系
-
-这份代码是 **MARCUS** 线。另有一条**主分支代号 NEKO / My World**。两条线**同源**——所以能逐文件对照，不是各写各的；文档里提到「对照分支」时指的就是它。
-
-**历史**：2026-09-12 把对照分支那条线并进本仓库作为基础，同时做了一次改名与品牌统一——目录 `marcus_app/` → `frontend/`、systemd 单元统一成 `marcusweb-*`、品牌收敛到 MARCUS（MARCUS OS / MARCUS Browser / MARCUS Music / MK Agent）。桌面组件的目录名 `frontend/src/components/my-world/` **是那次合并留下的旧名**，不是笔误。
-
-**属于两条线共有的那部分**（合并时并进来的）：站内 Agent（DeepSeek Harness + 桌面的 MK Agent 窗口）、像素桌面（窗口 / 任务栏 / 开始菜单 / 壁纸 / CRT 扫描线 / 便签 / About）、访客模式、音乐（网易云与 Spotify 官方播放器）。
-
-**采纳方式是「按清单逐项采纳」**：每条写成稳定 ID（`A*` 是 Agent 能力、`S*` 是安全缺口），带改动文件、依赖与验证方式；**不接受的项目也写下来**，免得以后重复讨论。目前明确不采纳的两条是：对照分支里一条面向个人关系的彩蛋线，以及队列式并发器（本项目繁忙时直接返回 429，不排队）。完整清单与取舍理由在 [DESIGN.md](DESIGN.md) 的「两条线」一节与其中的取舍表。
-
-**对照分支本身不在这份代码里**：它是仓库主分支的另一份完整副本（带它自己的文档），本仓库不依赖它、单独就能跑。所以在这里找不到 `nekovccat_web-main ` 之类的目录——那是作者本机的布局，不是这个项目的依赖。
+- 改了亮色 CSS 就要重新生成：`npm run theme:dark`；`npm run theme:report` 会打印色表并自检出「暗色下还亮着的面板 / 还看不清的字」。`npm test` 里有一条测试校验生成物与亮色 CSS 同步，忘了重跑会被逮住。

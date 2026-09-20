@@ -16,7 +16,7 @@ from urllib.request import urlopen
 ROOT = Path(__file__).resolve().parents[1]
 WORK = ROOT / "work"
 SERVICES = {
-    "backend": (8010, ROOT / "backend", [str(ROOT / "backend/.venv/bin/python"), "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8010"], "/health"),
+    "backend": (8110, ROOT / "backend", [str(ROOT / "backend/.venv/bin/python"), "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8110"], "/health"),
     "frontend": (3010, ROOT / "frontend", ["npm", "run", "dev", "--", "--hostname", "127.0.0.1", "--port", "3010"], "/api/health"),
 }
 
@@ -100,7 +100,7 @@ def main():
             environment.update({"PYTHONUNBUFFERED": "1", "INTERNAL_API_TOKEN": internal_token(),
                                 "CORS_ORIGINS": json.dumps(["http://127.0.0.1:3010", "http://localhost:3010"])})
             if name == "frontend":
-                environment.update({"PYTHON_API_URL": "http://127.0.0.1:8010", "NEXT_PUBLIC_APP_URL": "http://127.0.0.1:3010/terminal"})
+                environment.update({"PYTHON_API_URL": "http://127.0.0.1:8110", "NEXT_PUBLIC_APP_URL": "http://127.0.0.1:3010/terminal"})
             with (WORK / f"marcus-{name}.log").open("ab") as log:
                 proc = subprocess.Popen(command, cwd=cwd, env=environment, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
             pid_file(name).write_text(str(proc.pid) + "\n")

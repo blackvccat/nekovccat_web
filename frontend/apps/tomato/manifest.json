@@ -1,0 +1,10 @@
+{
+  "apiVersion": 1,
+  "id": "tomato",
+  "title": "Tomato Timer",
+  "subtitle": "专注一小会儿",
+  "icon": "tomato.svg",
+  "statusText": "PLUGIN",
+  "version": "1.0.0",
+  "window": { "width": 560, "height": 480, "panelWidth": 760 }
+}

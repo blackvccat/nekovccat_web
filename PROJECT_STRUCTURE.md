@@ -3,7 +3,7 @@
 这份文档说明每个文件夹、每个文件是做什么的，以及**想改某个东西时该去哪个文件**。
 
 - 技术栈：Next.js 16（前端 + 服务端接口）、FastAPI / Python 3.12（AI 后端）、DeepSeek Harness（Agent）
-- 本地地址：网站 `http://127.0.0.1:3010`，后端 `http://127.0.0.1:8010`
+- 本地地址：网站 `http://127.0.0.1:3010`，后端 `http://127.0.0.1:8110`（本地让开 Windows 常保留的 7964–8063 段；生产仍是 8010）
 - 启动方式：双击 `scripts\dev-win.bat`，详见 [scripts/LOCAL-DEV.md](scripts/LOCAL-DEV.md)
 
 ---
@@ -12,11 +12,12 @@
 
 ```text
 nekovccat_web-main/
-├── frontend/      网站本体（Next.js）：页面、样式、像素桌面、服务端接口
+├── frontend/      网站本体（Next.js）：页面、样式、像素桌面、服务端接口；`frontend/apps/` 是可装卸的桌面应用目录
 ├── backend/       AI 后端（Python / FastAPI）：负责 Agent 对话
 ├── agent/         给 AI 用的工具插件，决定 AI 能做什么、不能做什么
 ├── deployment/    上线到服务器用的配置模板（systemd 服务 + 环境变量示例）
 ├── scripts/       本地启动与管理脚本
+├── docs/          应用开发与部署教程、访客应用示例
 ├── work/          运行时数据：日志、访客名单、受保护正文、AI 运行轨迹（不进 Git）
 ├── .vscode/       VS Code 配置：启动任务、调试、推荐扩展
 └── *.md           文档（大部分是历史记录，见文末）
@@ -57,6 +58,11 @@ Next.js 用**文件夹路径决定网址**（和 PHP 的写法不同）：
 
 ```text
 frontend/
+├── apps/                                     ★ 桌面应用目录（可装卸）：每个应用一个文件夹，见 apps/README.md
+│   ├── README.md                             装/卸应用与写应用的说明
+│   ├── registry.json                         启用的应用 id 清单（装/卸只改这里）
+│   ├── about/                                示例：About Computer（manifest.json + app.tsx + assets/）
+│   └── tomato/                               示例：番茄钟（默认关闭，加进 registry.json 即可看到）
 ├── src/
 │   ├── app/                                  页面与服务端接口
 │   │   ├── layout.tsx                        全站外壳：字体、元信息，挂载 Agent / 音乐 / 访客模式三个全局状态
@@ -68,7 +74,8 @@ frontend/
 │   │   ├── terminal/
 │   │   │   ├── page.tsx                      ★ 唯一的页面：虚拟电脑桌面（含首屏明暗引导脚本）
 │   │   │   ├── desktop.css                   亮色桌面样式：窗口、任务栏、壁纸、图标
-│   │   │   └── desktop-dark.css              暗色覆盖表【生成物】：由 scripts/desktop-theme.mjs 算出，别手改
+│   │   │   ├── desktop-dark.css              暗色覆盖表【生成物】：由 scripts/desktop-theme.mjs 算出，别手改
+│   │   │   └── app-tokens.css                插件应用的主题 token（明暗两套 --app-*）
 │   │   └── api/                              ★ 只在服务器运行的接口（类似 PHP 的角色）
 │   │       ├── chat/route.ts                 把聊天请求转发给后端 Python
 │   │       ├── chat/session/route.ts         签发聊天会话凭证，防伪造
@@ -79,6 +86,12 @@ frontend/
 │   │       ├── visitor/asset/route.ts      应用私有素材（壁纸、图标）
 │   │       ├── visitor/status/route.ts     访客身份与该账号被授权的应用元数据
 │   │       └── visitor/logout/route.ts     退出访客模式（清 Cookie）
+│   │
+│   ├── app-kit/                              ★ 桌面应用契约与注册表（内置与插件同构）
+│   │   ├── index.ts                           公开契约：AppManifest / DesktopAppHost / AppModule / VISITOR_APP_PREFIX
+│   │   ├── builtin.tsx                        内置应用登记表（agent / visitor / explorer / music / notes / settings）
+│   │   ├── registry.ts                         内置 + 插件的合并注册表与查询
+│   │   └── generated.tsx                       【生成物】由 scripts/apps-registry.mjs 产出，勿手改
 │   │
 │   ├── components/                           界面积木，按功能分目录
 │   │   ├── my-world/                         像素桌面的一切（文件夹沿用旧名）
@@ -105,8 +118,7 @@ frontend/
 │   │   ├── visitor/
 │   │   │   ├── visitor-mode.tsx              ★ 访客模式状态：身份、授权应用、主题
 │   │   │   ├── visitor-home.tsx              用户页：列出被授权的应用 + 退出访客模式
-│   │   │   ├── visitor-app.tsx               应用窗口：打开时才向 /api/visitor/app 取视图
-│   │   │   ├── visitor-blocks.tsx            通用区块渲染器（不含任何应用文案）
+│   │   │   ├── visitor-app.tsx               应用窗口：同源 iframe 承载服务器下发的应用界面
 │   │   │   └── visitor-icon.tsx              中性占位图标
 │   │   ├── shared/
 │   │   │   ├── loading.tsx                   加载动画
@@ -148,6 +160,7 @@ frontend/
 │   └── types/index.ts                        全局 TypeScript 类型
 │
 ├── public/                                   静态资源，按路径直接访问
+│   ├── apps/                                 插件应用素材的构建副本【生成物】：由 scripts/apps-registry.mjs 从 apps/<id>/assets 复制
 │   ├── images/
 │   │   ├── cloud.jpg                          桌面默认壁纸「云端」（desktop.css 使用）
 │   │   ├── my-world-pixel-wallpaper.webp       桌面壁纸「猫咪小岛」（像素画，可切换）
@@ -159,7 +172,7 @@ frontend/
 │   ├── fonts/                                Geist / Geist Mono / Jersey 25 字体与授权文件
 │   └── *.svg                                 图标素材【未使用，Next.js 脚手架残留】
 │
-├── tests/                                    25 个测试：聊天、音乐、访客模式、日期、便签、桌面偏好、壁纸动画、明暗主题、图标文件
+├── tests/                                    26 个测试：聊天、音乐、访客模式、日期、便签、桌面偏好、壁纸动画、明暗主题、图标文件、应用注册表
 ├── prisma/schema.prisma                      数据库表结构【当前未启用】
 ├── docs/                                     两份历史文档
 │   ├── deployment.md                         已废弃，指向 deployment/README.md
@@ -206,7 +219,8 @@ backend/
 │   │   ├── chat_service.py      编排一轮对话
 │   │   ├── visitor_access.py      访客凭证的 HMAC 签名
 │   │   ├── visitor_accounts.py    访客名单与 PBKDF2 密码校验（文件或数据库）
-│   │   ├── visitor_apps.py        访客应用注册表：区块校验、授权、私有素材解析
+│   │   ├── visitor_apps.py        访客应用注册表：清单校验、授权、私有素材解析
+│   │   ├── visitor_app_storage.py 真实应用的键值数据（SQLite）与上传文件（按应用×访客隔离）
 │   │   ├── netease_music.py       网易云公开歌单的前 N 首（外链播放器只给 10 首，这里自己取）
 │   │   └── visitor_throttle.py    按访客名的失败锁定
 │   ├── models/ schemas/         数据模型与请求校验（基本未启用）
@@ -265,6 +279,7 @@ AI 因此**读不到你电脑上的文件、便签和外部网站**，只能回�
 | `add-visitor.py` | 维护访客账号：添加、改密码、授权应用、停用，可写 JSON 文件或（`--db`）直接写数据库 |
 | `pixel-icons.py` | 桌面图标的代码 ↔ 24×24 PNG 往返工具：`export` / `build` / `preview`，见 [scripts/LOCAL-DEV.md](scripts/LOCAL-DEV.md) |
 | `desktop-theme.mjs` | ★ 桌面暗色主题（深色玻璃 + 荧光绿强调）生成器：读四份亮色 CSS，按角色把颜色换算成暗色，产出 `frontend/src/app/terminal/desktop-dark.css`。`npm run theme:dark` 重新生成，`--report` 看色表与自检，`--check` 校验是否同步（`npm test` 里有一条测试做同样的事） |
+| `apps-registry.mjs` | ★ 桌面应用生成器：读 `frontend/apps/registry.json`，校验每个应用的 manifest、把素材复制到 `frontend/public/apps/`、生成 `frontend/src/app-kit/generated.tsx`。`npm run app:registry` 手动跑，`predev` / `prebuild` 自动跑，`npm test` 有一条同步校验 |
 
 ---
 
@@ -275,10 +290,11 @@ work/
 ├── marcus-backend.log                     后端日志（服务窗口里的内容同步写入这里）
 ├── marcus-frontend.log                    前端日志
 ├── visitor-accounts.json               ★ 访客名、密码哈希与每人可用的应用（用 scripts/add-visitor.py 维护）
-├── visitor-apps.json                   ★ 各访客应用的视图数据与主题（后端持有，需要你填真实内容）
-├── visitor-apps.parked.json            暂时停用的窗口内容（区块）；后端不读这个文件，恢复时粘回 visitor-apps.json 里对应应用的 view
-├── visitor-assets/
-│   └── couple-wallpaper.webp           ★ 应用私有素材，例如壁纸（需要你替换）
+├── visitor-apps/                       ★ 访客应用：一个应用一个文件夹（后端持有）
+│   └── <id>/
+│       ├── app.json                       该应用的元数据与能力声明（entry / embeds / permissions）
+│       ├── index.html                     入口 HTML（及它引用的 js/css/图片）
+│       └── assets/                        该应用自己的图标与壁纸（私有素材，登录后经后端下发）
 ├── icons/                              桌面图标的 PNG 工作副本（scripts/pixel-icons.py export 生成，删掉可复原）
 ├── icons-svg/                          桌面图标的独立 SVG 文件 + index.html（scripts/pixel-icons.py svg 生成）
 └── icons-preview.html                  图标对照页（scripts/pixel-icons.py preview 生成，只用于自己看）
@@ -306,6 +322,7 @@ work/
 | 文件 | 说明 |
 | --- | --- |
 | `README.md` | 项目主文档，架构说明与本地启动步骤 |
+| `CHANGELOG.md` | ★ 更新日志：从合并对照分支 v1.1 开始按天记录「改了什么 / 为什么 / 怎么验证」，末尾是挂账项 |
 | `DESIGN.md` | ★ 技术设计文档：各子系统的设计原理、不变量、实测数字与「改哪里、怎么验证」，面向要动这些代码的人 |
 | `docker-compose.yml` | 早期方案的容器编排，**已过时**：带了个不需要的 PostgreSQL，前端服务整段被注释掉了 |
 | `PROJECT_STRUCTURE.md` | 本文件 |
@@ -354,7 +371,11 @@ work/
 | 顶栏 HOME / Terminal 链接 | `frontend/src/components/my-world/pixel-desktop.tsx` |
 | AI 助手知道的站点信息 | `agent/website-tools.mjs`（改完要重启后端） |
 | 页面元信息、字体、全站外壳 | `frontend/src/app/layout.tsx` |
-| 桌面上的软件、窗口行为 | `frontend/src/components/my-world/pixel-desktop.tsx` |
+| 桌面上的软件、窗口行为 | 登记看 `frontend/src/app-kit/registry.ts` 与 `builtin.tsx`；窗口本身看 `frontend/src/components/my-world/pixel-desktop.tsx` |
+| 装 / 卸一个桌面应用 | `frontend/apps/registry.json` 的 `enabled`（应用文件夹放 `frontend/apps/<id>/`） |
+| 写一个可搬运的桌面应用 | `frontend/apps/README.md`（契约字段、宿主接口、主题 token 都在里面） |
+| 桌面应用的公开契约 | `frontend/src/app-kit/index.ts` |
+| 插件应用的主题 token | `frontend/src/app/terminal/app-tokens.css` |
 | 桌面样式、任务栏、壁纸效果 | `frontend/src/app/terminal/desktop.css` |
 | 默认壁纸图片 | `frontend/public/images/cloud.jpg`（另有 `my-world-pixel-wallpaper.webp` 等可切换） |
 | 有哪些壁纸、动效档位怎么存 | `frontend/src/lib/desktop-settings.ts`（设置面板与读盘校验共用这一份清单） |
@@ -377,8 +398,10 @@ work/
 | 运行时补丁、每轮的进程与并发上限 | `backend/app/services/runtime_manager.py` |
 | 出站流的体积水位与逐帧合并 | `backend/app/services/stream_buffer.py` |
 | 访客名、密码哈希与授权应用 | `work/visitor-accounts.json`（或数据库 `visitor_accounts` 表） |
-| 访客应用的视图与主题 | `work/visitor-apps.json` |
-| 应用私有素材（壁纸等） | `work/visitor-assets/` |
+| 访客应用（元数据与能力声明） | `work/visitor-apps/<id>/app.json` |
+| 访客应用界面与静态文件 | `work/visitor-apps/<id>/`（`entry` 指向的 HTML 与它引用的文件） |
+| 访客应用私有素材（壁纸、图标） | `work/visitor-apps/<id>/assets/` |
+| 新增 / 移植一个访客应用 | 复制 `work/visitor-apps/<id>/` 文件夹，再用 `python scripts/add-visitor.py <访客名> --apps <id>` 授权 |
 | 服务器上线配置 | `deployment/README.md` |
 
 ---
@@ -387,6 +410,6 @@ work/
 
 1. **改 `frontend/next.config.ts` 或 `backend/.env` 不会热更新**，必须停止再启动服务。
 2. **`frontend/src/app/api/` 下是服务端代码**，可以放密钥和读私密文件；放进 `components/` 的内容会打包给浏览器，不要放敏感信息。
-3. **访客名单与应用数据（`work/visitor-*.json` 或数据库）缺失只会让访客模式不可用**，聊天照常；密码哈希用 `python scripts/add-visitor.py` 生成，别手写；应用视图区块类型见 `backend/app/services/visitor_apps.py`。
+3. **访客名单与应用数据（`work/visitor-*` 或数据库）缺失只会让访客模式不可用**，聊天照常；密码哈希用 `python scripts/add-visitor.py` 生成，别手写；访客应用（`work/visitor-apps/<id>/`）的字段与写法见 [`docs/APP-DEVELOPMENT.md`](docs/APP-DEVELOPMENT.md)。
 4. **前端依赖必须用 Python 3.11 / 3.12**。3.13 及以上没有锁定依赖的预编译包，`backend/app/database.py` 在导入时就会加载 asyncpg，绕不开。
 5. **预览必须用普通浏览器**，不要用 VS Code 内嵌预览或 Live Server，它们不支持 Next.js 的热更新。

@@ -4,7 +4,7 @@ import { createHmac } from 'node:crypto'
 import { NextRequest } from 'next/server'
 import { POST } from '../src/app/api/chat/visitor-login/route'
 import { GET as statusGet } from '../src/app/api/visitor/status/route'
-import { GET as appGet } from '../src/app/api/visitor/app/route'
+import { GET as proxyGet, PUT as proxyPut } from '../src/app/api/visitor/app-proxy/[...path]/route'
 import { GET as assetGet } from '../src/app/api/visitor/asset/route'
 import { createVisitorAccess } from '../src/lib/server/visitor-access'
 
@@ -143,22 +143,60 @@ test('status refreshes a cookie whose grants fell behind the backend', async con
   assert.equal((await statusGet(visitorRequest('/api/visitor/status'))).headers.get('set-cookie'), null)
 })
 
-test('app views only load for granted apps and only after login', async context => {
+test('the app proxy only forwards granted app paths and keeps the per-app shell CSP', async context => {
   useSecret(context)
   context.mock.method(globalThis, 'fetch', async (url: unknown, options: RequestInit) => {
-    assert.equal(String(url), 'http://backend.test/api/visitor/apps/our-space')
+    assert.equal(String(url), 'http://backend.test/api/visitor/apps/our-space/shell')
     assert.equal((options.headers as Record<string, string>)['X-Marcus-Visitor'], 'beibei')
-    return Response.json({ app: { id: 'our-space', title: '我们的小屋' }, view: [{ type: 'text', title: null, lines: ['hi'] }] })
+    return new Response('<!doctype html><h1>hi</h1>', {
+      headers: { 'Content-Type': 'text/html', 'Content-Security-Policy': "frame-src 'self' https://example.com; frame-ancestors 'self'" },
+    })
   })
-  const view = await appGet(visitorRequest('/api/visitor/app?app=our-space'))
-  assert.equal(view.status, 200)
-  assert.deepEqual(await view.json(), { app: { id: 'our-space', title: '我们的小屋' }, view: [{ type: 'text', title: null, lines: ['hi'] }] })
-  // Not logged in, or an app this visitor was not granted, never reaches the backend.
+  const shell = await proxyGet(
+    visitorRequest('/api/visitor/app-proxy/apps/our-space/shell'),
+    { params: Promise.resolve({ path: ['apps', 'our-space', 'shell'] }) },
+  )
+  assert.equal(shell.status, 200)
+  assert.equal(shell.headers.get('content-type'), 'text/html')
+  // 后端按应用收口的 CSP 必须原样透传，宿主才能靠“两条 CSP 取交集”只放行 embeds 里的源。
+  assert.match(shell.headers.get('content-security-policy') || '', /frame-src 'self' https:\/\/example\.com/)
+  assert.equal(await shell.text(), '<!doctype html><h1>hi</h1>')
+  // 未登录 / 未授权 / 越界路径都不转发到后端。
   let calls = 0
   context.mock.method(globalThis, 'fetch', async () => { calls++; return Response.json({}) })
-  assert.equal((await appGet(new NextRequest('http://localhost:3010/api/visitor/app?app=our-space'))).status, 403)
-  assert.equal((await appGet(visitorRequest('/api/visitor/app?app=secret-app'))).status, 403)
-  assert.equal((await appGet(visitorRequest('/api/visitor/app?app=../../etc/passwd'))).status, 403)
+  const context_ = { params: Promise.resolve({ path: ['apps', 'our-space', 'shell'] }) }
+  assert.equal((await proxyGet(new NextRequest('http://localhost:3010/api/visitor/app-proxy/apps/our-space/shell'), context_)).status, 403)
+  assert.equal((await proxyGet(visitorRequest('/api/visitor/app-proxy/apps/secret-app/shell'), { params: Promise.resolve({ path: ['apps', 'secret-app', 'shell'] }) })).status, 403)
+  assert.equal((await proxyGet(visitorRequest('/api/visitor/app-proxy/login'), { params: Promise.resolve({ path: ['login'] }) })).status, 403)
+  assert.equal(calls, 0)
+})
+
+test('the app proxy only accepts same-origin writes and caps the request body', async context => {
+  useSecret(context)
+  const identity = { username: 'beibei', name: '贝贝', apps: ['our-space'] }
+  const entity = { params: Promise.resolve({ path: ['apps', 'our-space', 'files', 'notes.txt'] }) }
+  const write = (origin: string | null, body: BodyInit | undefined, url = 'http://localhost:3010/api/visitor/app-proxy/apps/our-space/files/notes.txt') => new NextRequest(url, {
+    method: 'PUT',
+    headers: { cookie: `marcus-visitor-access=${createVisitorAccess(identity)}`, ...(origin ? { origin } : {}) },
+    body,
+  })
+  context.mock.method(globalThis, 'fetch', async (url: unknown, options: RequestInit) => {
+    assert.equal(String(url), 'http://backend.test/api/visitor/apps/our-space/files/notes.txt')
+    assert.equal((options.headers as Record<string, string>)['X-Marcus-Visitor'], 'beibei')
+    return Response.json({ name: 'notes.txt', size: 5 }, { status: 201 })
+  })
+  // 同源写：带本站 Origin 才转发。
+  assert.equal((await proxyPut(write('http://localhost:3010', 'hello'), entity)).status, 201)
+
+  let calls = 0
+  context.mock.method(globalThis, 'fetch', async () => { calls++; return Response.json({}) })
+  // 跨站 Origin 与完全没有 Origin 的写：都不读 body、不转发。
+  assert.equal((await proxyPut(write('https://evil.test', 'hello'), entity)).status, 403)
+  assert.equal((await proxyPut(write(null, 'hello'), entity)).status, 403)
+  // 超过 8MB 的 body：413，同样不转发。
+  const big = write('http://localhost:3010', new Uint8Array(8 * 1024 * 1024 + 1),
+    'http://localhost:3010/api/visitor/app-proxy/apps/our-space/files/big.bin')
+  assert.equal((await proxyPut(big, { params: Promise.resolve({ path: ['apps', 'our-space', 'files', 'big.bin'] }) })).status, 413)
   assert.equal(calls, 0)
 })
 

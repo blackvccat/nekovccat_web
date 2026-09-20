@@ -9,9 +9,6 @@
 > 凡是能读这张表的人，就等于拿到了每个访客的口令（而访客往往在别处复用同一个密码）；
 > 拿到哈希则什么都做不了。工具里没有、也不要加"明文密码"列。
 
-> **想一步步接入 MySQL**（建库、装驱动、配 `backend/.env`、加账号、验证、排错）看
-> **[MYSQL.md](./MYSQL.md)**；本文是字段、合并规则与运维命令的参考。
-
 ## 一、先分清两个数据库
 
 这两件事都在"数据库"名下，但完全不同，排查时别串了：
@@ -116,21 +113,28 @@ $PY $SC alice --db --remove                                         # 删除
 
 可用应用不是你随便写的字符串，而是**应用注册表**里定义的 id：
 
-1. 往 `VISITOR_APPS_PATH`（服务器上 `/var/lib/marcusweb-private/visitor-apps.json`）加一个条目：
+1. 在 `VISITOR_APPS_DIR`（服务器上 `/var/lib/marcusweb-private/visitor-apps/`）下新建一个以应用 id 命名的文件夹：
+
+   ```text
+   visitor-apps/photos/
+   ├── app.json          ← 元数据与能力声明
+   ├── index.html        ← 入口 HTML（连同它引用的 js/css/图片）
+   └── assets/           ← 该应用自己的图标 / 壁纸（可选）
+   ```
 
    ```json
    {
+     "apiVersion": 1,
      "id": "photos",
      "title": "Photos",
      "subtitle": "只读：分享的照片",
-     "view": [
-       {"type": "heading", "text": "标题"},
-       {"type": "text", "text": "正文"}
-     ]
+     "entry": "index.html",
+     "permissions": ["files"],
+     "embeds": []
    }
    ```
 
-   `view` 区块类型：`heading`、`text`、`letter`、`counter`、`checklist`、`footer`、`link`、`image`、`files`、`notice`；条目上还能加 `icon`、`wallpaper`、`watermark`（素材文件放 `VISITOR_ASSETS_DIR`）。前端是通用渲染器，加应用只是加数据，**不用改代码也不用重启**（注册表每次请求重读）。
+   `entry` 必填（界面由它提供）；还能写 `icon`、`wallpaper`、`watermark`、`window`（素材文件放**这个应用自己的** `assets/`）、`permissions`（`files` 上传下载 / `data` 键值数据）、`embeds`（允许内嵌的第三方源）。界面在登录后由服务器下发，**不用改代码也不用重启**（目录每次请求重读）。移植一个应用 = 复制整个 `<id>/` 文件夹到对方的 `VISITOR_APPS_DIR`。
 
 2. 授权给访客：`$PY $SC alice --apps our-space,files,photos --db`（**整份替换**，要把原有的都列上）。
 3. 注册表里没有的 id **不会报错**：它会写进库，但访客页上被静默过滤掉。脚本会提醒一句（写错 id 也走这条路）。

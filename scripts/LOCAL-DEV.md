@@ -11,9 +11,8 @@
 | 前端依赖 | `frontend\node_modules` | 已执行 `npm ci`，426 个包 |
 | 后端配置 | `backend\.env` | 本地参数已配好，**只差 DeepSeek 密钥** |
 | 访客账号 | `work\visitor-accounts.json` | 访客名、密码哈希与每人可用的应用 |
-| 访客应用数据 | `work\visitor-apps.json` | 每个应用的视图数据与主题（后端持有） |
-| 停用的窗口内容 | `work\visitor-apps.parked.json` | 摘下来暂存的区块，后端不读；要恢复就粘回 visitor-apps.json 的 view |
-| 应用私有素材 | `work\visitor-assets\` | 应用用到的图片，例如壁纸 |
+| 访客应用 | `work\visitor-apps\<id>\app.json` | 一个应用一个文件夹：该应用的元数据与能力声明（后端持有） |
+| 访客应用私有素材 | `work\visitor-apps\<id>\assets\` | 该应用自己的图标与壁纸，登录后经后端下发 |
 
 `work/` 已被 `.gitignore` 排除，里面的内容不会被提交。
 
@@ -44,7 +43,7 @@ dev-win.bat restart     重启（改完后端代码却没生效时用这个）
 启动后等 10-30 秒（前端首次要编译），然后打开：
 
 - 桌面入口　　http://127.0.0.1:3010/terminal
-- 接口文档　　http://127.0.0.1:8010/docs
+- 接口文档　　http://127.0.0.1:8110/docs
 
 ## 在 VS Code 里开发（实时预览）
 
@@ -76,7 +75,7 @@ dev-win.bat restart     重启（改完后端代码却没生效时用这个）
 | 后端 Python（`backend/app/`） | 自动重启后端，约 1-2 秒 |
 | `frontend/next.config.ts` | **不会热更新**，要停止再启动 |
 | `backend/.env` | **不会热更新**，要停止再启动 |
-| `work/visitor-apps.json`（访客应用数据） | 立即生效，不用重启 |
+| `work/visitor-apps/`（访客应用目录） | 立即生效，不用重启 |
 | `work/visitor-accounts.json`（访客名单） | 立即生效，不用重启 |
 
 ### 预览必须用普通浏览器（重要）
@@ -113,7 +112,7 @@ dev-win.bat restart     重启（改完后端代码却没生效时用这个）
 - **调试后端 (FastAPI)**：能打断点
 - **调试前端 (Next.js 服务端)**：能调试服务端渲染逻辑
 
-注意：它们会自己占用 8010 / 3010 端口，所以用之前先执行「停止本地环境」，别和开发服务器同时跑。
+注意：它们会自己占用 8110 / 3010 端口，所以用之前先执行「停止本地环境」，别和开发服务器同时跑。
 
 ## 如果启动失败
 
@@ -172,7 +171,7 @@ python scripts\add-visitor.py marcus --remove
 
   服务器上跑的话用后端的 venv：`/srv/marcusweb/current/backend/.venv/bin/python scripts/add-visitor.py …`，连接串默认从 `/etc/marcusweb/backend.env` 的 `DATABASE_URL` 读（也可 `--db-url` 直接给）。**JSON 文件里的账号不会因此失效**——两份会合并读取，只有同一个名字同时出现在两边时才会被拒绝。MySQL 需要 `aiomysql`（Web 端用）与 `PyMySQL`（脚本用），两个都在 `requirements.txt` 里。表结构、参数规则（`--ask-password` 与"只改授权"的区别）、怎么加新应用，都写在 [../deployment/DATABASE.md](../deployment/DATABASE.md)。
 
-`work\visitor-apps.json` 里每个应用都是一段视图数据：`view` 数组里的区块（`heading` / `text` / `letter` / `counter` / `checklist` / `footer` / `link` / `image` / `files` / `notice`）由前端一个**通用渲染器**画出来。`notice` 是占位区块：窗口还没内容时在正中间放一句大字，`{"type": "notice", "text": "功能开发中"}`，可选 `note` 写一行小字。`files` 是只读的下载列表：每项写 `{name, size?, note?, href}`，`href` 只允许 `https://` 或站内路径（`javascript:`／`data:`／`http:` 都会被拒绝），页面上只有「下载」没有上传。文案、日期、默认清单、壁纸文件名都在这个文件里，前端不含任何应用素材；`counter` 的 `since` 必须是 `YYYY-MM-DD`。想加应用就再加一个 `{ id, title, subtitle, view: [...] }`，再用 `add-visitor.py <访客名> --apps <id>` 授权给某个访客。素材放在 `work\visitor-assets\`，用文件名引用（例：`"wallpaper": "couple-wallpaper.webp"`）。
+访客应用是**一个应用一个文件夹**：`work\visitor-apps\<id>\app.json` 是元数据与能力声明，`entry` 指向的同目录 HTML（以及它引用的 js/css/图片）就是应用界面。界面在**登录后由服务器下发**，宿主用同源 iframe 承载——所以登录前前端产物里没有任何应用界面或素材。想加或搬一个应用，就复制一个 `<id>/` 文件夹（`app.json` + 入口 HTML + `assets/`），再用 `add-visitor.py <访客名> --apps <id>` 授权给某个访客。应用图标与壁纸放**它自己的** `assets/`，在 `app.json` 里用文件名引用（例：`"wallpaper": "seagull.jpg"`）；窗口尺寸写 `"window": {"width": 560, "height": 580}`。要上传或读写数据就在 `permissions` 里申请 `files` / `data`；要内嵌第三方页面就写 `embeds`。完整字段表与写法见 `docs/visitor-app-example/README.md`。
 
 > 这些数据都不进前端包：应用视图与素材只经后端授权接口返回，登录前前端里没有任何应用素材；访客名单只在后端校验时读取。文件缺失只影响访客模式本身（返回「尚未配置」），不会让聊天 503。
 
@@ -215,7 +214,7 @@ python scripts\pixel-icons.py build     # PNG → 画稿（把改好的 PNG 变�
 | 画稿 | 同步到 | 谁能看到 |
 | --- | --- | --- |
 | 公开图标（`agent.svg`、`login.svg`、`explorer.svg`…） | `frontend\public\icons-svg\` | 所有人，随页面一起请求 |
-| `work\visitor-apps.json` 里被 `"icon"` 引用的文件（如 `our-room.svg`） | `work\visitor-assets\` | 只有登录后被授权的访客，经 `/api/visitor/asset?app=<id>&kind=icon` 取 |
+| 访客应用 `app.json` 里被 `"icon"` 引用的文件（如 `our-room.svg`） | `work\visitor-apps\<id>\assets\` | 只有登录后被授权的访客，经 `/api/visitor/asset?app=<id>&kind=icon` 取 |
 
 私有文件如果出现在公开目录里，`sync` 会删掉它并提示 —— 这是「登录前前端不留任何应用痕迹」那条规矩的执行点。
 
@@ -224,7 +223,7 @@ python scripts\pixel-icons.py build     # PNG → 画稿（把改好的 PNG 变�
 - `build` 把 PNG 变回**矢量像素画**（24×24 网格、图形裁到边界居中）。对「内嵌 PNG」的画稿来说这是一次格式转换：内嵌位图会被换成矩形路径，画稿文件里就没有那张 PNG 了 —— 所以它只处理你真正改过的 PNG，没动过的会跳过。
 - 只想微调几个像素：`export` → 用画图软件改 `work\icons\` 里的 PNG → `build` → `sync`。想直接改画稿文本也行，改完直接 `sync`。
 - 图标文件都进了版本库（`frontend/public/icons-svg/`），`work\icons\`（PNG）与 `work\icons-preview.html` 是本地中间产物，删掉重新 `export` 即可。
-- 加一个新图标：把 SVG 丢进 `work\icons-svg\`，在 `pixel-icon.tsx` 的表里加一行（名字要同时加进 `PixelIconName`），再 `sync`。访客应用的图标不用改代码，在 `work\visitor-apps.json` 里写 `"icon": "文件名.svg"` 即可。
+- 加一个新图标：把 SVG 丢进 `work\icons-svg\`，在 `pixel-icon.tsx` 的表里加一行（名字要同时加进 `PixelIconName`），再 `sync`。访客应用的图标不用改代码，在对应应用的 `work\visitor-apps\<id>\app.json` 里写 `"icon": "文件名.svg"` 即可（文件放它自己的 `assets\`）。
 
 ## 改代码后怎么看效果
 
@@ -246,11 +245,10 @@ python scripts\pixel-icons.py build     # PNG → 画稿（把改好的 PNG 变�
 命令和服务器侧的一次性配置见 `deployment/README.md`。服务器上**必须自己创建**的东西：
 
 - `/var/lib/marcusweb-private/visitor-accounts.json`（访客名、密码哈希与授权应用；用 `--sql` 放进数据库时不需要）
-- `/var/lib/marcusweb-private/visitor-apps.json`（各应用的视图数据与主题）
-- `/var/lib/marcusweb-private/visitor-assets/`（应用私有素材，例如壁纸）
+- `/var/lib/marcusweb-private/visitor-apps/`（访客应用：一个应用一个文件夹，`<id>/app.json` + `<id>/assets/`）
 - `/etc/marcusweb/` 下前后端两个 env 文件里的 `INTERNAL_API_TOKEN` 必须一致且**至少 32 个字符**
 
-另外，standalone 产物的工作目录是 `.next/standalone`，相对路径的默认值会失效，所以 `backend.env` 里**必须显式写明** `VISITOR_ACCOUNTS_PATH`、`VISITOR_APPS_PATH`、`VISITOR_ASSETS_DIR` 的绝对路径；前端不需要私有路径，只持有签名 Cookie。
+另外，standalone 产物的工作目录是 `.next/standalone`，相对路径的默认值会失效，所以 `backend.env` 里**必须显式写明** `VISITOR_ACCOUNTS_PATH`、`VISITOR_APPS_DIR` 的绝对路径；前端不需要私有路径，只持有签名 Cookie。
 
 ## 为什么另外写了脚本
 

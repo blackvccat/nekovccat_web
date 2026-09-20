@@ -1,0 +1,9 @@
+{
+  "apiVersion": 1,
+  "id": "about",
+  "title": "About Computer",
+  "subtitle": "关于这台小电脑",
+  "icon": "about.svg",
+  "statusText": "MARCUS OS",
+  "window": { "width": 530, "height": 470 }
+}

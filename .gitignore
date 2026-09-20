@@ -27,6 +27,8 @@ dist/
 build/
 .next/
 out/
+# 应用素材的构建副本（由 scripts/apps-registry.mjs 从 frontend/apps/<id>/assets 复制）
+frontend/public/apps/
 
 # 日志
 *.log

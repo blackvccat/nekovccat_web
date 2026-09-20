@@ -30,7 +30,6 @@ import base64
 import getpass
 import hashlib
 import json
-import os
 import re
 import secrets
 import string
@@ -193,27 +192,13 @@ def parse_db_url(url: str) -> dict:
     }
 
 
-def venv_python() -> str:
-    """这个仓库里虚拟环境的解释器路径——Windows 与 POSIX 的目录布局不同。"""
-    return r"backend\.venv\Scripts\python.exe" if os.name == "nt" else "backend/.venv/bin/python"
-
-
-def missing_driver(package: str) -> SystemExit:
-    py = venv_python()
-    return SystemExit(
-        f"缺少 {package}：它没装在这个虚拟环境里。\n"
-        f"  先装：{py} -m pip install {package}\n"
-        f"  再跑：{py} scripts/add-visitor.py …"
-    )
-
-
 def db_connect(target: dict):
     """打开一个同步连接（脚本只依赖驱动本身，不拉起整个应用的异步栈）。"""
     if target["kind"] == "mysql":
         try:
             import pymysql
         except ImportError:
-            raise missing_driver("PyMySQL")
+            raise SystemExit("缺少 PyMySQL：用后端的 venv 跑，即 backend/.venv/bin/python scripts/add-visitor.py …")
         return pymysql.connect(
             host=target["host"], port=target["port"] or 3306, user=target["user"],
             password=target["password"], database=target["database"], charset="utf8mb4",
@@ -222,7 +207,7 @@ def db_connect(target: dict):
     try:
         import psycopg2
     except ImportError:
-        raise missing_driver("psycopg2")
+        raise SystemExit("缺少 psycopg2：用后端的 venv 跑，即 backend/.venv/bin/python scripts/add-visitor.py …")
     connection = psycopg2.connect(
         host=target["host"], port=target["port"] or 5432, user=target["user"],
         password=target["password"], dbname=target["database"],
@@ -243,7 +228,20 @@ def upsert_sql(kind: str) -> str:
 
 
 def registered_apps(path: Path) -> set[str]:
-    """注册表里的应用 id；读不到就返回空集合（只用于提示，不做拦截）。"""
+    """注册表里的应用 id；读不到就返回空集合（只用于提示，不做拦截）。
+
+    `path` 是「一个应用一个文件夹」的目录：扫每个 `<id>/app.json`；仍是文件时兼容旧的单一 JSON。
+    """
+    if path.is_dir():
+        known: set[str] = set()
+        for manifest in sorted(path.glob("*/app.json")):
+            try:
+                data = json.loads(manifest.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            if isinstance(data, dict) and isinstance(data.get("id"), str):
+                known.add(data["id"])
+        return known
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -277,8 +275,8 @@ def run_database(args, key: str) -> int:
     if not url:
         raise SystemExit(f"{args.db_env} 里没有 DATABASE_URL；用 --db-url 指定，或先按部署文档配好。")
     target = parse_db_url(url)
-    registry = read_env_value(args.db_env, "VISITOR_APPS_PATH") if args.db_env else None
-    registry_path = Path(registry) if registry else Path(__file__).resolve().parents[1] / "work" / "visitor-apps.json"
+    registry = read_env_value(args.db_env, "VISITOR_APPS_DIR") if args.db_env else None
+    registry_path = Path(registry) if registry else Path(__file__).resolve().parents[1] / "work" / "visitor-apps"
     connection = db_connect(target)
     cursor = connection.cursor()
     try:

@@ -61,10 +61,12 @@ const sessionAttempts = new ChatAttemptLimiter({ limit: 12, windowMs: 60000, coo
 // 凭据路径（访客登录）单独一把桶：撞密码与「聊天发得快」是两回事，
 // 共用一把桶会让「刚聊过几条就去登录」直接被拦，也会让攻击者的登录尝试被聊天流量掩盖。
 const loginAttempts = new ChatAttemptLimiter({ limit: 3, windowMs: 10000, cooldownMs: 30000 })
+// 歌单是只读代理，但每次都拿**服务器的 IP** 去打第三方：单独一把桶，别让人把本站当免费代理。
+const musicAttempts = new ChatAttemptLimiter({ limit: 20, windowMs: 60000, cooldownMs: 60000 })
 
-export function chatAttemptError(identity: string, scope: 'chat' | 'session' | 'login'): NextResponse | null {
+export function chatAttemptError(identity: string, scope: 'chat' | 'session' | 'login' | 'music'): NextResponse | null {
   if (!guarded()) return null
-  const limiter = scope === 'chat' ? chatAttempts : scope === 'session' ? sessionAttempts : loginAttempts
+  const limiter = scope === 'chat' ? chatAttempts : scope === 'session' ? sessionAttempts : scope === 'login' ? loginAttempts : musicAttempts
   const result = limiter.take(identity)
   if (result.allowed) return null
   return NextResponse.json({

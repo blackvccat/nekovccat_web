@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notebook</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <main>
+    <h1>Notebook</h1>
+    <p>这是一个**真实访客应用**示例：界面由服务器在登录后下发，数据与文件都存在服务器，前端产物里没有它的任何内容。</p>
+
+    <label class="field">一条笔记
+      <textarea id="note" rows="4" placeholder="写点什么…"></textarea>
+    </label>
+    <div class="row">
+      <button id="save" type="button">保存到服务器</button>
+      <span id="status" role="status"></span>
+    </div>
+
+    <hr>
+
+    <label class="field">上传一个文件
+      <input id="upload" type="file">
+    </label>
+    <ul id="files"></ul>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

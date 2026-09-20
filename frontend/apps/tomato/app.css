@@ -1,0 +1,167 @@
+/* Tomato Timer 的全部样式。只使用宿主提供的 --app-* 主题 token，
+   所以明亮/暗色两套主题下都会自动跟着变，不需要改宿主的暗色生成器。 */
+
+.tomato-app {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  background: var(--app-surface);
+  color: var(--app-ink);
+}
+
+.tomato-main {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tomato-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.tomato-heading h2 {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 2px 0 0;
+}
+
+.tomato-heading h2 span {
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--app-ink-muted);
+}
+
+.tomato-heading .eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.6px;
+  color: var(--app-ink-muted);
+}
+
+.tomato-panel-toggle {
+  margin-left: auto;
+}
+
+.tomato-dial {
+  border: 1px solid var(--app-edge);
+  background: var(--app-surface-raised);
+  box-shadow: inset 1px 1px var(--app-bevel-light), inset -2px -2px var(--app-bevel-dark);
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.tomato-dial.break {
+  border-color: var(--app-accent);
+}
+
+.tomato-dial strong {
+  font: 52px/1 monospace;
+  letter-spacing: 3px;
+  color: var(--app-ink);
+}
+
+.tomato-dial small {
+  font-size: 11px;
+  color: var(--app-ink-muted);
+}
+
+.tomato-bar {
+  width: 100%;
+  height: 10px;
+  border: 1px solid var(--app-edge);
+  background: var(--app-panel);
+}
+
+.tomato-bar span {
+  display: block;
+  height: 100%;
+  background: var(--app-accent);
+  transition: width .25s linear;
+}
+
+.tomato-actions {
+  display: flex;
+  gap: 9px;
+}
+
+.tomato-note {
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--app-ink-muted);
+  margin-top: auto;
+}
+
+.tomato-panel {
+  width: 210px;
+  flex: 0 0 210px;
+  border-left: 1px solid var(--app-edge);
+  background: var(--app-panel);
+  overflow: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tomato-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tomato-panel-head h3 {
+  font-size: 15px;
+  margin: 3px 0 0;
+}
+
+.tomato-panel-head .eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  color: var(--app-ink-muted);
+}
+
+.tomato-panel section h4 {
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+
+.tomato-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tomato-panel-foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  border-top: 1px solid var(--app-edge);
+  padding-top: 13px;
+  font-size: 12px;
+}
+
+.tomato-panel-foot p {
+  margin: 0;
+}
+
+@media (max-width: 700px) {
+  /* 手机上不分栏：点「设置」就换成整屏的设置视图，和便签、音乐的做法一致。
+     这里以前直接 display:none，于是移动端点设置什么也不出现。 */
+  .tomato-app.panel-open > .tomato-main { display: none; }
+  .tomato-panel { width: auto; flex: 1 1 auto; border-left: 0; }
+  /* 手指比鼠标粗：时长按钮给足高度。 */
+  .tomato-choices .pixel-button { min-height: 38px; padding: 8px 14px; }
+}
