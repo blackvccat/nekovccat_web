@@ -11,7 +11,7 @@ Next.js + FastAPI 的个人网站，为NEKO/My World的附属分支。地址是 
 ## 桌面软件
 
 - **MK Agent**：官方 DeepSeek Harness 负责模型循环、会话轨迹与站内工具，默认使用 DeepSeek FLASH。
-- **MARCUS Browser**：复古站内浏览器，包含关于 MARCUS、项目/探索与经历、长廊及联系栏目。长廊挑选了主站「共鸣」展厅的一部分作品，带标题、简介与调性标注，点开任意画框会在新标签页打开主站对应作品。联系栏目给出公开邮箱与 GitHub 链接（示例值写在 `frontend/src/content/profile.ts`，换成自己的即可）。旧 About / Contact 与 `/my-world` 地址自动跳转。公开身份为 Marcus，不公开就读学校名称等未公开信息。
+- **MARCUS Browser**：复古站内浏览器，包含关于 MARCUS、项目/探索与经历、长廊及联系栏目。长廊挑选了主站「共鸣」展厅的一部分作品，带标题、简介与调性标注，点开任意画框会在新标签页打开主站对应作品。联系栏目给出公开邮箱与 GitHub 链接（示例值写在 `frontend/src/content/profile.ts`，换成自己的即可）。旧 About / Contact 与 `/my-world` 地址自动跳转。公开身份为 Marcus。
 - **MARCUS Music**：粘贴网易云或 Spotify 分享链接，加载官方播放器，保存常听收藏。
 - **Notes**：在当前浏览器自动保存便签。
 - **Settings**：明暗主题（米白 / 暗色）、壁纸、壁纸动效、CRT 扫描线（开关 + 粗细四档）。
