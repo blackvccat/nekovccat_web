@@ -10,7 +10,7 @@ Next.js + FastAPI 的个人网站，为NEKO/My World的附属分支。地址是 
 
 ## 桌面软件
 
-- **MK Agent**：官方 DeepSeek Harness 负责模型循环、会话轨迹与站内工具，默认使用 DeepSeek V4 Pro。
+- **MK Agent**：官方 DeepSeek Harness 负责模型循环、会话轨迹与站内工具，默认使用 DeepSeek FLASH。
 - **MARCUS Browser**：复古站内浏览器，包含关于 MARCUS、项目/探索与经历、长廊及联系栏目。长廊挑选了主站「共鸣」展厅的一部分作品，带标题、简介与调性标注，点开任意画框会在新标签页打开主站对应作品。联系栏目给出公开邮箱与 GitHub 链接（示例值写在 `frontend/src/content/profile.ts`，换成自己的即可）。旧 About / Contact 与 `/my-world` 地址自动跳转。公开身份为 Marcus，不公开就读学校名称等未公开信息。
 - **MARCUS Music**：粘贴网易云或 Spotify 分享链接，加载官方播放器，保存常听收藏。
 - **Notes**：在当前浏览器自动保存便签。
@@ -20,7 +20,7 @@ Next.js + FastAPI 的个人网站，为NEKO/My World的附属分支。地址是 
 桌面支持打开、聚焦、拖动、方向键移动、最大化、最小化和关闭窗口，任务栏可恢复窗口。移动端使用单窗口布局，支持减少动态效果偏好。
 
 ### 访客模式（需要访客名与密码）
-
+默认账户名MK，密码12345678
 桌面上的 **访客模式** 窗口是留给受邀访客的入口（桌面上点图标、开始菜单里选，或直接访问 `/terminal?app=visitor`）。输入 Marcus 给出的访客名与密码，由后端校验；通过后进入的是**这位访客自己的访客页**，而不是任何固定内容——页面上只列出服务器按账号授权给他的应用，以及一个「退出访客模式」按钮。每个访客可以拿到的应用各不相同：给谁开什么应用，完全由后端记录决定，桌面上也只有被授权的应用才会出现图标。
 
 账号与授权来自服务器：`work/visitor-accounts.json` 里每个访客是一条 `{username, name, password_hash, apps}` 记录（用 `scripts/add-visitor.py <访客名> --generate --apps <应用 id>` 维护，密码只以 PBKDF2-SHA256 哈希保存，明文永不落盘）；`DATABASE_ENABLED=true` 时再叠加上数据库的 `visitor_accounts` 表（`apps` 列存逗号分隔的应用 id，MySQL 与 PostgreSQL 都支持），两份合并读取、同名访客直接拒绝，所以接了数据库以后 JSON 里原来的账号照常可用。应用本身是**一个应用一个文件夹**：`work/visitor-apps/<id>/` 里放 `app.json`、入口 HTML（及它引用的 js/css/图片）与 `assets/`（该应用自己的图标与壁纸）。移植一个应用 = 复制这个文件夹到对方服务器，再给对方账号授权该 id。界面在登录后由服务器下发（`entry`），可按 `permissions` 申请上传（`files`）与键值数据（`data`），也能内嵌 `embeds` 里声明的第三方源；示例见 `docs/visitor-app-example/`。
@@ -87,7 +87,7 @@ cp backend/.env.example backend/.env
 ```dotenv
 DEEPSEEK_API_KEY=replace_locally
 DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_MODEL=deepseek-v4-pro
+DEEPSEEK_MODEL=deepseek-flash
 DEEPSEEK_REASONING_EFFORT=low
 DATABASE_ENABLED=false
 ```
