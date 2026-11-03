@@ -34,7 +34,7 @@ func testServer(t *testing.T) *Server {
 		CHATMaxConcurrent:           3,
 	}
 	manager := agent.NewManager(cfg, nil)
-	return NewServer(cfg, manager, nil)
+	return NewServer(cfg, manager, nil, nil)
 }
 
 func TestHealthAndRoot(t *testing.T) {

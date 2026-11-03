@@ -12,27 +12,63 @@ import (
 	"strings"
 	"time"
 
+	"nekoweb/backend-go/internal/admission"
 	"nekoweb/backend-go/internal/agent"
 	"nekoweb/backend-go/internal/chat"
 	"nekoweb/backend-go/internal/config"
+	"nekoweb/backend-go/internal/database"
 	"nekoweb/backend-go/internal/jsonutil"
 	"nekoweb/backend-go/internal/observability"
 	"nekoweb/backend-go/internal/relationship"
+	"nekoweb/backend-go/internal/visitor"
 )
 
 type Server struct {
-	config  *config.Config
-	manager *agent.Manager
-	service *agent.Service
-	logger  *slog.Logger
+	config    *config.Config
+	manager   *agent.Manager
+	service   *agent.Service
+	logger    *slog.Logger
+	database  *database.DB
+	visitor   *visitor.Service
+	admission *admission.Stack
 }
 
-func NewServer(cfg *config.Config, manager *agent.Manager, logger *slog.Logger) *Server {
+func NewServer(cfg *config.Config, manager *agent.Manager, logger *slog.Logger, db *database.DB) *Server {
+	var source visitor.AccountSource
+	if db != nil {
+		source = db
+	}
+	visitorService := visitor.NewService(visitor.Config{
+		AccountsPath:         cfg.VisitorAccountsPath,
+		AppsDir:              cfg.VisitorAppsDir,
+		AppDataDB:            cfg.VisitorAppDataDB,
+		AppFilesDir:          cfg.VisitorAppFilesDir,
+		ThrottleDB:           cfg.VisitorThrottleDB,
+		MaxFailures:          cfg.VisitorMaxFailures,
+		FailureWindowSeconds: cfg.VisitorFailureWindowSeconds,
+		InternalToken:        cfg.InternalAPIToken,
+	}, source)
+	stack := admission.NewStack(context.Background(), cfg)
+	if err := stack.Error(); err != nil && logger != nil {
+		logger.Error("admission quota unavailable", "error", err)
+	}
 	return &Server{
-		config:  cfg,
-		manager: manager,
-		service: agent.NewService(cfg, manager, logger),
-		logger:  logger,
+		config:    cfg,
+		manager:   manager,
+		service:   agent.NewService(cfg, manager, logger),
+		logger:    logger,
+		database:  db,
+		visitor:   visitorService,
+		admission: stack,
+	}
+}
+
+func (s *Server) Close() {
+	if s.visitor != nil {
+		s.visitor.Close()
+	}
+	if s.admission != nil {
+		s.admission.Close()
 	}
 }
 
@@ -42,8 +78,10 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /health", s.health)
 	mux.HandleFunc("GET /api/health", s.health)
 	mux.HandleFunc("GET /api/ready", s.ready)
-	mux.HandleFunc("POST /api/chat/", s.chat)
-	mux.HandleFunc("POST /api/chat", s.chat)
+	chatHandler := s.admission.Wrap(http.HandlerFunc(s.chat))
+	mux.Handle("POST /api/chat/", chatHandler)
+	mux.Handle("POST /api/chat", chatHandler)
+	s.registerVisitorRoutes(mux)
 	return observability.Telemetry(s.logger, s.cors(mux))
 }
 
@@ -63,13 +101,14 @@ func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
 	})
 }
 
-func (s *Server) ready(w http.ResponseWriter, _ *http.Request) {
+func (s *Server) ready(w http.ResponseWriter, r *http.Request) {
 	production := s.config.Production()
+	databaseReady := !s.config.DatabaseEnabled || (s.database != nil && s.database.Ready(r.Context()))
 	checks := map[string]bool{
 		"agent_configuration":  s.manager.Ready(),
 		"proxy_authentication": !production || len(s.config.InternalAPIToken) >= 32,
-		"quota_storage":        !production,
-		"application_database": true,
+		"quota_storage":        s.admission.Ready(r.Context()),
+		"application_database": databaseReady,
 	}
 	available := true
 	for _, value := range checks {
@@ -101,9 +140,12 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 		writeRouteError(w, err)
 		return
 	}
+	started := time.Now()
 	if !stream {
 		reply, err := s.service.GenerateReply(r.Context(), request.Messages)
 		if err != nil {
+			safe := agent.SafeError(err)
+			s.recordTurn(r, request.Messages, "", errorStatus(safe.Code), safe.Code, "", started)
 			writeRouteError(w, err)
 			return
 		}
@@ -113,7 +155,7 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 			Timestamp: timestamp(),
 		}
 		if reply.DesktopAction != "" {
-			proof := relationship.CreateUnlockProof(r.Header.Get("X-Neko-Session-ID"), s.config.InternalAPIToken, time.Now())
+			proof := relationship.CreateUnlockProof(sessionNonce(r), s.config.InternalAPIToken, time.Now())
 			if proof == "" {
 				reply.DesktopAction = ""
 			} else {
@@ -122,6 +164,7 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 				response.DesktopProof = &proof
 			}
 		}
+		s.recordTurn(r, request.Messages, reply.Content, "completed", "", reply.DesktopAction, started)
 		writeJSON(w, http.StatusOK, response)
 		return
 	}
@@ -141,7 +184,7 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 			return controller.Flush()
 		}
 		if event["event"] == "desktop" {
-			proof := relationship.CreateUnlockProof(r.Header.Get("X-Neko-Session-ID"), s.config.InternalAPIToken, time.Now())
+			proof := relationship.CreateUnlockProof(sessionNonce(r), s.config.InternalAPIToken, time.Now())
 			if proof == "" {
 				return nil
 			}
@@ -161,9 +204,10 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 		return controller.Flush()
 	}
 
-	err = s.service.Stream(r.Context(), request.Messages, progressive, emit)
+	final, err := s.service.StreamWithFinal(r.Context(), request.Messages, progressive, emit)
 	if err != nil {
 		safe := agent.SafeError(err)
+		s.recordTurn(r, request.Messages, "", errorStatus(safe.Code), safe.Code, "", started)
 		payload := chat.Event{"error": safe.Message, "done": true}
 		data, _ := jsonutil.Marshal(payload)
 		if writeErr := setWriteDeadline(controller, s.config.CHATSendTimeoutSeconds); writeErr == nil {
@@ -171,7 +215,61 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) {
 			_ = controller.Flush()
 		}
 		observability.LogEvent(r.Context(), s.logger, "chat_stream", "outcome", safe.Code)
+		return
 	}
+	s.recordTurn(r, request.Messages, final, "completed", "", "", started)
+}
+
+func (s *Server) recordTurn(r *http.Request, messages []chat.Message, assistant, status, code, action string, started time.Time) {
+	if s.database == nil || !s.database.Enabled || len(messages) == 0 {
+		return
+	}
+	requestID := observability.RequestID(r.Context())
+	if requestID == "" {
+		requestID = observability.NewRequestID("")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := s.database.RecordTurn(ctx, database.TurnRecord{
+		ClientSessionID:  sessionNonce(r),
+		VisitorUsername:  visitorUsername(r),
+		RequestID:        requestID,
+		UserMessage:      messages[len(messages)-1].Content,
+		AssistantMessage: assistant,
+		Status:           status,
+		ErrorCode:        code,
+		DesktopAction:    action,
+		Model:            s.config.DeepSeekModel,
+		LatencyMS:        int(time.Since(started).Milliseconds()),
+	})
+	if err != nil {
+		observability.LogEvent(r.Context(), s.logger, "agent_persistence", "outcome", "unavailable")
+	}
+}
+
+func errorStatus(code string) string {
+	switch code {
+	case "cancelled":
+		return "cancelled"
+	case "timeout":
+		return "timeout"
+	default:
+		return "error"
+	}
+}
+
+func sessionNonce(r *http.Request) string {
+	if value := r.Header.Get("X-Neko-Session-ID"); value != "" {
+		return value
+	}
+	return r.Header.Get("X-Marcus-Session-ID")
+}
+
+func visitorUsername(r *http.Request) string {
+	if value := r.Header.Get("X-Neko-Visitor"); value != "" {
+		return value
+	}
+	return r.Header.Get("X-Marcus-Visitor")
 }
 
 func (s *Server) readRequest(w http.ResponseWriter, r *http.Request) (chat.Request, error) {

@@ -322,6 +322,24 @@ func (s *Service) Stream(ctx context.Context, messages []chat.Message, progressi
 	}
 }
 
+// StreamWithFinal is the API-facing wrapper that also returns the canonical
+// answer for persistence. The final frame always replaces provisional deltas.
+func (s *Service) StreamWithFinal(ctx context.Context, messages []chat.Message, progressive bool, emit func(chat.Event) error) (string, error) {
+	var final string
+	err := s.Stream(ctx, messages, progressive, func(event chat.Event) error {
+		if event["event"] == "reply" && event["phase"] == "final" {
+			final = stringValue(event["content"])
+		} else if !progressive && event["done"] == false && event["content"] != nil {
+			final = stringValue(event["content"])
+		}
+		return emit(event)
+	})
+	if err != nil {
+		return "", err
+	}
+	return final, nil
+}
+
 func (s *Service) buildInput(messages []chat.Message) string {
 	envelope := inputEnvelope{
 		PreviousContext: append([]chat.Message(nil), messages[:len(messages)-1]...),

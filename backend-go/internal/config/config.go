@@ -43,8 +43,39 @@ type Config struct {
 	CHATBodyMaxBytes            int64
 	CHATBodyTimeoutSeconds      float64
 	CHATMaxConcurrent           int
+	CHATDailyLimit              int
+	CHATIPMinuteLimit           int
+	CHATIPHourLimit             int
+	CHATIPDailyLimit            int
+	CHATQueueMaxSize            int
+	CHATQueueWaitSeconds        float64
+	CHATAttemptBurst            int
+	CHATAttemptRefillSeconds    float64
+	CHATAbuseCooldownSeconds    float64
+	CHATAbuseMaxCooldownSeconds float64
+	CHATAttemptCacheSize        int
+	CHATAttemptCacheTTLSeconds  float64
+	CHATGlobalAttemptBurst      int
+	CHATGlobalAttemptsPerSecond float64
 	RelationshipPrivatePath     string
 	InternalAPIToken            string
+
+	RedisEnabled   bool
+	RedisURL       string
+	RedisPrefix    string
+	RedisTimeoutMS int
+
+	VisitorAccountsPath         string
+	VisitorAppsDir              string
+	VisitorAppDataDB            string
+	VisitorAppFilesDir          string
+	VisitorThrottleDB           string
+	VisitorMaxFailures          int
+	VisitorFailureWindowSeconds int
+
+	DatabaseEnabled  bool
+	DatabaseURL      string
+	DatabaseMaxConns int
 }
 
 func Load() (*Config, error) {
@@ -82,8 +113,36 @@ func Load() (*Config, error) {
 		CHATBodyMaxBytes:            int64(envInt("CHAT_BODY_MAX_BYTES", 65536)),
 		CHATBodyTimeoutSeconds:      envFloat("CHAT_BODY_TIMEOUT_SECONDS", 2),
 		CHATMaxConcurrent:           envInt("CHAT_MAX_CONCURRENT", 3),
+		CHATDailyLimit:              envInt("CHAT_DAILY_LIMIT", 400),
+		CHATIPMinuteLimit:           envInt("CHAT_IP_MINUTE_LIMIT", 6),
+		CHATIPHourLimit:             envInt("CHAT_IP_HOUR_LIMIT", 30),
+		CHATIPDailyLimit:            envInt("CHAT_IP_DAILY_LIMIT", 60),
+		CHATQueueMaxSize:            envInt("CHAT_QUEUE_MAX_SIZE", 12),
+		CHATQueueWaitSeconds:        envFloat("CHAT_QUEUE_WAIT_SECONDS", 8),
+		CHATAttemptBurst:            envInt("CHAT_ATTEMPT_BURST", 4),
+		CHATAttemptRefillSeconds:    envFloat("CHAT_ATTEMPT_REFILL_SECONDS", 10),
+		CHATAbuseCooldownSeconds:    envFloat("CHAT_ABUSE_COOLDOWN_SECONDS", 30),
+		CHATAbuseMaxCooldownSeconds: envFloat("CHAT_ABUSE_MAX_COOLDOWN_SECONDS", 900),
+		CHATAttemptCacheSize:        envInt("CHAT_ATTEMPT_CACHE_SIZE", 4096),
+		CHATAttemptCacheTTLSeconds:  envFloat("CHAT_ATTEMPT_CACHE_TTL_SECONDS", 1800),
+		CHATGlobalAttemptBurst:      envInt("CHAT_GLOBAL_ATTEMPT_BURST", 60),
+		CHATGlobalAttemptsPerSecond: envFloat("CHAT_GLOBAL_ATTEMPTS_PER_SECOND", 20),
 		RelationshipPrivatePath:     env("RELATIONSHIP_PRIVATE_PATH", filepath.Join(root, "work/relationship-private.json")),
 		InternalAPIToken:            os.Getenv("INTERNAL_API_TOKEN"),
+		RedisEnabled:                envBool("REDIS_ENABLED", false),
+		RedisURL:                    env("REDIS_URL", "redis://127.0.0.1:6379/0"),
+		RedisPrefix:                 env("REDIS_PREFIX", "neko:"),
+		RedisTimeoutMS:              envInt("REDIS_TIMEOUT_MS", 500),
+		VisitorAccountsPath:         env("VISITOR_ACCOUNTS_PATH", filepath.Join(root, "work/visitor-accounts.json")),
+		VisitorAppsDir:              env("VISITOR_APPS_DIR", filepath.Join(root, "work/visitor-apps")),
+		VisitorAppDataDB:            env("VISITOR_APP_DATA_DB", filepath.Join(root, "work/visitor-app-data.sqlite")),
+		VisitorAppFilesDir:          env("VISITOR_APP_FILES_DIR", filepath.Join(root, "work/visitor-app-files")),
+		VisitorThrottleDB:           env("VISITOR_THROTTLE_DB", filepath.Join(root, "work/visitor-login-failures.sqlite")),
+		VisitorMaxFailures:          envInt("VISITOR_MAX_FAILURES", 10),
+		VisitorFailureWindowSeconds: envInt("VISITOR_FAILURE_WINDOW_SECONDS", 900),
+		DatabaseEnabled:             envBool("DATABASE_ENABLED", false),
+		DatabaseURL:                 env("DATABASE_URL", "postgresql://postgres:changeme@localhost:5432/nekovccat_app"),
+		DatabaseMaxConns:            envInt("DATABASE_MAX_CONNS", 5),
 	}
 
 	origins, err := envList("CORS_ORIGINS", []string{"http://localhost:3010", "http://127.0.0.1:3010"})
@@ -134,6 +193,27 @@ func (c *Config) validate() error {
 	}
 	if c.CHATMaxConcurrent <= 0 {
 		return errors.New("CHAT_MAX_CONCURRENT must be positive")
+	}
+	if c.VisitorMaxFailures <= 0 || c.VisitorFailureWindowSeconds <= 0 {
+		return errors.New("VISITOR failure limits must be positive")
+	}
+	if c.DatabaseEnabled && (strings.TrimSpace(c.DatabaseURL) == "" || c.DatabaseMaxConns <= 0) {
+		return errors.New("DATABASE_URL and DATABASE_MAX_CONNS are required when DATABASE_ENABLED=true")
+	}
+	if c.CHATDailyLimit <= 0 || c.CHATIPMinuteLimit <= 0 || c.CHATIPHourLimit <= 0 || c.CHATIPDailyLimit <= 0 {
+		return errors.New("CHAT quota limits must be positive")
+	}
+	if c.CHATQueueMaxSize < 0 || c.CHATQueueWaitSeconds <= 0 || c.CHATQueueWaitSeconds > 8 {
+		return errors.New("CHAT queue limits are invalid")
+	}
+	if c.CHATAttemptBurst <= 0 || c.CHATAttemptRefillSeconds <= 0 ||
+		c.CHATAbuseCooldownSeconds <= 0 || c.CHATAbuseMaxCooldownSeconds <= 0 ||
+		c.CHATAttemptCacheSize <= 0 || c.CHATAttemptCacheTTLSeconds <= 0 ||
+		c.CHATGlobalAttemptBurst <= 0 || c.CHATGlobalAttemptsPerSecond <= 0 {
+		return errors.New("CHAT attempt limits are invalid")
+	}
+	if c.RedisEnabled && (strings.TrimSpace(c.RedisURL) == "" || c.RedisTimeoutMS <= 0) {
+		return errors.New("REDIS_URL and REDIS_TIMEOUT_MS are required when REDIS_ENABLED=true")
 	}
 	return nil
 }

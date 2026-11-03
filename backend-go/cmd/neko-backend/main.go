@@ -13,6 +13,7 @@ import (
 	"nekoweb/backend-go/internal/agent"
 	"nekoweb/backend-go/internal/api"
 	"nekoweb/backend-go/internal/config"
+	"nekoweb/backend-go/internal/database"
 	"nekoweb/backend-go/internal/observability"
 )
 
@@ -23,6 +24,11 @@ func main() {
 		os.Exit(1)
 	}
 	logger := observability.NewLogger()
+	db, err := database.Open(context.Background(), cfg)
+	if err != nil {
+		logger.Error("database unavailable", "error", err)
+		db = nil
+	}
 	manager := agent.NewManager(cfg, logger)
 	go func() {
 		if !manager.Initialize(context.Background()) {
@@ -30,9 +36,10 @@ func main() {
 		}
 	}()
 
+	apiServer := api.NewServer(cfg, manager, logger, db)
 	server := &http.Server{
 		Addr:              cfg.Addr(),
-		Handler:           api.NewServer(cfg, manager, logger).Handler(),
+		Handler:           apiServer.Handler(),
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       120 * time.Second,
 		MaxHeaderBytes:    1 << 20,
@@ -54,6 +61,10 @@ func main() {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	manager.Shutdown(ctx)
+	apiServer.Close()
+	if db != nil {
+		db.Close()
+	}
 	cancel()
 	if serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
 		os.Exit(1)

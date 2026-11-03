@@ -160,6 +160,21 @@ FastAPI 的 lifespan 统一准备只读配置并管理独立运行时，修改�
 | 前端会话 / CSRF / 关系内容 | Next.js | 不改前端代码，只把代理指向 Go |
 | Python FastAPI | 保留 | 作为对照、回滚和协议参考，不在 Go 链路中运行 |
 
+### 从 MK 分支引入的后端功能
+
+这次先把 MK 的后端能力接到 Go 服务，不搬 Marcus 的前端产品形态：
+
+- **访客账号**：PBKDF2-SHA256 密码哈希、NFKC + casefold 用户名、登录失败按访客名滚动锁定。
+- **访客应用**：`work/visitor-apps/<id>/app.json` 注册表、登录后下发 shell、私有 assets、键值 data 与上传 files。
+- **交互持久化**：登录访客和匿名浏览器会话的每轮最终问答写入 PostgreSQL；中间草稿、推理内容和工具参数不落库。
+- **业务表**：`visitor_accounts`、`visitor_account_apps`、`agent_conversations`、`agent_turns`、`schema_migrations`。
+- **高并发准入**：内部令牌、IP 规范化、突发冷却、FIFO 排队和 Redis 滚动配额；生产模式需要 Redis。
+- **运维工具**：`cmd/visitor-hash` 生成密码哈希，`cmd/visitor-sync` 把 JSON 账号同步到 PostgreSQL。
+
+访客应用的数据和文件暂时仍在本地 SQLite / 文件系统；登录失败计数也仍是本地存储。完整表结构、索引、约束和保留策略见 [`backend-go/docs/database.md`](backend-go/docs/database.md)。
+
+当前 Neko 前端还没有接入访客登录入口；这是后端优先的移植，下一步可以补 Next 代理和桌面入口。
+
 ### 架构与原理预览
 
 ![Go 后端技术架构图](backend-go/docs/architecture-overview.svg)
@@ -176,13 +191,16 @@ open backend-go/docs/architecture.html
 
 ### 当前完成度
 
-已完成本地 M1：
+已完成本地 M1 + MK 后端功能移植：
 
 - Go 直连真实 dsh，非流式回复成功
 - 旧版 SSE 和 `protocol=v2` 增量 SSE 都可工作
 - 工具状态、最终答案、桌面解锁 proof 判定
 - 取消/断开后 dsh 进程组被回收
 - 前端指向 Go 后聊天正常，Python / Next / Agent 资产未改动
+- 访客登录、应用 shell/assets、data/files 与登录锁定
+- PostgreSQL 业务表、迁移和交互记录（`DATABASE_ENABLED=true`）
+- 生产准入、FIFO 排队与 Redis 滚动配额（`REDIS_ENABLED=true`）
 - `go test ./... -race` 与 `go vet ./...` 通过
 
 尚未完成生产化：
@@ -211,7 +229,7 @@ node --test agent/tests/*.test.mjs
 (cd frontend && npx tsx --test tests/relationship-*.test.ts)
 (cd frontend && npm run type-check)
 
-# 仅 feat/go-backend 分支，需要 Go 1.23+
+# 仅 feat/go-backend 分支，需要 Go 1.26+
 (cd backend-go && go test ./... -race && go vet ./...)
 ```
 
