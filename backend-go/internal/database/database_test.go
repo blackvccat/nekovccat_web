@@ -28,10 +28,14 @@ func TestMigrationContainsBusinessTables(t *testing.T) {
 	}
 }
 
-func TestSplitStatementsSkipsCommentsOnly(t *testing.T) {
-	statements, err := splitStatements("-- comment;\nCREATE TABLE x (id INT);\n-- tail")
-	if err != nil || len(statements) != 1 || !strings.Contains(statements[0], "CREATE TABLE") {
+func TestSplitStatementsHandlesSemicolonsInCommentsAndStrings(t *testing.T) {
+	sql := "-- comment; with semicolon\nCREATE TABLE x (id INT);\nCOMMENT ON TABLE x IS 'a;b';\n-- tail;"
+	statements, err := splitStatements(sql)
+	if err != nil || len(statements) != 2 {
 		t.Fatalf("statements=%+v err=%v", statements, err)
+	}
+	if !strings.Contains(statements[0], "CREATE TABLE") || !strings.Contains(statements[1], "'a;b'") {
+		t.Fatalf("wrong split: %+v", statements)
 	}
 }
 

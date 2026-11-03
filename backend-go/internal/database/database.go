@@ -136,14 +136,15 @@ func migrationVersion(name string) (int, error) {
 }
 
 func splitStatements(sql string) ([]string, error) {
-	parts := strings.Split(sql, ";")
-	statements := make([]string, 0, len(parts))
-	for _, part := range parts {
-		part = strings.TrimSpace(part)
+	var statements []string
+	var buffer strings.Builder
+	inSingle, inDouble, inLineComment, inBlockComment := false, false, false, false
+	flush := func() {
+		part := strings.TrimSpace(buffer.String())
+		buffer.Reset()
 		if part == "" {
-			continue
+			return
 		}
-		// Skip a chunk that is only comments.
 		hasCode := false
 		for _, line := range strings.Split(part, "\n") {
 			line = strings.TrimSpace(line)
@@ -156,6 +157,70 @@ func splitStatements(sql string) ([]string, error) {
 			statements = append(statements, part)
 		}
 	}
+	for i := 0; i < len(sql); i++ {
+		c := sql[i]
+		if inLineComment {
+			buffer.WriteByte(c)
+			if c == '\n' {
+				inLineComment = false
+			}
+			continue
+		}
+		if inBlockComment {
+			buffer.WriteByte(c)
+			if c == '*' && i+1 < len(sql) && sql[i+1] == '/' {
+				i++
+				buffer.WriteByte('/')
+				inBlockComment = false
+			}
+			continue
+		}
+		if inSingle {
+			buffer.WriteByte(c)
+			if c == '\'' {
+				if i+1 < len(sql) && sql[i+1] == '\'' {
+					i++
+					buffer.WriteByte('\'')
+				} else {
+					inSingle = false
+				}
+			}
+			continue
+		}
+		if inDouble {
+			buffer.WriteByte(c)
+			if c == '"' {
+				if i+1 < len(sql) && sql[i+1] == '"' {
+					i++
+					buffer.WriteByte('"')
+				} else {
+					inDouble = false
+				}
+			}
+			continue
+		}
+		switch {
+		case c == '-' && i+1 < len(sql) && sql[i+1] == '-':
+			i++
+			buffer.WriteString("--")
+			inLineComment = true
+		case c == '/' && i+1 < len(sql) && sql[i+1] == '*':
+			i++
+			buffer.WriteString("/*")
+			inBlockComment = true
+		case c == '\'':
+			buffer.WriteByte(c)
+			inSingle = true
+		case c == '"':
+			buffer.WriteByte(c)
+			inDouble = true
+		case c == ';':
+			flush()
+		default:
+			buffer.WriteByte(c)
+		}
+	}
+	flush()
 	return statements, nil
 }
 
