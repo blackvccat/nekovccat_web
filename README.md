@@ -232,7 +232,7 @@ node --test agent/tests/*.test.mjs
 (cd frontend && npx tsx --test tests/relationship-*.test.ts)
 (cd frontend && npm run type-check)
 
-# 仅 feat/go-backend 分支，需要 Go 1.26+
+# Go 后端（main），需要 Go 1.26+
 (cd backend-go && go test ./... -race && go vet ./...)
 ```
 
