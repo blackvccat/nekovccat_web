@@ -1,6 +1,6 @@
 # Nekovccat · My World
 https://neko.origin.kim/
-Next.js + FastAPI 的个人网站。Home 的右下角提供 **NEKO 站内助手**；About 与 Contact 合并进 My World 的 **NEKO Browser**。`/my-world` 是一台可交互的像素风复古电脑，内置 DeepSeek Harness 站内 Agent、音乐软件、站点导航、便签与外观设置。
+Next.js + Go 控制面的个人网站（Python FastAPI 保留为回滚路径）。Home 的右下角提供 **NEKO 站内助手**；About 与 Contact 合并进 My World 的 **NEKO Browser**。`/my-world` 是一台可交互的像素风复古电脑，内置 DeepSeek Harness 站内 Agent、音乐软件、站点导航、便签与外观设置。
 
 ## 全站助手
 
@@ -64,6 +64,8 @@ backend/.venv/bin/python scripts/dev.py stop
 
 前后端绑定回环地址。Harness SDK 在后端按请求管理本地运行时子进程，不需要额外网关端口。启动脚本保留本项目已有进程，端口被其他进程占用时停止并提示。日志和 PID 位于 `work/nekovccat-*.log` / `work/nekovccat-*.pid`。修改后端或模型配置后，停止并重新启动。
 
+生产使用 Go 控制面（8011）；上面的 `scripts/dev.py` 保留的是 Python 回滚路径。Go 的本地启动、测试和访客后端说明见 [`backend-go/README.md`](backend-go/README.md)。
+
 ### 首次安装到新环境
 
 需要 Node.js 20.9+、Python 3.11+；官方 SDK 会安装同版本、与平台匹配的原生运行时 wheel。
@@ -95,8 +97,8 @@ DATABASE_ENABLED=false
 全站助手 / 像素桌面的 Neko Agent 窗口
   → 根布局共享 Agent 会话、草稿与进行中的请求
   → Next.js /api/chat（同源代理）
-  → FastAPI /api/chat/（校验、超时、SSE 与错误转换）
-  → 官方 deepseek-harness-sdk
+  → Go /api/chat/（准入、校验、SSE、取消与进程回收）
+  → Go stdio JSON-RPC 客户端
   → 官方 dsh 原生运行时 / Cordis 插件系统
   → DeepSeek V4 Pro（模型循环）
   ↔ site_info / desktop_apps / girlfriend_mode（受限站内工具插件）
@@ -118,13 +120,13 @@ Agent 入口在读取请求体前拦截连续刷请求，聊天与会话接口�
 
 当前官方 Python SDK 0.1.5rc1 未对外转发逐 token 通知，因此工具状态实时更新，回答生成完毕后整段显示；页面没有人工模拟打字效果。
 
-FastAPI 的 lifespan 统一准备只读配置并管理独立运行时，修改工具模板或私有问答配置后重启后端。SQLite 配额在专用线程事务中检查，避免阻塞异步请求；当前部署继续使用一个 worker。SSE 包含注释心跳，发送和整轮请求都有超时预算，取消或失败会回收对应运行时。`/health` 检查进程存活，`/api/ready` 检查 Agent 配置、代理认证、配额存储及可选数据库的就绪状态，不调用付费模型。请求编号和各阶段耗时写入结构化日志，不写入用户正文或私人问答。
+生产当前使用 Go 控制面（`backend-go/`）：它负责准入、SSE、dsh 子进程和 Redis 滚动配额，用户与每轮 Agent 交互写入 PostgreSQL。Python FastAPI 版本保留为回滚和协议对照；下面关于 lifespan/SQLite 的说明仅适用于回滚路径。Go 服务每个请求独立准备 dsh runtime，写超时、取消或失败都会回收对应进程；`/health` 检查进程存活，`/api/ready` 检查 Agent 配置、代理认证、Redis 配额和 PostgreSQL 就绪状态，不调用付费模型。请求编号和各阶段耗时写入结构化日志，不写入用户正文或私人问答。
 
 官方资料：[DeepSeek Harness](https://www.deepseek.com/harness/en/)、[源码与 Python SDK](https://github.com/deepseek-ai/deepseek-harness/tree/main/python/sdk)。本项目固定 `deepseek-harness-sdk==0.1.5rc1`，它仍是官方开发者预览版本。
 
-## Go 后端原型（feat/go-backend 分支）
+## Go 后端（生产控制面）
 
-`main` 仍以 FastAPI 为默认后端。`feat/go-backend` 分支在 [`backend-go/`](backend-go/) 提供独立的本地 Go 控制面原型。
+生产已切换到 [`backend-go/`](backend-go/) 的 Go 控制面；Python FastAPI 后端保留为回滚和协议对照。Go 版本不重写 Agent，只替换 SDK 客户端和 HTTP/SSE 控制面。
 
 ### 改造目标与意义
 
@@ -191,24 +193,25 @@ open backend-go/docs/architecture.html
 
 ### 当前完成度
 
-已完成本地 M1 + MK 后端功能移植：
+已完成生产部署与验证：
 
-- Go 直连真实 dsh，非流式回复成功
-- 旧版 SSE 和 `protocol=v2` 增量 SSE 都可工作
+- 生产 Next 已指向 Go 8011，公网 `/api/health` 正常
+- 真实聊天、旧版 SSE 和 v2 SSE 均已通过 Next → Go → dsh → DeepSeek
 - 工具状态、最终答案、桌面解锁 proof 判定
 - 取消/断开后 dsh 进程组被回收
-- 前端指向 Go 后聊天正常，Python / Next / Agent 资产未改动
 - 访客登录、应用 shell/assets、data/files 与登录锁定
-- PostgreSQL 业务表、迁移和交互记录（`DATABASE_ENABLED=true`）
-- 生产准入、FIFO 排队与 Redis 滚动配额（`REDIS_ENABLED=true`）
+- PostgreSQL 17 业务表、迁移和每轮 Agent 交互记录
+- Redis 8 滚动配额、FIFO 排队、AttemptGuard 和 IP 规范化
+- Go 服务与 Next 服务由 systemd 管理；Python 服务已停止但保留回滚
 - `go test ./... -race` 与 `go vet ./...` 通过
 
-尚未完成生产化：
+仍需继续完善：
 
-- 生产级 FIFO 准入、AttemptGuard、SQLite 配额
-- systemd / Docker、dsh 二进制分发与校验
-- 完整彩蛋浏览器流程与 Python/Go 差分测试
-- Postgres 可选层（当前没有实际业务表）
+- Neko 前端访客登录入口与 Next `/api/visitor` 代理
+- 多实例共享 FIFO 队列/AttemptGuard（Redis 配额已共享）
+- PostgreSQL 备份与交互数据保留策略
+- dsh runtime 独立分发，避免依赖 Python venv 路径
+- 完整彩蛋浏览器流程的 Python/Go 差分测试
 
 ### 代价与风险
 
@@ -237,8 +240,8 @@ node --test agent/tests/*.test.mjs
 
 ```text
 frontend/                 Next.js 网站、像素桌面与桌面软件
-backend/                  FastAPI 与官方 Harness SDK 集成（main 默认后端）
-backend-go/               Go 控制面本地原型（feat/go-backend 分支）
+backend/                  FastAPI 与官方 Harness SDK 集成（回滚/协议对照）
+backend-go/               Go 控制面、准入、访客与 PostgreSQL/Redis 集成
 agent/website.patch.yml   站点专用 Cordis 组合补丁
 agent/website-tools.mjs   无外部 I/O 的站内工具插件
 scripts/dev.py            前后端本地服务管理

@@ -1,14 +1,15 @@
 # Nekoweb Go backend
 
-Local-first Go implementation of the site backend. It speaks JSON-RPC to the
+Production Go control plane for the site backend. It speaks JSON-RPC to the
 official DeepSeek Harness `dsh` runtime over stdio and keeps the existing
 HTTP/SSE contract used by the Next.js frontend.
 
 Open [`docs/architecture.html`](docs/architecture.html) in a browser for the
 visual architecture, request lifecycle, cancellation flow, and code map.
 
-This directory is an isolated prototype on `feat/go-backend`. It does not modify
-`backend/`, `frontend/`, or `agent/`, and it is not ready for production.
+The Python FastAPI backend remains in `backend/` as a rollback and protocol
+reference. The Neko frontend visitor UI and Next `/api/visitor` proxy are still
+pending; the visitor backend endpoints below are ready.
 
 ## Local run
 
