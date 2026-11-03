@@ -75,3 +75,102 @@ Keep one backend worker: SQLite quotas are atomic across connections, but active
 ## Agent traffic protection
 
 See [agent-protection.md](agent-protection.md) for admission limits, quota accounting, attack handling and the Cloudflare boundary. Deploy frontend and backend together: the frontend normalizes trusted client addresses and rejects abusive traffic before reading a body, while the backend owns the bounded queue and persistent usage counters. Keep the existing quota database; a release must not clear already-consumed usage.
+
+## Go backend release (feat/go-backend)
+
+The Go control plane is an alternative to the FastAPI backend. It still needs
+the official Node `dsh` runtime; it is not a pure-Go agent runtime.
+
+### Prerequisites
+
+- Redis 6+ reachable at `REDIS_URL` (required in production).
+- PostgreSQL 14+ reachable at `DATABASE_URL`; migrations run on startup.
+- The Linux `dsh` runtime already installed with the Python environment, or an
+  equivalent runtime path in `DSH_BIN`.
+- A long random `INTERNAL_API_TOKEN` shared by
+  `/etc/nekoweb/backend-go.env` and `/etc/nekoweb/frontend.env`.
+- `/var/lib/nekoweb-private/relationship.json` and
+  `/var/lib/nekoweb-harness/` as for the Python backend.
+
+### Build
+
+```bash
+# On the build machine, with Go 1.26+ and the pinned Node runtime available.
+GO=/path/to/go ./scripts/build-go-release.sh
+# Optional: GOARCH=arm64 ./scripts/build-go-release.sh
+
+# Build the unchanged Next frontend separately:
+cd frontend
+NEXT_TELEMETRY_DISABLED=1 npm run build
+mkdir -p .next/standalone/public .next/standalone/.next/static
+cp -R public/. .next/standalone/public/
+cp -R .next/static/. .next/standalone/.next/static/
+```
+
+Copy the release to a versioned directory; keep `current` as a symlink:
+
+```text
+/srv/nekoweb/releases/<release>/
+├── backend-go/neko-backend
+├── backend-go/visitor-sync
+├── backend-go/visitor-hash
+├── backend-go/internal/agent/progressive_bridge.mjs
+├── agent/website.patch.yml
+├── agent/website-tools.mjs
+└── frontend/.next/standalone/
+```
+
+### Install services
+
+```bash
+sudo install -m 0600 deployment/backend-go.env.example /etc/nekoweb/backend-go.env
+sudo install -m 0644 deployment/nekoweb-backend-go.service /etc/systemd/system/
+sudo install -m 0644 deployment/nekoweb-frontend-go.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now nekoweb-backend-go.service
+sudo systemctl enable --now nekoweb-frontend-go.service
+```
+
+Keep the existing Python units installed but stopped only after both Go services
+pass verification. The frontend does not need a rebuild to switch the backend:
+`nekoweb-frontend-go.service` sets `PYTHON_API_URL=http://127.0.0.1:8011`.
+
+### Visitor accounts and PostgreSQL
+
+Put the account JSON at `VISITOR_ACCOUNTS_PATH`, then sync it once. The
+release includes `visitor-sync` and `visitor-hash` binaries:
+
+```bash
+sudo -u nekoweb bash -c '
+  set -a; . /etc/nekoweb/backend-go.env; set +a
+  /srv/nekoweb/current/backend-go/visitor-sync \
+    -accounts /srv/nekoweb/current/work/visitor-accounts.json
+'
+```
+
+Generate password hashes on a trusted machine:
+
+```bash
+printf 'password\n' | ./backend-go/visitor-hash
+```
+
+### Verification
+
+```bash
+curl -fsS http://127.0.0.1:8011/health
+curl -fsS http://127.0.0.1:8011/api/ready
+curl -fsS http://127.0.0.1:3010/api/health
+curl -I https://neko.origin.kim/api/relationship/content   # expect 403
+```
+
+`/api/ready` must report `agent_configuration`, `application_database`, and
+`quota_storage` as `true`. Then complete a real chat through the public origin
+and check the v2 `reply final` + `done` sequence.
+
+### Rollback
+
+Keep the Python `nekoweb-backend.service` and `nekoweb-frontend.service`
+available. To roll back, stop the Go units, switch the frontend service back to
+`PYTHON_API_URL=http://127.0.0.1:8010`, and start the Python units. Preserve the
+PostgreSQL database and Redis instance; do not clear quota state during a
+rollback.

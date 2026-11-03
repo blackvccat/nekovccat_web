@@ -1,0 +1,149 @@
+<svg width="1280" height="650" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 650" role="img" aria-label="Nekoweb Go 后端技术架构图">
+  <rect width="100%" height="100%" fill="#fffdf8"/>
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#5f6b76"/>
+          </marker>
+          <marker id="arrowGo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#0e7490"/>
+          </marker>
+          <marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c3aed"/>
+          </marker>
+          <marker id="arrowModel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+          </marker>
+          <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#362e20" flood-opacity="0.10"/>
+          </filter>
+          <style>
+            .lane-label { font: 800 12px -apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif; letter-spacing: .08em; fill: #7a6f5e; text-transform: uppercase; }
+            .box-title { font: 800 15px -apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif; fill: #17202a; }
+            .box-text { font: 500 11.5px -apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif; fill: #5f6b76; }
+            .box-code { font: 700 11px ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace; fill: #0e7490; }
+            .box-code.purple { fill: #7c3aed; }
+            .box-code.orange { fill: #c2410c; }
+            .arrow-label { font: 700 10.5px ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace; fill: #5f6b76; }
+            .asset-title { font: 800 10.5px ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace; fill: #17202a; }
+          </style>
+        </defs>
+
+        <!-- lane labels -->
+        <text class="lane-label" x="34" y="70">Browser</text>
+        <text class="lane-label" x="224" y="70">Next.js BFF</text>
+        <text class="lane-label" x="454" y="70">Go control plane</text>
+        <text class="lane-label" x="804" y="70">Official dsh runtime</text>
+        <text class="lane-label" x="1062" y="70">DeepSeek</text>
+
+        <!-- browser -->
+        <g filter="url(#softShadow)">
+          <rect x="34" y="168" width="150" height="134" rx="18" fill="#fffdf8" stroke="#d9d2c3"/>
+          <text class="box-title" x="109" y="202" text-anchor="middle">浏览器</text>
+          <text class="box-text" x="109" y="224" text-anchor="middle">Home / My World</text>
+          <text class="box-text" x="109" y="243" text-anchor="middle">站内助手</text>
+          <text class="box-code" x="109" y="272" text-anchor="middle">fetch + SSE</text>
+        </g>
+
+        <!-- next -->
+        <g filter="url(#softShadow)">
+          <rect x="224" y="146" width="190" height="178" rx="18" fill="#fffdf8" stroke="#d9d2c3"/>
+          <text class="box-title" x="319" y="180" text-anchor="middle">Next.js 服务端</text>
+          <text class="box-text" x="319" y="203" text-anchor="middle">会话 Cookie / CSRF</text>
+          <text class="box-text" x="319" y="222" text-anchor="middle">同源校验 / 限流</text>
+          <text class="box-text" x="319" y="241" text-anchor="middle">关系内容 Cookie</text>
+          <rect x="246" y="258" width="146" height="40" rx="10" fill="#f7f5ee" stroke="#e5ded0"/>
+          <text class="box-code" x="319" y="282" text-anchor="middle">/api/chat 代理</text>
+        </g>
+
+        <!-- go -->
+        <g filter="url(#softShadow)">
+          <rect x="454" y="96" width="310" height="330" rx="22" fill="#f8fdfe" stroke="#b9e3ea"/>
+          <text class="box-title" x="609" y="128" text-anchor="middle">Go 后端</text>
+          <rect x="476" y="146" width="266" height="66" rx="12" fill="#fffdf8" stroke="#cfe9ee"/>
+          <text class="box-code" x="490" y="169">internal/api</text>
+          <text class="box-text" x="490" y="189">HTTP 路由 · SSE 帧 · 请求 ID · 错误映射</text>
+          <rect x="476" y="224" width="266" height="72" rx="12" fill="#fffdf8" stroke="#cfe9ee"/>
+          <text class="box-code" x="490" y="247">internal/agent</text>
+          <text class="box-text" x="490" y="267">Service · Manager · 渐进回复</text>
+          <text class="box-text" x="490" y="284">租约 / 有界缓冲 / 脱敏 / 工具事件</text>
+          <rect x="476" y="308" width="266" height="72" rx="12" fill="#fffdf8" stroke="#cfe9ee"/>
+          <text class="box-code" x="490" y="331">internal/harness</text>
+          <text class="box-text" x="490" y="351">stdio JSON-RPC · 通知队列 · stderr</text>
+          <text class="box-text" x="490" y="368">进程组 · shutdown · 超时回收</text>
+          <rect x="476" y="392" width="266" height="18" rx="9" fill="#e0f2f6"/>
+          <text class="box-code" x="609" y="405" text-anchor="middle">one process per request</text>
+        </g>
+
+        <!-- dsh -->
+        <g filter="url(#softShadow)">
+          <rect x="804" y="146" width="220" height="220" rx="20" fill="#fcfaff" stroke="#ddd0f7"/>
+          <text class="box-title" x="914" y="180" text-anchor="middle">dsh 单文件运行时</text>
+          <text class="box-text" x="914" y="203" text-anchor="middle">Node · sdk-minimal</text>
+          <text class="box-text" x="914" y="222" text-anchor="middle">模型循环 / 工具执行</text>
+          <rect x="824" y="246" width="180" height="42" rx="10" fill="#f4edff" stroke="#e3d7fb"/>
+          <text class="box-code purple" x="914" y="272" text-anchor="middle">website.patch.yml</text>
+          <rect x="824" y="298" width="180" height="42" rx="10" fill="#f4edff" stroke="#e3d7fb"/>
+          <text class="box-code purple" x="914" y="324" text-anchor="middle">website-tools.mjs</text>
+        </g>
+
+        <!-- model -->
+        <g filter="url(#softShadow)">
+          <rect x="1062" y="168" width="180" height="134" rx="18" fill="#f7faff" stroke="#cbdcff"/>
+          <text class="box-title" x="1152" y="202" text-anchor="middle">DeepSeek</text>
+          <text class="box-text" x="1152" y="224" text-anchor="middle">deepseek-v4-pro</text>
+          <text class="box-text" x="1152" y="243" text-anchor="middle">模型循环 / 计费</text>
+          <text class="box-code" x="1152" y="272" text-anchor="middle">HTTPS</text>
+        </g>
+
+        <!-- arrows -->
+        <line x1="184" y1="235" x2="220" y2="235" stroke="#5f6b76" stroke-width="1.8" marker-end="url(#arrow)"/>
+        <text class="arrow-label" x="202" y="225" text-anchor="middle">POST</text>
+
+        <line x1="414" y1="235" x2="450" y2="235" stroke="#0e7490" stroke-width="2.4" marker-end="url(#arrowGo)"/>
+        <text class="arrow-label" x="432" y="225" text-anchor="middle">proxy</text>
+
+        <line x1="764" y1="224" x2="800" y2="224" stroke="#0e7490" stroke-width="2.4" marker-end="url(#arrowGo)"/>
+        <line x1="800" y1="246" x2="764" y2="246" stroke="#7c3aed" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#arrowPurple)"/>
+        <text class="arrow-label" x="782" y="213" text-anchor="middle">stdio</text>
+        <text class="arrow-label" x="782" y="263" text-anchor="middle">events</text>
+
+        <line x1="1024" y1="224" x2="1058" y2="224" stroke="#2563eb" stroke-width="2" marker-end="url(#arrowModel)"/>
+        <line x1="1058" y1="246" x2="1024" y2="246" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrowModel)"/>
+        <text class="arrow-label" x="1041" y="213" text-anchor="middle">model</text>
+
+        <!-- shared assets -->
+        <line x1="600" y1="426" x2="600" y2="488" stroke="#0e7490" stroke-width="1.4" stroke-dasharray="5 5"/>
+        <line x1="914" y1="366" x2="914" y2="488" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="5 5"/>
+
+        <g>
+          <rect x="34" y="488" width="372" height="76" rx="14" fill="#fffdf8" stroke="#d9d2c3"/>
+          <text class="asset-title" x="50" y="513">agent/website-tools.mjs</text>
+          <text class="box-text" x="50" y="534">三个受限工具：site_info / desktop_apps / girlfriend_mode</text>
+          <text class="box-text" x="50" y="550">由 dsh 加载，Go 不改写</text>
+        </g>
+        <g>
+          <rect x="424" y="488" width="250" height="76" rx="14" fill="#fffdf8" stroke="#d9d2c3"/>
+          <text class="asset-title" x="440" y="513">agent/website.patch.yml</text>
+          <text class="box-text" x="440" y="534">禁用 shell / 文件 / 网络工具</text>
+          <text class="box-text" x="440" y="550">Go 替换工具模块路径后传给 dsh</text>
+        </g>
+        <g>
+          <rect x="692" y="488" width="292" height="76" rx="14" fill="#fffdf8" stroke="#d9d2c3"/>
+          <text class="asset-title" x="708" y="513">backend-go/internal/agent/</text>
+          <text class="asset-title" x="708" y="531">progressive_bridge.mjs</text>
+          <text class="box-text" x="708" y="550">把真实 assistant 瞬态帧转成 site.assistant</text>
+        </g>
+        <g>
+          <rect x="1002" y="488" width="240" height="76" rx="14" fill="#fffdf8" stroke="#d9d2c3"/>
+          <text class="asset-title" x="1018" y="513">work/</text>
+          <text class="box-text" x="1018" y="534">deepseek-harness-home</text>
+          <text class="box-text" x="1018" y="550">relationship-private.json（不提交）</text>
+        </g>
+
+        <g>
+          <rect x="34" y="586" width="1208" height="42" rx="12" fill="#f7f5ee" stroke="#e5ded0"/>
+          <text class="box-text" x="50" y="612">
+            backend/（Python）保留为对照与回滚；frontend/ 只改环境变量指向 Go；main 分支未改动。
+          </text>
+        </g>
+      </svg>

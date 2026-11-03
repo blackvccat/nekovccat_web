@@ -122,6 +122,103 @@ FastAPI 的 lifespan 统一准备只读配置并管理独立运行时，修改�
 
 官方资料：[DeepSeek Harness](https://www.deepseek.com/harness/en/)、[源码与 Python SDK](https://github.com/deepseek-ai/deepseek-harness/tree/main/python/sdk)。本项目固定 `deepseek-harness-sdk==0.1.5rc1`，它仍是官方开发者预览版本。
 
+## Go 后端原型（feat/go-backend 分支）
+
+`main` 仍以 FastAPI 为默认后端。`feat/go-backend` 分支在 [`backend-go/`](backend-go/) 提供独立的本地 Go 控制面原型。
+
+### 改造目标与意义
+
+这次改造的目标不是“用 Go 重写 Agent”，而是把后端拆成两个清晰边界：
+
+- **Go 控制面**：对外 HTTP/JSON/SSE、消息校验、取消与超时、每请求 `dsh` 子进程、进程组回收、请求 ID、日志和 readiness。
+- **官方 dsh 运行时**：模型循环、工具执行、session/tool 事件和 DeepSeek 调用，继续使用官方 Node 运行时与 `agent/` 下的 JS 资产。
+
+引入 Go 的实际意义：
+
+1. **进程生命周期更可控**：每个聊天请求对应一个独立 `dsh` 子进程。Go 的 `context`、goroutine、进程组和 `ResponseController` 让取消、超时、SSE 写失败和关闭顺序更容易写清楚，减少“浏览器断开了但模型进程还在跑”的风险。
+2. **流式边界更明确**：Go 负责有界缓冲、相邻 delta 合并、慢消费者报错、心跳和逐次写超时；dsh 的真实通知只由一层投影逻辑消费，避免前端直接处理 Harness 内部协议。
+3. **部署少一套 Python 运行时**：Go 服务是静态二进制，不需要 venv 和 pip 依赖。注意这不等于单语言：仍然需要官方 Node `dsh`、`agent/*.mjs` 和 Next.js 前端。
+4. **类型与错误边界更硬**：stdin/stdout JSON-RPC、工具事件、SSE 事件、配置和 HTTP 错误都有显式结构；编译期能拦住一部分 Python 动态 dict 容易漏掉的问题。
+5. **为后续扩展留出边界**：如果以后要做多实例、共享准入、独立网关或更严格的进程隔离，Go 控制面比在 FastAPI 里继续叠加异步/线程/子进程逻辑更容易演进。
+
+它**不解决**这些问题：
+
+- 不降低模型延迟，也不降低 DeepSeek token 成本
+- 不把 267MB 的官方 `dsh` Node 运行时变成 Go
+- 不自动支持多实例；当前 FIFO/冷却仍是进程内状态
+- 不替代 Next.js 的会话、CSRF、关系内容 Cookie 和同源代理
+
+### 替换了什么，没替换什么
+
+| 层 | 当前 Go 原型 | 说明 |
+| --- | --- | --- |
+| HTTP API / SSE | Go | `/api/chat`、`/health`、`/api/ready`，保留 v1/v2 协议 |
+| 请求校验 / 取消 / 超时 | Go | 严格 JSON、长度限制、context 传播 |
+| dsh 进程管理 | Go | 每请求独立进程、shutdown、TERM 进程组、超时回收 |
+| Harness stdio 协议 | Go 自研客户端 | 不依赖 Python SDK，需要跟随官方协议版本 |
+| 模型循环 / 工具执行 | 官方 Node dsh | 不重写 `website-tools.mjs` 或 Cordis 组合 |
+| 前端会话 / CSRF / 关系内容 | Next.js | 不改前端代码，只把代理指向 Go |
+| Python FastAPI | 保留 | 作为对照、回滚和协议参考，不在 Go 链路中运行 |
+
+### 从 MK 分支引入的后端功能
+
+这次先把 MK 的后端能力接到 Go 服务，不搬 Marcus 的前端产品形态：
+
+- **访客账号**：PBKDF2-SHA256 密码哈希、NFKC + casefold 用户名、登录失败按访客名滚动锁定。
+- **访客应用**：`work/visitor-apps/<id>/app.json` 注册表、登录后下发 shell、私有 assets、键值 data 与上传 files。
+- **交互持久化**：登录访客和匿名浏览器会话的每轮最终问答写入 PostgreSQL；中间草稿、推理内容和工具参数不落库。
+- **业务表**：`visitor_accounts`、`visitor_account_apps`、`agent_conversations`、`agent_turns`、`schema_migrations`。
+- **高并发准入**：内部令牌、IP 规范化、突发冷却、FIFO 排队和 Redis 滚动配额；生产模式需要 Redis。
+- **运维工具**：`cmd/visitor-hash` 生成密码哈希，`cmd/visitor-sync` 把 JSON 账号同步到 PostgreSQL。
+
+访客应用的数据和文件暂时仍在本地 SQLite / 文件系统；登录失败计数也仍是本地存储。完整表结构、索引、约束和保留策略见 [`backend-go/docs/database.md`](backend-go/docs/database.md)。
+
+当前 Neko 前端还没有接入访客登录入口；这是后端优先的移植，下一步可以补 Next 代理和桌面入口。
+
+### 架构与原理预览
+
+![Go 后端技术架构图](backend-go/docs/architecture-overview.svg)
+
+![一次 v2 聊天请求的时序图](backend-go/docs/request-sequence.svg)
+
+完整页面（含 v2 事件生命周期、取消流程、代码地图、边界和本地命令）在本地打开：
+
+```bash
+open backend-go/docs/architecture.html
+```
+
+也可以直接查看源文件：[`backend-go/docs/architecture.html`](backend-go/docs/architecture.html)。
+
+### 当前完成度
+
+已完成本地 M1 + MK 后端功能移植：
+
+- Go 直连真实 dsh，非流式回复成功
+- 旧版 SSE 和 `protocol=v2` 增量 SSE 都可工作
+- 工具状态、最终答案、桌面解锁 proof 判定
+- 取消/断开后 dsh 进程组被回收
+- 前端指向 Go 后聊天正常，Python / Next / Agent 资产未改动
+- 访客登录、应用 shell/assets、data/files 与登录锁定
+- PostgreSQL 业务表、迁移和交互记录（`DATABASE_ENABLED=true`）
+- 生产准入、FIFO 排队与 Redis 滚动配额（`REDIS_ENABLED=true`）
+- `go test ./... -race` 与 `go vet ./...` 通过
+
+尚未完成生产化：
+
+- 生产级 FIFO 准入、AttemptGuard、SQLite 配额
+- systemd / Docker、dsh 二进制分发与校验
+- 完整彩蛋浏览器流程与 Python/Go 差分测试
+- Postgres 可选层（当前没有实际业务表）
+
+### 代价与风险
+
+- 官方 SDK 是 Python；Go 版本必须自己维护 `dsh` 的 stdio JSON-RPC 客户端，并跟随固定版本的协议变化。
+- 在 Python 后端完全退役前，prompt、校验规则、SSE 事件和部署配置存在双份维护风险。
+- 仍然需要官方 Node `dsh` 运行时和 `agent/*.mjs`，所以不是“单语言部署”，只是少一套 Python 运行时。
+- 当前 Go 版本只完成本地 M1；生产准入、配额、运行时分发和完整彩蛋流程尚未迁移。
+
+因此不要把这个原型当作 `main` 的默认生产后端。运行命令、环境变量和更细的边界见 [`backend-go/README.md`](backend-go/README.md)。
+
 ## 验证命令
 
 ```bash
@@ -131,13 +228,17 @@ node --test agent/tests/*.test.mjs
 (cd frontend && npm run test:music)
 (cd frontend && npx tsx --test tests/relationship-*.test.ts)
 (cd frontend && npm run type-check)
+
+# 仅 feat/go-backend 分支，需要 Go 1.26+
+(cd backend-go && go test ./... -race && go vet ./...)
 ```
 
 ## 项目目录
 
 ```text
 frontend/                 Next.js 网站、像素桌面与桌面软件
-backend/                  FastAPI 与官方 Harness SDK 集成
+backend/                  FastAPI 与官方 Harness SDK 集成（main 默认后端）
+backend-go/               Go 控制面本地原型（feat/go-backend 分支）
 agent/website.patch.yml   站点专用 Cordis 组合补丁
 agent/website-tools.mjs   无外部 I/O 的站内工具插件
 scripts/dev.py            前后端本地服务管理
