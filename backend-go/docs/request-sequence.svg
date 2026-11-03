@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760" role="img" aria-label="一次 v2 聊天请求的时序图">
+  <rect width="100%" height="100%" fill="#fffdf8"/>
+        <defs>
+          <marker id="seqArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#5f6b76"/>
+          </marker>
+          <marker id="seqArrowGo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#0e7490"/>
+          </marker>
+          <marker id="seqArrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c3aed"/>
+          </marker>
+          <marker id="seqArrowModel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+          </marker>
+          <style>
+            .seq-title { font: 800 12px -apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif; fill: #17202a; }
+            .seq-msg { font: 650 11px -apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif; fill: #5f6b76; }
+            .seq-code { font: 700 10.5px ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace; fill: #0e7490; }
+            .seq-num { font: 850 10px ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace; fill: #fffdf8; }
+            .seq-life { stroke: #d9d2c3; stroke-width: 1.2; stroke-dasharray: 4 5; }
+          </style>
+        </defs>
+
+        <!-- lane headers -->
+        <g>
+          <rect x="30" y="24" width="120" height="40" rx="11" fill="#fffdf8" stroke="#d9d2c3"/>
+          <text class="seq-title" x="90" y="49" text-anchor="middle">浏览器</text>
+
+          <rect x="190" y="24" width="130" height="40" rx="11" fill="#fffdf8" stroke="#d9d2c3"/>
+          <text class="seq-title" x="255" y="49" text-anchor="middle">Next 代理</text>
+
+          <rect x="370" y="24" width="130" height="40" rx="11" fill="#e0f2f6" stroke="#b9e3ea"/>
+          <text class="seq-title" x="435" y="49" text-anchor="middle">Go API</text>
+
+          <rect x="560" y="24" width="150" height="40" rx="11" fill="#e0f2f6" stroke="#b9e3ea"/>
+          <text class="seq-title" x="635" y="49" text-anchor="middle">Agent Service</text>
+
+          <rect x="770" y="24" width="140" height="40" rx="11" fill="#e0f2f6" stroke="#b9e3ea"/>
+          <text class="seq-title" x="840" y="49" text-anchor="middle">Harness Client</text>
+
+          <rect x="960" y="24" width="120" height="40" rx="11" fill="#f1eafe" stroke="#ddd0f7"/>
+          <text class="seq-title" x="1020" y="49" text-anchor="middle">dsh runtime</text>
+
+          <rect x="1130" y="24" width="120" height="40" rx="11" fill="#e6efff" stroke="#cbdcff"/>
+          <text class="seq-title" x="1190" y="49" text-anchor="middle">DeepSeek</text>
+        </g>
+
+        <!-- lifelines -->
+        <line class="seq-life" x1="90" y1="64" x2="90" y2="730"/>
+        <line class="seq-life" x1="255" y1="64" x2="255" y2="730"/>
+        <line class="seq-life" x1="435" y1="64" x2="435" y2="730"/>
+        <line class="seq-life" x1="635" y1="64" x2="635" y2="730"/>
+        <line class="seq-life" x1="840" y1="64" x2="840" y2="730"/>
+        <line class="seq-life" x1="1020" y1="64" x2="1020" y2="730"/>
+        <line class="seq-life" x1="1190" y1="64" x2="1190" y2="730"/>
+
+        <!-- step rows -->
+        <!-- 1 -->
+        <line x1="90" y1="104" x2="251" y2="104" stroke="#5f6b76" stroke-width="1.6" marker-end="url(#seqArrow)"/>
+        <circle cx="62" cy="104" r="9" fill="#c2410c"/><text class="seq-num" x="62" y="107" text-anchor="middle">1</text>
+        <text class="seq-msg" x="170" y="88" text-anchor="middle">POST /api/chat?stream=true&amp;protocol=v2</text>
+        <text class="seq-code" x="170" y="118" text-anchor="middle">cookie + X-Neko-CSRF</text>
+
+        <!-- 2 -->
+        <line x1="255" y1="152" x2="431" y2="152" stroke="#0e7490" stroke-width="1.8" marker-end="url(#seqArrowGo)"/>
+        <circle cx="273" cy="140" r="9" fill="#0e7490"/><text class="seq-num" x="273" y="143" text-anchor="middle">2</text>
+        <text class="seq-msg" x="345" y="136" text-anchor="middle">同源代理 + 内部 token</text>
+        <text class="seq-code" x="345" y="166" text-anchor="middle">X-Neko-Client-IP / Session-ID / Request-ID</text>
+
+        <!-- 3 -->
+        <line x1="435" y1="202" x2="631" y2="202" stroke="#0e7490" stroke-width="1.8" marker-end="url(#seqArrowGo)"/>
+        <circle cx="453" cy="190" r="9" fill="#0e7490"/><text class="seq-num" x="453" y="193" text-anchor="middle">3</text>
+        <text class="seq-msg" x="535" y="186" text-anchor="middle">校验消息 / 获取 runtime 租约</text>
+        <text class="seq-code" x="535" y="216" text-anchor="middle">Acquire(progressive=true)</text>
+
+        <!-- 4 -->
+        <line x1="635" y1="252" x2="836" y2="252" stroke="#0e7490" stroke-width="1.8" marker-end="url(#seqArrowGo)"/>
+        <circle cx="653" cy="240" r="9" fill="#0e7490"/><text class="seq-num" x="653" y="243" text-anchor="middle">4</text>
+        <text class="seq-msg" x="736" y="236" text-anchor="middle">Initialize / Run</text>
+        <text class="seq-code" x="736" y="266" text-anchor="middle">context + callback</text>
+
+        <!-- 5 -->
+        <line x1="840" y1="302" x2="1016" y2="302" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#seqArrowPurple)"/>
+        <circle cx="858" cy="290" r="9" fill="#7c3aed"/><text class="seq-num" x="858" y="293" text-anchor="middle">5</text>
+        <text class="seq-msg" x="928" y="286" text-anchor="middle">spawn dsh</text>
+        <text class="seq-code" x="928" y="316" text-anchor="middle">--profile sdk-minimal --patch ...</text>
+
+        <!-- 6 -->
+        <line x1="1020" y1="350" x2="1186" y2="350" stroke="#2563eb" stroke-width="1.8" marker-end="url(#seqArrowModel)"/>
+        <circle cx="1038" cy="338" r="9" fill="#2563eb"/><text class="seq-num" x="1038" y="341" text-anchor="middle">6</text>
+        <text class="seq-msg" x="1103" y="334" text-anchor="middle">模型请求</text>
+        <text class="seq-code" x="1103" y="364" text-anchor="middle">HTTPS / SSE</text>
+
+        <!-- 7 -->
+        <line x1="1190" y1="402" x2="1024" y2="402" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#seqArrowModel)"/>
+        <text class="seq-msg" x="1105" y="394" text-anchor="middle">模型增量</text>
+        <line x1="1020" y1="436" x2="844" y2="436" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#seqArrowPurple)"/>
+        <text class="seq-msg" x="932" y="426" text-anchor="middle">site.assistant / tool / session 通知</text>
+
+        <!-- 8 -->
+        <line x1="840" y1="476" x2="639" y2="476" stroke="#0e7490" stroke-width="1.8" marker-end="url(#seqArrowGo)"/>
+        <circle cx="858" cy="464" r="9" fill="#0e7490"/><text class="seq-num" x="858" y="467" text-anchor="middle">7</text>
+        <text class="seq-msg" x="738" y="460" text-anchor="middle">逐条回调</text>
+        <text class="seq-code" x="738" y="490" text-anchor="middle">progress / tool / reply delta</text>
+
+        <!-- 9 -->
+        <line x1="635" y1="526" x2="439" y2="526" stroke="#0e7490" stroke-width="1.8" marker-end="url(#seqArrowGo)"/>
+        <circle cx="653" cy="514" r="9" fill="#0e7490"/><text class="seq-num" x="653" y="517" text-anchor="middle">8</text>
+        <text class="seq-msg" x="536" y="510" text-anchor="middle">有界 StreamBuffer</text>
+        <text class="seq-code" x="536" y="540" text-anchor="middle">相邻 delta 合并 / 慢消费者报错</text>
+
+        <!-- 10 -->
+        <line x1="435" y1="576" x2="259" y2="576" stroke="#0e7490" stroke-width="1.8" marker-end="url(#seqArrowGo)"/>
+        <circle cx="453" cy="564" r="9" fill="#0e7490"/><text class="seq-num" x="453" y="567" text-anchor="middle">9</text>
+        <text class="seq-msg" x="346" y="560" text-anchor="middle">data: {...}⏎⏎ + flush</text>
+        <line x1="255" y1="608" x2="94" y2="608" stroke="#5f6b76" stroke-width="1.6" marker-end="url(#seqArrow)"/>
+        <text class="seq-code" x="174" y="600" text-anchor="middle">SSE 事件流</text>
+
+        <!-- 11 -->
+        <line x1="1020" y1="648" x2="844" y2="648" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#seqArrowPurple)"/>
+        <text class="seq-msg" x="930" y="640" text-anchor="middle">final assistant/message</text>
+        <line x1="840" y1="680" x2="639" y2="680" stroke="#0e7490" stroke-width="1.8" marker-end="url(#seqArrowGo)"/>
+        <text class="seq-msg" x="738" y="672" text-anchor="middle">RunResult</text>
+        <line x1="635" y1="708" x2="439" y2="708" stroke="#0e7490" stroke-width="1.8" marker-end="url(#seqArrowGo)"/>
+        <text class="seq-msg" x="536" y="700" text-anchor="middle">reply final + desktop + done</text>
+        <line x1="435" y1="730" x2="94" y2="730" stroke="#0e7490" stroke-width="1.8" marker-end="url(#seqArrowGo)"/>
+        <text class="seq-msg" x="264" y="722" text-anchor="middle">浏览器拿到最终文本，然后关闭连接</text>
+      </svg>
