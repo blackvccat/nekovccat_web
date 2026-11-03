@@ -1,0 +1,11 @@
+[Unit]
+Description=Backup NEKO PostgreSQL and prune old Agent turns
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=root
+EnvironmentFile=/etc/nekoweb/backend-go.env
+Environment=NEKO_ENV_FILE=/etc/nekoweb/backend-go.env
+ExecStart=/srv/nekoweb/current/scripts/backup-postgres.sh
+ExecStartPost=/srv/nekoweb/current/scripts/prune-agent-turns.sh

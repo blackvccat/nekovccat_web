@@ -1,4 +1,4 @@
-export type PixelIconName = 'agent' | 'explorer' | 'music' | 'notes' | 'settings' | 'about' | 'home' | 'our-space' | 'sponsor'
+export type PixelIconName = 'agent' | 'explorer' | 'music' | 'notes' | 'settings' | 'about' | 'home' | 'our-space' | 'sponsor' | 'visitor'
 
 export default function PixelIcon({ name, size = 36 }: { name: PixelIconName; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" shapeRendering="crispEdges" aria-hidden="true" className="pixel-icon">
@@ -37,6 +37,12 @@ export default function PixelIcon({ name, size = 36 }: { name: PixelIconName; si
       <path d="M4 11h1v2H4zM9 11h1v2H9zM14 11h1v2h-1zM19 11h1v2h-1zM6 14h2v1H6zM16 14h2v1h-2z" fill="#35463f" />
       <path d="M8 17h3v1h2v-1h3v3h-1v1h-1v1h-4v-1H9v-1H8z" fill="#956f62" />
       <path d="M9 18h2v1h2v-1h2v2h-1v1h-4v-1H9z" fill="#cfac8b" />
+    </>}
+    {name === 'visitor' && <>
+      <path d="M7 4h10v2h3v3h2v9h-3v3H5v-3H2v-9h2V6h3z" fill="#374b4a" />
+      <path d="M8 6h8v2h3v3h2v5h-3v3H6v-3H4v-5h2V8h2z" fill="#dce4ca" />
+      <path d="M9 9h6v2h-2v2h2v2h2v2h-4v-2h-2v-2H9z" fill="#567053" />
+      <path d="M9 18h2v2H9zM15 18h2v2h-2z" fill="#263e4b" />
     </>}
     {name === 'about' && <>
       <path d="M2 3h20v15H2zM8 18h8v3H8zM5 21h14v1H5z" fill="#394749" /><path d="M3 4h18v13H3z" fill="#ded9bd" /><path d="M5 6h14v9H5z" fill="#779c96" /><path d="M11 7h2v2h-2zM10 10h3v3h1v1h-4v-1h1v-2h-1z" fill="#f3ecd4" /><path d="M18 16h2v1h-2z" fill="#6b9762" />

@@ -26,6 +26,7 @@ export const DESKTOP_APPS: { id: DesktopAppId; title: string; subtitle: string; 
   { id: 'explorer', title: 'NEKO Browser', subtitle: '关于、作品、建筑与联系', width: 700, height: 610 },
   { id: 'sponsor', title: '赞助 NEKO', subtitle: '给下一次创造一点支持', width: 490, height: 600 },
   { id: 'music', title: 'NEKO Music', subtitle: '给小世界配一首歌', width: 576, height: 596 },
+  { id: 'visitor', title: '访客模式', subtitle: '凭邀请进入的私人空间', width: 650, height: 570 },
   { id: 'notes', title: 'Notes', subtitle: '留下一点想法', width: 450, height: 410 },
   { id: 'settings', title: 'Settings', subtitle: '布置你的桌面', width: 510, height: 600 },
   { id: 'about', title: 'About Computer', subtitle: '关于这台小电脑', width: 460, height: 390 },

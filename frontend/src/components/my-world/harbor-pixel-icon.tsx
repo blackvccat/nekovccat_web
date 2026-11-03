@@ -65,6 +65,14 @@ export default function HarborPixelIcon({ name, size = 48 }: { name: PixelIconNa
       <path d="M9 2h5v5H9zM1 9h6v5H1zM17 9h5v5h-5zM9 17h5v5H9z" fill="#355465" />
       <path d="M9 2h5v1H9zM1 9h2v5H1zM17 9h2v5h-2zM9 17h5v1H9z" fill="#809aa0" />
     </>}
+    {name === 'visitor' && <>
+      <path d="M6 3h11v2h3v3h2v11h-3v2H5v-2H2V8h2V5h2z" fill="#173440" />
+      <path d="M7 2h11v2h3v3h2v11h-3v2H6v-2H3V7h2V4h2z" fill="#365867" />
+      <path d="M8 4h8v2h3v3h2v7h-3v3H6v-3H4V8h2V6h2z" fill="#dce4ca" />
+      <path d="M9 7h6v2h-2v2h3v2h3v2h-5v-2h-2v-2H9z" fill="#567053" />
+      <path d="M8 17h2v2H8zM14 17h2v2h-2z" fill="#263e4b" />
+      <path d="M7 5h2v1H7zM4 9h1v6H4z" fill="#fff0ca" />
+    </>}
     {name === 'about' && <>
       <path d="M4 2h18v16h-2v2h3v3H2v-3h5v-2H2V4h2z" fill="#162f3c" />
       <path d="M3 1h17v16H3zM8 17h9v3H8zM2 20h20v2H2z" fill="#486b7b" />

@@ -12,6 +12,6 @@ export async function GET(request: NextRequest) {
   const session = createChatSession(request)
   if (!session) return securityError('站内 Agent 正在维护，请稍后再试。', 503)
   const response = NextResponse.json({ token: session.token }, { headers: { 'Cache-Control': 'no-store' } })
-  response.cookies.set(SESSION_COOKIE, session.cookie, { httpOnly: true, secure: guarded(), sameSite: 'strict', path: '/api/chat', expires: new Date(session.expiresAt) })
+  response.cookies.set(SESSION_COOKIE, session.cookie, { httpOnly: true, secure: guarded(), sameSite: 'strict', path: '/api', expires: new Date(session.expiresAt) })
   return response
 }

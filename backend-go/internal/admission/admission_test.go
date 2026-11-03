@@ -176,3 +176,36 @@ func TestRedisQuotaRollingWindow(t *testing.T) {
 		t.Fatalf("after window: %+v %v", rejection, err)
 	}
 }
+
+func TestRedisGateSharesConcurrencySlots(t *testing.T) {
+	server := miniredis.RunT(t)
+	cfg := admissionConfig()
+	cfg.RedisEnabled = true
+	cfg.RedisURL = "redis://" + server.Addr() + "/0"
+	cfg.RedisPrefix = "test:"
+	cfg.RedisTimeoutMS = 500
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	gate, err := NewRedisGate(ctx, cfg, time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer gate.Close()
+	now := time.Unix(1_700_000_000, 0)
+	key := "test:slots"
+	acquired, _, err := gate.Acquire(ctx, key, "one", 1, now)
+	if err != nil || !acquired {
+		t.Fatalf("first: %v %v", acquired, err)
+	}
+	acquired, retry, err := gate.Acquire(ctx, key, "two", 1, now)
+	if err != nil || acquired || retry <= 0 {
+		t.Fatalf("second: %v %d %v", acquired, retry, err)
+	}
+	if err := gate.Release(ctx, key, "one"); err != nil {
+		t.Fatal(err)
+	}
+	acquired, _, err = gate.Acquire(ctx, key, "three", 1, now.Add(time.Second))
+	if err != nil || !acquired {
+		t.Fatalf("after release: %v %v", acquired, err)
+	}
+}

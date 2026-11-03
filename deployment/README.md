@@ -174,3 +174,19 @@ available. To roll back, stop the Go units, switch the frontend service back to
 `PYTHON_API_URL=http://127.0.0.1:8010`, and start the Python units. Preserve the
 PostgreSQL database and Redis instance; do not clear quota state during a
 rollback.
+
+### PostgreSQL backup and retention
+
+Install the daily backup timer:
+
+```bash
+sudo install -m 0644 deployment/nekoweb-backup.service deployment/nekoweb-backup.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now nekoweb-backup.timer
+sudo systemctl start nekoweb-backup.service
+```
+
+`scripts/backup-postgres.sh` writes custom-format dumps to
+`/var/backups/nekoweb` and keeps 7 days by default. `prune-agent-turns.sh`
+deletes `agent_turns` older than `AGENT_TURN_RETENTION_DAYS` (default 90).
+Both read `DATABASE_URL` from `/etc/nekoweb/backend-go.env` by default.

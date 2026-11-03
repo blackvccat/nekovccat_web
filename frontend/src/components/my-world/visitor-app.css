@@ -1,0 +1,32 @@
+.visitor-app { height: 100%; min-height: 0; display: flex; flex-direction: column; background: var(--cream, #e9e8d9); color: var(--ink, #263e4b); }
+.visitor-centered { align-items: center; justify-content: center; font-size: 11px; color: var(--navy, #7c896e); }
+.visitor-login { align-items: center; justify-content: center; padding: 18px; overflow: auto; }
+.visitor-login-card { width: min(330px, 100%); border: 1px solid var(--desktop-line, #b3baa5); background: var(--paper, #faf7eb); padding: 22px; box-shadow: 4px 4px 0 var(--desktop-button-shadow, #d9d9c8); }
+.visitor-kicker { display: block; font: 8px monospace; letter-spacing: 1.5px; color: var(--navy, #839176); }
+.visitor-login-card h2 { margin: 9px 0 7px; font-size: 20px; font-weight: 500; }
+.visitor-login-card p { margin: 0 0 16px; font-size: 10px; line-height: 1.8; color: var(--navy, #7c896e); }
+.visitor-login-card form { display: grid; gap: 11px; }
+.visitor-login-card label { display: grid; gap: 5px; font-size: 10px; color: var(--navy, #7c896e); }
+.visitor-login-card input { width: 100%; padding: 7px 8px; border: 1px solid var(--desktop-line, #b3baa5); border-radius: 0; background: var(--paper, #fffdf5); color: var(--ink, #263e4b); font: 12px monospace; }
+.visitor-login-card button { justify-content: center; }
+.visitor-login-card small { display: block; margin-top: 12px; font-size: 8px; line-height: 1.6; color: var(--navy, #929e83); }
+.visitor-error { margin: 0 0 10px; padding: 7px 9px; border-left: 2px solid #a0523d; background: #f3e2d8; color: #7a3f2f; font-size: 10px; }
+.visitor-shell { padding: 10px; gap: 8px; }
+.visitor-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 1px 2px 8px; border-bottom: 1px solid var(--desktop-line, #b3baa5); }
+.visitor-header strong { display: block; margin-top: 4px; font-size: 14px; }
+.visitor-header-actions { display: flex; gap: 5px; }
+.visitor-header-actions button { font-size: 9px; padding: 4px 7px; }
+.visitor-apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; overflow: auto; padding: 2px; }
+.visitor-empty { grid-column: 1 / -1; margin: 20px 0; text-align: center; font-size: 11px; color: var(--navy, #7c896e); }
+.visitor-app-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-height: 102px; padding: 10px; border: 1px solid var(--desktop-line, #b3baa5); border-radius: 0; background: var(--paper, #faf7eb); color: var(--ink, #263e4b); text-align: left; box-shadow: 2px 2px 0 var(--desktop-button-shadow, #d9d9c8); }
+.visitor-app-card:hover { background: var(--desktop-tint, #e8ecdc); }
+.visitor-app-card strong { font-size: 12px; font-weight: 600; }
+.visitor-app-card small { color: var(--navy, #7c896e); font-size: 9px; line-height: 1.4; }
+.visitor-app-icon { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--desktop-line, #b3baa5); background: var(--desktop-tint, #dce4ca); font: 15px monospace; color: var(--navy, #567053); overflow: hidden; }
+.visitor-app-icon img { width: 100%; height: 100%; object-fit: contain; }
+.visitor-open { position: absolute; right: 9px; bottom: 8px; font-size: 9px; color: var(--navy, #7c896e); }
+.visitor-runner { flex: 1; min-height: 0; display: flex; flex-direction: column; border: 1px solid var(--desktop-line, #b3baa5); background: var(--paper, #faf7eb); }
+.visitor-runner-bar { display: flex; align-items: center; gap: 8px; padding: 6px; border-bottom: 1px solid var(--desktop-line, #b3baa5); font-size: 10px; }
+.visitor-runner-bar span { flex: 1; text-align: center; color: var(--navy, #7c896e); }
+.visitor-runner-bar button { font-size: 9px; padding: 4px 7px; }
+.visitor-runner iframe { flex: 1; width: 100%; min-height: 0; border: 0; background: #fffdf5; }

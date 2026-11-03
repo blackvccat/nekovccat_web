@@ -16,6 +16,7 @@ const DesktopLoading = () => <p className="desktop-app-loading" role="status">�
 const NekoBrowser = dynamic(() => import('./neko-browser'), { loading: DesktopLoading })
 const SponsorApp = dynamic(() => import('./sponsor-app'), { loading: DesktopLoading })
 const MusicApp = dynamic(() => import('./music-app'), { loading: DesktopLoading })
+const VisitorApp = dynamic(() => import('./visitor-app'), { loading: DesktopLoading })
 const OurSpace = dynamic(() => import('./our-space'), { loading: DesktopLoading })
 const NotesApp = dynamic(() => import('./desktop-apps').then(module => module.NotesApp), { loading: DesktopLoading })
 const SettingsApp = dynamic(() => import('./desktop-apps').then(module => module.SettingsApp), { loading: DesktopLoading })
@@ -29,8 +30,8 @@ interface WindowDrag {
 
 interface DesktopWindow { id: DesktopAppId; x: number; y: number; z: number; minimized: boolean; maximized: boolean }
 const initialWindows: DesktopWindow[] = [{ id: 'agent', x: 192, y: 48, z: 1, minimized: false, maximized: false }]
-const desktopOrder: DesktopAppId[] = ['agent', 'explorer', 'music', 'notes', 'settings', 'sponsor', 'about', 'our-space']
-const desktopLabels: Partial<Record<DesktopAppId, string>> = { agent: 'Agent', explorer: 'Browser', music: 'Music', notes: 'Notes', settings: 'Settings', sponsor: 'Support', about: 'Computer' }
+const desktopOrder: DesktopAppId[] = ['agent', 'explorer', 'music', 'visitor', 'notes', 'settings', 'sponsor', 'about', 'our-space']
+const desktopLabels: Partial<Record<DesktopAppId, string>> = { agent: 'Agent', explorer: 'Browser', music: 'Music', visitor: 'Visitor', notes: 'Notes', settings: 'Settings', sponsor: 'Support', about: 'Computer' }
 
 function visibleWindowWidth(id: DesktopAppId, width: number, stageWidth: number) {
   if (id === 'agent' && stageWidth >= 600) return Math.min(620, Math.max(360, stageWidth * .48))
@@ -171,7 +172,7 @@ export default function PixelDesktop({ agent }: { agent: ReactNode }) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Open a document selected by an external desktop URL.
       setBrowserLaunch(previous => ({ page: browserPage(params.get('tab')), key: previous.key + 1 }))
       openApp('explorer')
-    } else if (app === 'sponsor' || app === 'music' || app === 'settings') openApp(app)
+    } else if (app === 'sponsor' || app === 'music' || app === 'visitor' || app === 'settings') openApp(app)
   }, [launchQuery, relationshipReady, openApp])
 
   const minimizeWindow = (id: DesktopAppId) => {
@@ -253,7 +254,7 @@ export default function PixelDesktop({ agent }: { agent: ReactNode }) {
                 event.preventDefault()
                 moveWindow(window.id, window.x + (event.key === 'ArrowRight' ? 16 : event.key === 'ArrowLeft' ? -16 : 0), window.y + (event.key === 'ArrowDown' ? 16 : event.key === 'ArrowUp' ? -16 : 0), event.currentTarget.parentElement!)
               }}><span className="window-name"><PixelIcon name={app.id} size={24} />{app.title}<small>{window.id === 'agent' ? ' / 你的站内向导' : ''}</small></span><div className="window-controls"><button type="button" aria-label={`最小化 ${app.title}`} onClick={() => minimizeWindow(window.id)}>_</button><button type="button" className="maximize-control" aria-label={`${window.maximized ? '还原' : '最大化'} ${app.title}`} onClick={() => maximizeWindow(window.id)}>□</button><button type="button" aria-label={`关闭 ${app.title}`} onClick={() => closeWindow(window.id)}>×</button></div></div>
-              <div className="window-content">{window.id === 'agent' ? agent : window.id === 'our-space' && relationshipContent ? <OurSpace content={relationshipContent} onSeeWallpaper={showDesktop} /> : window.id === 'explorer' ? <NekoBrowser initialPage={browserLaunch.page} launch={browserLaunch.key} onSponsor={() => openApp('sponsor')} /> : window.id === 'sponsor' ? <SponsorApp /> : window.id === 'music' ? <MusicApp playerLayer={window.z} active={active} onActivate={() => focusWindow('music')} /> : window.id === 'notes' ? <NotesApp /> : window.id === 'settings' ? <SettingsApp settings={settings} onChange={updateSettings} /> : <AboutComputer />}</div>
+              <div className="window-content">{window.id === 'agent' ? agent : window.id === 'our-space' && relationshipContent ? <OurSpace content={relationshipContent} onSeeWallpaper={showDesktop} /> : window.id === 'explorer' ? <NekoBrowser initialPage={browserLaunch.page} launch={browserLaunch.key} onSponsor={() => openApp('sponsor')} /> : window.id === 'sponsor' ? <SponsorApp /> : window.id === 'music' ? <MusicApp playerLayer={window.z} active={active} onActivate={() => focusWindow('music')} /> : window.id === 'visitor' ? <VisitorApp /> : window.id === 'notes' ? <NotesApp /> : window.id === 'settings' ? <SettingsApp settings={settings} onChange={updateSettings} /> : <AboutComputer />}</div>
               <div className="window-statusbar"><span>{app.subtitle}</span><span>{window.id === 'our-space' ? '♡ OUR SPACE' : window.id === 'agent' ? '● MY WORLD' : 'NEKO OS'}<span className="resize-grip" aria-hidden="true">◢</span></span></div>
             </section>
           })}

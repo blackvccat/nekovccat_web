@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"time"
 
 	"nekoweb/backend-go/internal/config"
 )
@@ -13,6 +14,7 @@ type Stack struct {
 	Attempt *AttemptGuard
 	Limiter *Limiter
 	Quota   Quota
+	Gate    *RedisGate
 
 	initErr error
 	mu      sync.Mutex
@@ -32,7 +34,15 @@ func NewStack(ctx context.Context, cfg *config.Config) *Stack {
 			stack.Quota = &unavailableQuota{err: err}
 			return stack
 		}
+		gate, gateErr := NewRedisGate(ctx, cfg, time.Duration(cfg.DSHRequestTimeoutSeconds+30)*time.Second)
+		if gateErr != nil {
+			_ = quota.Close()
+			stack.initErr = gateErr
+			stack.Quota = &unavailableQuota{err: gateErr}
+			return stack
+		}
 		stack.Quota = quota
+		stack.Gate = gate
 		return stack
 	}
 	if cfg.Production() {
@@ -67,6 +77,9 @@ func (s *Stack) Close() {
 		return
 	}
 	s.closed = true
+	if s.Gate != nil {
+		_ = s.Gate.Close()
+	}
 	if s.Quota != nil {
 		_ = s.Quota.Close()
 	}

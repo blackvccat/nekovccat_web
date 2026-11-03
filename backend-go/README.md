@@ -128,8 +128,10 @@ REDIS_PREFIX=neko:
 REDIS_TIMEOUT_MS=500
 ```
 
-The FIFO waiting room and burst-attempt guard remain process-local; keep one
-backend worker unless those are moved to a shared admission service.
+Redis also holds a shared global concurrency slot, so multiple backend instances
+cannot exceed `CHAT_MAX_CONCURRENT` together. The FIFO waiting room and
+burst-attempt guard remain process-local; keep one backend worker unless those
+are moved to a shared admission service.
 
 ## Tests
 

@@ -170,12 +170,12 @@ Agent 入口在读取请求体前拦截连续刷请求，聊天与会话接口�
 - **访客应用**：`work/visitor-apps/<id>/app.json` 注册表、登录后下发 shell、私有 assets、键值 data 与上传 files。
 - **交互持久化**：登录访客和匿名浏览器会话的每轮最终问答写入 PostgreSQL；中间草稿、推理内容和工具参数不落库。
 - **业务表**：`visitor_accounts`、`visitor_account_apps`、`agent_conversations`、`agent_turns`、`schema_migrations`。
-- **高并发准入**：内部令牌、IP 规范化、突发冷却、FIFO 排队和 Redis 滚动配额；生产模式需要 Redis。
+- **高并发准入**：内部令牌、IP 规范化、突发冷却、FIFO 排队、Redis 全局并发槽和滚动配额；生产模式需要 Redis。
 - **运维工具**：`cmd/visitor-hash` 生成密码哈希，`cmd/visitor-sync` 把 JSON 账号同步到 PostgreSQL。
 
 访客应用的数据和文件暂时仍在本地 SQLite / 文件系统；登录失败计数也仍是本地存储。完整表结构、索引、约束和保留策略见 [`backend-go/docs/database.md`](backend-go/docs/database.md)。
 
-当前 Neko 前端还没有接入访客登录入口；这是后端优先的移植，下一步可以补 Next 代理和桌面入口。
+Neko 桌面已加入「访客模式」入口，Next `/api/visitor` 代理、登录 Cookie 和 iframe 应用已接好；生产访客账号需要按邀请配置。
 
 ### 架构与原理预览
 
@@ -201,17 +201,18 @@ open backend-go/docs/architecture.html
 - 取消/断开后 dsh 进程组被回收
 - 访客登录、应用 shell/assets、data/files 与登录锁定
 - PostgreSQL 17 业务表、迁移和每轮 Agent 交互记录
-- Redis 8 滚动配额、FIFO 排队、AttemptGuard 和 IP 规范化
+- Redis 8 滚动配额、全局并发槽、FIFO 排队、AttemptGuard 和 IP 规范化
+- Neko 桌面访客入口、登录页、Next `/api/visitor` 代理与 iframe 应用
+- PostgreSQL 每日备份与 `agent_turns` 保留任务
+- dsh Linux runtime 已独立到 `/srv/nekoweb/tools/dsh`
 - Go 服务与 Next 服务由 systemd 管理；Python 服务已停止但保留回滚
-- `go test ./... -race` 与 `go vet ./...` 通过
+- `go test ./... -race`、`go vet ./...`、前端 type-check/build/测试通过
 
 仍需继续完善：
 
-- Neko 前端访客登录入口与 Next `/api/visitor` 代理
-- 多实例共享 FIFO 队列/AttemptGuard（Redis 配额已共享）
-- PostgreSQL 备份与交互数据保留策略
-- dsh runtime 独立分发，避免依赖 Python venv 路径
+- 多实例 FIFO 队列与突发冷却仍为进程内；Redis 已共享全局并发槽和配额
 - 完整彩蛋浏览器流程的 Python/Go 差分测试
+- 访客账号/应用需要在生产 `/var/lib/nekoweb-go` 中按邀请配置
 
 ### 代价与风险
 
