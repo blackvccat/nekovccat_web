@@ -10,11 +10,11 @@ import (
 )
 
 type Stack struct {
-	Config  *config.Config
-	Attempt *AttemptGuard
-	Limiter *Limiter
-	Quota   Quota
-	Gate    *RedisGate
+	Config       *config.Config
+	Attempt      *AttemptGuard
+	Limiter      *Limiter
+	Quota        Quota
+	RedisLimiter *DistributedLimiter
 
 	initErr error
 	mu      sync.Mutex
@@ -34,15 +34,15 @@ func NewStack(ctx context.Context, cfg *config.Config) *Stack {
 			stack.Quota = &unavailableQuota{err: err}
 			return stack
 		}
-		gate, gateErr := NewRedisGate(ctx, cfg, time.Duration(cfg.DSHRequestTimeoutSeconds+30)*time.Second)
-		if gateErr != nil {
+		limiter, limiterErr := NewDistributedLimiter(ctx, cfg, time.Duration(cfg.DSHRequestTimeoutSeconds+30)*time.Second)
+		if limiterErr != nil {
 			_ = quota.Close()
-			stack.initErr = gateErr
-			stack.Quota = &unavailableQuota{err: gateErr}
+			stack.initErr = limiterErr
+			stack.Quota = &unavailableQuota{err: limiterErr}
 			return stack
 		}
 		stack.Quota = quota
-		stack.Gate = gate
+		stack.RedisLimiter = limiter
 		return stack
 	}
 	if cfg.Production() {
@@ -64,7 +64,13 @@ func (s *Stack) Ready(ctx context.Context) bool {
 	if s.Config.Production() && !s.Config.RedisEnabled {
 		return false
 	}
-	return s.Quota != nil && s.Quota.Ready(ctx)
+	if s.Quota == nil || !s.Quota.Ready(ctx) {
+		return false
+	}
+	if s.RedisLimiter != nil && !s.RedisLimiter.Ready(ctx) {
+		return false
+	}
+	return true
 }
 
 func (s *Stack) Close() {
@@ -77,8 +83,8 @@ func (s *Stack) Close() {
 		return
 	}
 	s.closed = true
-	if s.Gate != nil {
-		_ = s.Gate.Close()
+	if s.RedisLimiter != nil {
+		_ = s.RedisLimiter.Close()
 	}
 	if s.Quota != nil {
 		_ = s.Quota.Close()

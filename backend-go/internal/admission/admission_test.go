@@ -177,35 +177,86 @@ func TestRedisQuotaRollingWindow(t *testing.T) {
 	}
 }
 
-func TestRedisGateSharesConcurrencySlots(t *testing.T) {
+func TestDistributedLimiterSharesFIFOAndSlots(t *testing.T) {
 	server := miniredis.RunT(t)
 	cfg := admissionConfig()
 	cfg.RedisEnabled = true
 	cfg.RedisURL = "redis://" + server.Addr() + "/0"
 	cfg.RedisPrefix = "test:"
 	cfg.RedisTimeoutMS = 500
+	cfg.CHATMaxConcurrent = 1
+	cfg.CHATQueueMaxSize = 2
+	cfg.CHATQueueWaitSeconds = 1
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	gate, err := NewRedisGate(ctx, cfg, time.Minute)
+	limiter, err := NewDistributedLimiter(ctx, cfg, time.Minute)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer gate.Close()
-	now := time.Unix(1_700_000_000, 0)
-	key := "test:slots"
-	acquired, _, err := gate.Acquire(ctx, key, "one", 1, now)
-	if err != nil || !acquired {
-		t.Fatalf("first: %v %v", acquired, err)
+	defer limiter.Close()
+
+	first, rejection, err := limiter.Enter(ctx, "first")
+	if err != nil || rejection != nil || first == nil {
+		t.Fatalf("first enter: %+v %+v %v", first, rejection, err)
 	}
-	acquired, retry, err := gate.Acquire(ctx, key, "two", 1, now)
-	if err != nil || acquired || retry <= 0 {
-		t.Fatalf("second: %v %d %v", acquired, retry, err)
+	if rejection := limiter.Wait(ctx, first); rejection != nil {
+		t.Fatalf("first wait: %+v", rejection)
 	}
-	if err := gate.Release(ctx, key, "one"); err != nil {
+	second, rejection, err := limiter.Enter(ctx, "second")
+	if err != nil || rejection != nil || second == nil {
+		t.Fatalf("second enter: %+v %+v %v", second, rejection, err)
+	}
+	done := make(chan *Rejection, 1)
+	go func() { done <- limiter.Wait(ctx, second) }()
+	time.Sleep(60 * time.Millisecond)
+	select {
+	case rejection := <-done:
+		t.Fatalf("second granted early: %+v", rejection)
+	default:
+	}
+	limiter.Release(ctx, first)
+	select {
+	case rejection := <-done:
+		if rejection != nil {
+			t.Fatalf("second wait: %+v", rejection)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("second was not promoted")
+	}
+	limiter.Release(ctx, second)
+
+	if _, rejection, err := limiter.Enter(ctx, "first"); err != nil || rejection != nil {
+		t.Fatalf("reuse after release: %+v %v", rejection, err)
+	}
+}
+
+func TestDistributedLimiterDuplicateAndTimeout(t *testing.T) {
+	server := miniredis.RunT(t)
+	cfg := admissionConfig()
+	cfg.RedisEnabled = true
+	cfg.RedisURL = "redis://" + server.Addr() + "/0"
+	cfg.RedisPrefix = "test:"
+	cfg.RedisTimeoutMS = 500
+	cfg.CHATMaxConcurrent = 1
+	cfg.CHATQueueMaxSize = 2
+	cfg.CHATQueueWaitSeconds = 0.05
+	ctx := context.Background()
+	limiter, err := NewDistributedLimiter(ctx, cfg, time.Minute)
+	if err != nil {
 		t.Fatal(err)
 	}
-	acquired, _, err = gate.Acquire(ctx, key, "three", 1, now.Add(time.Second))
-	if err != nil || !acquired {
-		t.Fatalf("after release: %v %v", acquired, err)
+	defer limiter.Close()
+	first, _, _ := limiter.Enter(ctx, "same")
+	_, rejection, _ := limiter.Enter(ctx, "same")
+	if rejection == nil || rejection.Code != "concurrency" {
+		t.Fatalf("duplicate: %+v", rejection)
 	}
+	second, rejection, _ := limiter.Enter(ctx, "other")
+	if rejection != nil || second == nil {
+		t.Fatalf("second: %+v", rejection)
+	}
+	if rejection := limiter.Wait(ctx, second); rejection == nil || rejection.Code != "queue_timeout" {
+		t.Fatalf("timeout: %+v", rejection)
+	}
+	limiter.Release(ctx, first)
 }

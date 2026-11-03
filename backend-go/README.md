@@ -128,10 +128,9 @@ REDIS_PREFIX=neko:
 REDIS_TIMEOUT_MS=500
 ```
 
-Redis also holds a shared global concurrency slot, so multiple backend instances
-cannot exceed `CHAT_MAX_CONCURRENT` together. The FIFO waiting room and
-burst-attempt guard remain process-local; keep one backend worker unless those
-are moved to a shared admission service.
+Redis holds the shared FIFO waiting room and global concurrency slot, so multiple
+backend instances share the same queue and cannot exceed `CHAT_MAX_CONCURRENT`
+together. The burst-attempt guard is still process-local.
 
 ## Tests
 
@@ -140,9 +139,11 @@ go test ./... -race
 go vet ./...
 ```
 
-The current local scope intentionally omits the production SQLite quota store,
-FIFO admission, systemd units, Docker images, and runtime distribution. Those
-remain in the Python reference until the Go service passes parity.
+Production deployment uses Redis-backed FIFO admission and rolling quotas,
+PostgreSQL persistence, systemd units, embedded migrations, and daily backups.
+Remaining limitations: the burst-attempt guard is process-local, Docker images
+are not built, and the dsh runtime binary is provisioned by the release script
+rather than embedded in the Go binary.
 
 ## Conventions
 

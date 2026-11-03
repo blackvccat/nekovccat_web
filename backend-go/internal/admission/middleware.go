@@ -39,45 +39,50 @@ func (s *Stack) Wrap(next http.Handler) http.Handler {
 			writeRejection(w, rejection)
 			return
 		}
-		ticket, rejection := s.Limiter.Enter(identity, time.Now())
-		if rejection != nil {
-			writeRejection(w, rejection)
-			return
-		}
-		defer s.Limiter.Release(ticket)
-
-		body, rejection := readChatBody(w, r, s.Config)
-		if rejection != nil {
-			writeRejection(w, rejection)
-			return
-		}
-		if rejection := s.Limiter.Wait(r.Context(), ticket); rejection != nil {
-			writeRejection(w, rejection)
-			return
-		}
-		requestID := observability.RequestID(r.Context())
-		member := requestID
-		if member == "" {
-			member = fmt.Sprintf("%s:%d", identity, time.Now().UnixNano())
-		}
-		if s.Gate != nil {
-			gateCtx, gateCancel := context.WithTimeout(context.WithoutCancel(r.Context()), 2*time.Second)
-			acquired, retry, gateErr := s.Gate.Acquire(gateCtx, s.Config.RedisPrefix+"slots:active", member, s.Config.CHATMaxConcurrent, time.Now())
-			gateCancel()
-			if gateErr != nil {
+		var body []byte
+		var rejection *Rejection
+		if s.RedisLimiter != nil {
+			ticket, rej, err := s.RedisLimiter.Enter(r.Context(), identity)
+			if err != nil {
 				writeRejection(w, &Rejection{"站内 Agent 正在维护，请稍后再试。", 10, "quota_storage"})
 				return
 			}
-			if !acquired {
-				writeRejection(w, &Rejection{"Agent 正在回复，请稍后再发消息。", retry, "concurrency"})
+			if rej != nil {
+				writeRejection(w, rej)
 				return
 			}
 			defer func() {
 				releaseCtx, releaseCancel := context.WithTimeout(context.Background(), time.Second)
-				_ = s.Gate.Release(releaseCtx, s.Config.RedisPrefix+"slots:active", member)
+				s.RedisLimiter.Release(releaseCtx, ticket)
 				releaseCancel()
 			}()
+			body, rejection = readChatBody(w, r, s.Config)
+			if rejection != nil {
+				writeRejection(w, rejection)
+				return
+			}
+			if rej := s.RedisLimiter.Wait(r.Context(), ticket); rej != nil {
+				writeRejection(w, rej)
+				return
+			}
+		} else {
+			ticket, rej := s.Limiter.Enter(identity, time.Now())
+			if rej != nil {
+				writeRejection(w, rej)
+				return
+			}
+			defer s.Limiter.Release(ticket)
+			body, rejection = readChatBody(w, r, s.Config)
+			if rejection != nil {
+				writeRejection(w, rejection)
+				return
+			}
+			if rej := s.Limiter.Wait(r.Context(), ticket); rej != nil {
+				writeRejection(w, rej)
+				return
+			}
 		}
+		requestID := observability.RequestID(r.Context())
 		quotaCtx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), 3*time.Second)
 		rejection, err := s.Quota.Consume(quotaCtx, identity, requestID, time.Now())
 		cancel()

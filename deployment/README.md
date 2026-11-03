@@ -70,7 +70,7 @@ Before and after changing `current`, check frontend `/api/health`, backend `/hea
 
 The frontend proxy defaults to a 215-second overall deadline, 15 seconds for streaming response headers, and 45 seconds of stream inactivity. The backend defaults to 180 seconds per turn, a 15-second heartbeat, and 10 seconds per ASGI send. Admission may wait up to 8 seconds before response headers. If changing these budgets, keep the proxy header deadline above admission plus quota storage time, and the overall deadline above admission, model execution and cleanup. Explicit environment settings override the defaults, so update an existing `CHAT_PROXY_TIMEOUT_MS=200000` when deploying this protection. Settings and tool templates are cached until backend restart.
 
-The Go backend shares rolling quotas and a global concurrency slot through Redis. The FIFO waiting room and burst-attempt guard remain process-local; keep one backend worker unless those are moved to a shared admission service. Runtime pooling and multiple hosts still require capacity and isolation validation.
+The Go backend shares rolling quotas, the FIFO waiting room, and the global concurrency slot through Redis. The burst-attempt guard remains process-local; keep one backend worker unless that is moved to a shared admission service. Runtime pooling and multiple hosts still require capacity and isolation validation.
 
 ## Agent traffic protection
 
