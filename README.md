@@ -122,6 +122,19 @@ FastAPI 的 lifespan 统一准备只读配置并管理独立运行时，修改�
 
 官方资料：[DeepSeek Harness](https://www.deepseek.com/harness/en/)、[源码与 Python SDK](https://github.com/deepseek-ai/deepseek-harness/tree/main/python/sdk)。本项目固定 `deepseek-harness-sdk==0.1.5rc1`，它仍是官方开发者预览版本。
 
+## Go 后端原型（feat/go-backend 分支）
+
+`main` 仍以 FastAPI 为默认后端。`feat/go-backend` 分支在 [`backend-go/`](backend-go/) 提供独立的本地 Go 控制面原型：
+
+- 直接通过 stdio JSON-RPC 驱动官方 `dsh` 运行时，不重写 Agent 或 Node 工具插件
+- 保留 JSON、旧版 SSE 与 `protocol=v2` 增量 SSE 契约
+- 每请求独立 runtime，支持取消、超时、进程组回收和有界流缓冲
+- `frontend/`、`agent/` 和 `backend/` 均未改动；Python 后端继续作为对照与回滚路径
+- 运行命令、环境变量和当前边界见 [`backend-go/README.md`](backend-go/README.md)
+- 架构图、请求时序、取消流程与代码地图见 [`backend-go/docs/architecture.html`](backend-go/docs/architecture.html)
+
+当前 Go 原型只完成本地 M1：尚未包含生产级 FIFO 准入、AttemptGuard、SQLite 配额、systemd/Docker、dsh 二进制分发和完整彩蛋浏览器流程。不要把它当作 `main` 的默认生产后端。
+
 ## 验证命令
 
 ```bash
@@ -131,13 +144,17 @@ node --test agent/tests/*.test.mjs
 (cd frontend && npm run test:music)
 (cd frontend && npx tsx --test tests/relationship-*.test.ts)
 (cd frontend && npm run type-check)
+
+# 仅 feat/go-backend 分支，需要 Go 1.23+
+(cd backend-go && go test ./... -race && go vet ./...)
 ```
 
 ## 项目目录
 
 ```text
 frontend/                 Next.js 网站、像素桌面与桌面软件
-backend/                  FastAPI 与官方 Harness SDK 集成
+backend/                  FastAPI 与官方 Harness SDK 集成（main 默认后端）
+backend-go/               Go 控制面本地原型（feat/go-backend 分支）
 agent/website.patch.yml   站点专用 Cordis 组合补丁
 agent/website-tools.mjs   无外部 I/O 的站内工具插件
 scripts/dev.py            前后端本地服务管理
