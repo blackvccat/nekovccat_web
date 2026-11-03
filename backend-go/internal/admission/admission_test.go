@@ -260,3 +260,35 @@ func TestDistributedLimiterDuplicateAndTimeout(t *testing.T) {
 	}
 	limiter.Release(ctx, first)
 }
+
+func TestDistributedAttemptGuardSharesBurstCooldown(t *testing.T) {
+	server := miniredis.RunT(t)
+	cfg := admissionConfig()
+	cfg.RedisEnabled = true
+	cfg.RedisURL = "redis://" + server.Addr() + "/0"
+	cfg.RedisPrefix = "test:"
+	cfg.RedisTimeoutMS = 500
+	cfg.CHATAttemptBurst = 2
+	cfg.CHATAttemptRefillSeconds = 10
+	cfg.CHATAbuseCooldownSeconds = 2
+	cfg.CHATAbuseMaxCooldownSeconds = 8
+	ctx := context.Background()
+	guard, err := NewDistributedAttemptGuard(ctx, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer guard.Close()
+	now := time.Unix(1_700_000_000, 0)
+	for i := 0; i < 2; i++ {
+		if rejection, err := guard.Check(ctx, "identity", now); err != nil || rejection != nil {
+			t.Fatalf("attempt %d: %+v %v", i, rejection, err)
+		}
+	}
+	rejection, err := guard.Check(ctx, "identity", now)
+	if err != nil || rejection == nil || rejection.Code != "burst_limit" || rejection.RetryAfter <= 0 {
+		t.Fatalf("cooldown: %+v %v", rejection, err)
+	}
+	if rejection, err := guard.Check(ctx, "other", now); err != nil || rejection != nil {
+		t.Fatalf("other identity: %+v %v", rejection, err)
+	}
+}

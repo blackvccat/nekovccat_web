@@ -15,6 +15,7 @@ type Stack struct {
 	Limiter      *Limiter
 	Quota        Quota
 	RedisLimiter *DistributedLimiter
+	RedisAttempt *DistributedAttemptGuard
 
 	initErr error
 	mu      sync.Mutex
@@ -41,8 +42,17 @@ func NewStack(ctx context.Context, cfg *config.Config) *Stack {
 			stack.Quota = &unavailableQuota{err: limiterErr}
 			return stack
 		}
+		attempt, attemptErr := NewDistributedAttemptGuard(ctx, cfg)
+		if attemptErr != nil {
+			_ = limiter.Close()
+			_ = quota.Close()
+			stack.initErr = attemptErr
+			stack.Quota = &unavailableQuota{err: attemptErr}
+			return stack
+		}
 		stack.Quota = quota
 		stack.RedisLimiter = limiter
+		stack.RedisAttempt = attempt
 		return stack
 	}
 	if cfg.Production() {
@@ -70,7 +80,17 @@ func (s *Stack) Ready(ctx context.Context) bool {
 	if s.RedisLimiter != nil && !s.RedisLimiter.Ready(ctx) {
 		return false
 	}
+	if s.RedisAttempt != nil && !s.RedisAttempt.Ready(ctx) {
+		return false
+	}
 	return true
+}
+
+func (s *Stack) CheckAttempt(ctx context.Context, identity string, now time.Time) (*Rejection, error) {
+	if s.RedisAttempt != nil {
+		return s.RedisAttempt.Check(ctx, identity, now)
+	}
+	return s.Attempt.Check(identity, nowSeconds()), nil
 }
 
 func (s *Stack) Close() {
@@ -83,6 +103,9 @@ func (s *Stack) Close() {
 		return
 	}
 	s.closed = true
+	if s.RedisAttempt != nil {
+		_ = s.RedisAttempt.Close()
+	}
 	if s.RedisLimiter != nil {
 		_ = s.RedisLimiter.Close()
 	}

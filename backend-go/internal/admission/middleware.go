@@ -35,7 +35,10 @@ func (s *Stack) Wrap(next http.Handler) http.Handler {
 		}
 		ip, _ := clientIdentity(r)
 		identity := identityHash(s.Config.InternalAPIToken, ip)
-		if rejection := s.Attempt.Check(identity, nowSeconds()); rejection != nil {
+		if rejection, err := s.CheckAttempt(r.Context(), identity, time.Now()); err != nil {
+			writeRejection(w, &Rejection{"站内 Agent 正在维护，请稍后再试。", 10, "quota_storage"})
+			return
+		} else if rejection != nil {
 			writeRejection(w, rejection)
 			return
 		}

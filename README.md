@@ -147,7 +147,7 @@ Agent 入口在读取请求体前拦截连续刷请求，聊天与会话接口�
 
 - 不降低模型延迟，也不降低 DeepSeek token 成本
 - 不把 267MB 的官方 `dsh` Node 运行时变成 Go
-- 不共享突发冷却；多实例的 AttemptGuard 仍是进程内状态
+- 不替代模型容量；更高的并发仍受 provider 和模型额度限制
 - 不替代 Next.js 的会话、CSRF、关系内容 Cookie 和同源代理
 
 ### 替换了什么，没替换什么
@@ -210,7 +210,6 @@ open backend-go/docs/architecture.html
 
 仍需继续完善：
 
-- 多实例的 AttemptGuard 突发冷却仍为进程内；FIFO 队列与并发槽已通过 Redis 共享
 - 完整彩蛋浏览器流程的 Python/Go 差分测试
 - 访客账号/应用需要在生产 `/var/lib/nekoweb-go` 中按邀请配置
 

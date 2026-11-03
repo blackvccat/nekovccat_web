@@ -128,9 +128,9 @@ REDIS_PREFIX=neko:
 REDIS_TIMEOUT_MS=500
 ```
 
-Redis holds the shared FIFO waiting room and global concurrency slot, so multiple
-backend instances share the same queue and cannot exceed `CHAT_MAX_CONCURRENT`
-together. The burst-attempt guard is still process-local.
+Redis holds the shared FIFO waiting room, global concurrency slot, rolling quota,
+and burst-attempt cooldown, so multiple backend instances share the same
+admission state.
 
 ## Tests
 
@@ -141,9 +141,8 @@ go vet ./...
 
 Production deployment uses Redis-backed FIFO admission and rolling quotas,
 PostgreSQL persistence, systemd units, embedded migrations, and daily backups.
-Remaining limitations: the burst-attempt guard is process-local, Docker images
-are not built, and the dsh runtime binary is provisioned by the release script
-rather than embedded in the Go binary.
+Remaining limitations: Docker images are not built, and the dsh runtime binary
+is provisioned by the release script rather than embedded in the Go binary.
 
 ## Conventions
 
