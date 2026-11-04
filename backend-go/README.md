@@ -8,13 +8,14 @@ Open [`docs/architecture.html`](docs/architecture.html) in a browser for the
 visual architecture, request lifecycle, cancellation flow, and code map.
 
 The Python FastAPI backend remains in `backend/` as a rollback and protocol
-reference. The Neko frontend visitor UI and Next `/api/visitor` proxy are still
-pending; the visitor backend endpoints below are ready.
+reference. The Neko desktop visitor entry, login UI, Next `/api/visitor` proxy,
+and iframe app host are implemented.
 
 ## Local run
 
-Requirements: Go 1.26+ and the existing macOS/Linux dsh runtime from
-`backend/.venv`. The Go service does not run Python.
+Requirements: Go 1.26+ and the macOS/Linux dsh runtime. `backend/.venv` is
+only a local fallback for locating the runtime; production uses
+`/srv/nekoweb/tools/dsh` via `DSH_BIN`. The Go service does not run Python.
 
 On this checkout the local toolchain can be used without changing the system
 PATH:
@@ -37,7 +38,7 @@ go run ./cmd/neko-backend
 `DSH_BIN` is auto-detected from `backend/.venv` when omitted. `NEKO_ROOT`
 defaults to the nearest parent containing `agent/website.patch.yml`.
 
-Point the frontend proxy at this service without changing frontend code:
+Point the frontend proxy at this service:
 
 ```bash
 cd frontend
@@ -54,8 +55,8 @@ npm run dev -- --hostname 127.0.0.1 --port 3011
 - `POST /api/chat/?stream=true` (legacy SSE)
 - `POST /api/chat/?stream=true&protocol=v2` (progressive SSE)
 
-Visitor backend (ported from `MK`, backend-first; the Neko frontend entry is
-not wired yet):
+Visitor backend (ported from `MK`; the Neko desktop entry and Next proxy are
+wired):
 
 - `POST /api/visitor/login`
 - `GET /api/visitor/apps`
@@ -82,6 +83,9 @@ Python backend is removed.
 Visitor accounts are PBKDF2-SHA256 only. The source of truth can be the local
 JSON file and/or PostgreSQL; duplicate usernames fail closed.
 
+Local defaults are shown below; production paths are in
+`deployment/backend-go.env.example`.
+
 - Accounts: `work/visitor-accounts.json`
 - Apps: `work/visitor-apps/<id>/app.json`
 - App data: `work/visitor-app-data.sqlite`
@@ -100,8 +104,9 @@ go run ./cmd/visitor-sync -accounts ../work/visitor-accounts.json
 
 ## PostgreSQL (pgdata)
 
-Users and Agent interactions live in PostgreSQL; app data/files and rolling
-counters stay in their local operational stores for now.
+Users and Agent interactions live in PostgreSQL. Chat quotas, FIFO admission,
+global slots, and burst cooldowns live in Redis. Visitor app data/files and
+login failure counters stay in their local operational stores.
 
 ```dotenv
 DATABASE_ENABLED=true

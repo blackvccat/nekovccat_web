@@ -60,7 +60,7 @@ backend/.venv/bin/python scripts/dev.py stop
 | --- | --- |
 | My World 桌面 | http://127.0.0.1:3010/my-world |
 | 网站首页 | http://127.0.0.1:3010 |
-| 后端 API 文档 | http://127.0.0.1:8010/docs |
+| Python 回滚 API 文档 | http://127.0.0.1:8010/docs |
 
 前后端绑定回环地址。Harness SDK 在后端按请求管理本地运行时子进程，不需要额外网关端口。启动脚本保留本项目已有进程，端口被其他进程占用时停止并提示。日志和 PID 位于 `work/nekovccat-*.log` / `work/nekovccat-*.pid`。修改后端或模型配置后，停止并重新启动。
 
@@ -68,7 +68,7 @@ backend/.venv/bin/python scripts/dev.py stop
 
 ### 首次安装到新环境
 
-需要 Node.js 20.9+、Python 3.11+；官方 SDK 会安装同版本、与平台匹配的原生运行时 wheel。
+需要 Node.js 20.9+、Go 1.26+（当前 Go 后端）；Python 3.11+ 仅用于回滚后端和本地脚本。官方 SDK 会安装同版本、与平台匹配的原生运行时 wheel。
 
 ```bash
 python3.12 -m venv backend/.venv
@@ -87,7 +87,7 @@ DEEPSEEK_REASONING_EFFORT=low
 DATABASE_ENABLED=false
 ```
 
-无需 PostgreSQL 即可使用当前桌面与聊天功能。现有数据库相关代码保留为可选功能；`docker-compose.yml` 尚未更新至此次 Harness 架构，当前完整启动入口为上面的本地脚本。
+以上是 Python 回滚/本地开发配置。生产 Go 配置需要 PostgreSQL 和 Redis，模板见 [`deployment/backend-go.env.example`](deployment/backend-go.env.example)；`docker-compose.yml` 尚未更新至当前 Harness 架构，生产入口使用 systemd。
 
 ## DeepSeek Harness 架构
 
@@ -112,15 +112,15 @@ DATABASE_ENABLED=false
 
 此站点组合禁用默认 shell 工具及其执行基础设施，未加载文件编辑、浏览器、搜索等通用工具；插件还会阻止所有非站内工具执行。它不读取本机文件、便签或外部网站。About/Contact 的真实公开内容由 NEKO Browser 展示；Agent 使用整理后的公开资料，不读取原始简历，只称呼作者为 NEKO，不透露、确认或猜测真实姓名。
 
-每个请求使用独立 SDK 运行时与随机会话 ID。浏览器的历史保留 `role/content`，作为结构化 `previous_context` 传入 SDK，当前问题独立放在 `input` 中。SDK 当前接收单次用户提示，未使用不存在的 OpenAI messages 导入接口。Harness 的 JSONL 轨迹位于 `work/deepseek-harness-home`；没有跨设备账户或聊天同步。
+每个请求使用独立 SDK 运行时与随机会话 ID。浏览器的历史保留 `role/content`，作为结构化 `previous_context` 传入 SDK，当前问题独立放在 `input` 中。SDK 当前接收单次用户提示，未使用不存在的 OpenAI messages 导入接口。Harness 的 JSONL 轨迹本地在 `work/deepseek-harness-home`，生产在 `/var/lib/nekoweb-harness`；没有跨设备账户或聊天同步。
 
-生产前后端只监听回环地址，经专属 Cloudflare Tunnel 进入。聊天使用签名 HttpOnly 会话、CSRF 与固定来源校验，前后端用内部令牌鉴权；限制请求体、消息长度、可用参数和并发，SQLite 持久化每 IP 与全站额度。只信任由 Cloudflare 注入的客户端地址；匿名会话不是用户身份认证，仍需关注额度消耗。模型密钥仅由服务端传入运行时环境；配置模板不含密钥。请求取消、客户端断开、超时后会关闭对应运行时子进程。浏览器接收站内工具执行状态及文本事件；中文 UTF-8、SSE 跨分包、断流与 RESET 的旧请求写入均有回归验证。
+生产前后端只监听回环地址，经专属 Cloudflare Tunnel 进入。聊天使用签名 HttpOnly 会话、CSRF 与固定来源校验，前后端用内部令牌鉴权；限制请求体、消息长度、可用参数和并发，Redis 持久化滚动配额，PostgreSQL 持久化用户与 Agent 交互。只信任由 Cloudflare 注入的客户端地址；匿名会话不是用户身份认证，仍需关注额度消耗。模型密钥仅由服务端传入运行时环境；配置模板不含密钥。请求取消、客户端断开、超时后会关闭对应运行时子进程。浏览器接收站内工具执行状态及文本事件；中文 UTF-8、SSE 跨分包、断流与 RESET 的旧请求写入均有回归验证。
 
 Agent 入口在读取请求体前拦截连续刷请求，聊天与会话接口分别限制突发访问。正常访客在 3 个执行名额占满时进入最多 12 位、最长 8 秒的 FIFO 队列，同一来源只能有一个执行中或等待中的请求；排队取消、超时和拒绝不消耗聊天额度。每个 IPv4 或 IPv6 /64 默认共享 6 次/分钟、30 次/小时、60 次/滚动 24 小时的执行额度，全站仍保留 400 次/滚动 24 小时上限。请求真正获准执行后才计次，已开始的模型请求取消或失败仍计次。限流返回可读的等待时间，客户端不自动重试。部署与边缘防护边界见 [Agent 流量保护](deployment/agent-protection.md)。
 
-当前官方 Python SDK 0.1.5rc1 未对外转发逐 token 通知，因此工具状态实时更新，回答生成完毕后整段显示；页面没有人工模拟打字效果。
+生产 Go 服务通过 `progressive_bridge.mjs` 接收真实的 `assistant` 瞬态帧，`protocol=v2` 客户端可以逐段显示正文；旧版 SSE 页面仍按整段最终答案兼容显示。页面没有人工模拟打字效果。
 
-生产当前使用 Go 控制面（`backend-go/`）：它负责准入、SSE、dsh 子进程和 Redis 滚动配额，用户与每轮 Agent 交互写入 PostgreSQL。Python FastAPI 版本保留为回滚和协议对照；下面关于 lifespan/SQLite 的说明仅适用于回滚路径。Go 服务每个请求独立准备 dsh runtime，写超时、取消或失败都会回收对应进程；`/health` 检查进程存活，`/api/ready` 检查 Agent 配置、代理认证、Redis 配额和 PostgreSQL 就绪状态，不调用付费模型。请求编号和各阶段耗时写入结构化日志，不写入用户正文或私人问答。
+生产当前使用 Go 控制面（`backend-go/`）：它负责准入、SSE、dsh 子进程、Redis 配额/排队/冷却，用户与每轮 Agent 交互写入 PostgreSQL。Python FastAPI 版本保留为回滚和协议对照；下面关于 lifespan/SQLite 的说明仅适用于回滚路径。Go 服务每个请求独立准备 dsh runtime，写超时、取消或失败都会回收对应进程；`/health` 检查进程存活，`/api/ready` 检查 Agent 配置、代理认证、Redis 配额和 PostgreSQL 就绪状态，不调用付费模型。请求编号和各阶段耗时写入结构化日志，不写入用户正文或私人问答。
 
 官方资料：[DeepSeek Harness](https://www.deepseek.com/harness/en/)、[源码与 Python SDK](https://github.com/deepseek-ai/deepseek-harness/tree/main/python/sdk)。本项目固定 `deepseek-harness-sdk==0.1.5rc1`，它仍是官方开发者预览版本。
 
@@ -152,14 +152,14 @@ Agent 入口在读取请求体前拦截连续刷请求，聊天与会话接口�
 
 ### 替换了什么，没替换什么
 
-| 层 | 当前 Go 原型 | 说明 |
+| 层 | 当前 Go 生产实现 | 说明 |
 | --- | --- | --- |
 | HTTP API / SSE | Go | `/api/chat`、`/health`、`/api/ready`，保留 v1/v2 协议 |
 | 请求校验 / 取消 / 超时 | Go | 严格 JSON、长度限制、context 传播 |
 | dsh 进程管理 | Go | 每请求独立进程、shutdown、TERM 进程组、超时回收 |
 | Harness stdio 协议 | Go 自研客户端 | 不依赖 Python SDK，需要跟随官方协议版本 |
 | 模型循环 / 工具执行 | 官方 Node dsh | 不重写 `website-tools.mjs` 或 Cordis 组合 |
-| 前端会话 / CSRF / 关系内容 | Next.js | 不改前端代码，只把代理指向 Go |
+| 前端会话 / CSRF / 关系内容 | Next.js | 会话和 Cookie 仍由 Next.js 管理；Go 只接收代理请求 |
 | Python FastAPI | 保留 | 作为对照、回滚和协议参考，不在 Go 链路中运行 |
 
 ### 从 MK 分支引入的后端功能
@@ -175,7 +175,7 @@ Agent 入口在读取请求体前拦截连续刷请求，聊天与会话接口�
 
 访客应用的数据和文件暂时仍在本地 SQLite / 文件系统；登录失败计数也仍是本地存储。完整表结构、索引、约束和保留策略见 [`backend-go/docs/database.md`](backend-go/docs/database.md)。
 
-Neko 桌面已加入「访客模式」入口，Next `/api/visitor` 代理、登录 Cookie 和 iframe 应用已接好；生产访客账号需要按邀请配置。
+Neko 桌面已加入「访客模式」入口，Next `/api/visitor` 代理、登录 Cookie 和 iframe 应用已接好；生产已配置示例账号，更多账号按邀请配置。
 
 ### 架构与原理预览
 
@@ -211,16 +211,16 @@ open backend-go/docs/architecture.html
 仍需继续完善：
 
 - 完整彩蛋浏览器流程的 Python/Go 差分测试
-- 访客账号/应用需要在生产 `/var/lib/nekoweb-go` 中按邀请配置
+- 更多访客账号/应用需要在生产 `/var/lib/nekoweb-go` 中按邀请配置
 
 ### 代价与风险
 
 - 官方 SDK 是 Python；Go 版本必须自己维护 `dsh` 的 stdio JSON-RPC 客户端，并跟随固定版本的协议变化。
 - 在 Python 后端完全退役前，prompt、校验规则、SSE 事件和部署配置存在双份维护风险。
 - 仍然需要官方 Node `dsh` 运行时和 `agent/*.mjs`，所以不是“单语言部署”，只是少一套 Python 运行时。
-- 当前 Go 版本只完成本地 M1；生产准入、配额、运行时分发和完整彩蛋流程尚未迁移。
+- 当前 Go 版本已生产部署；Harness 协议升级时仍需同步维护 Go 客户端。
 
-因此不要把这个原型当作 `main` 的默认生产后端。运行命令、环境变量和更细的边界见 [`backend-go/README.md`](backend-go/README.md)。
+生产入口已使用 Go 控制面；Python 仅在回滚时启用。运行命令、环境变量和更细的边界见 [`backend-go/README.md`](backend-go/README.md)。
 
 ## 验证命令
 

@@ -969,13 +969,16 @@
         <span class="kicker">06 · Code map</span>
         <h2>代码地图</h2>
       </div>
-      <p>新增代码全部在 <code>backend-go/</code>；没有改 Python、前端和 Agent 资产。</p>
+      <p>Go 控制面在 <code>backend-go/</code>；前端加入访客入口；Python FastAPI 保留为回滚。</p>
     </div>
     <div class="code-grid">
       <div class="code-card"><code>cmd/neko-backend/</code><p>入口、配置加载、HTTP server、信号与优雅关闭。</p></div>
       <div class="code-card"><code>internal/api</code><p>路由、CORS、请求体限制、JSON/SSE 输出、错误映射、request ID。</p></div>
       <div class="code-card"><code>internal/agent</code><p>Service、Runtime Manager、ProgressiveReply、有界 StreamBuffer、工具事件与桌面解锁判定。</p></div>
       <div class="code-card"><code>internal/harness</code><p>stdio JSON-RPC 客户端、通知队列、会话树、stderr 环形缓冲、进程组关闭。</p></div>
+      <div class="code-card"><code>internal/admission</code><p>Redis FIFO、并发槽、滚动配额、AttemptGuard、IP 规范和请求体准入。</p></div>
+      <div class="code-card"><code>internal/visitor</code><p>访客账号、应用注册表、shell/assets、data/files 与登录锁定。</p></div>
+      <div class="code-card"><code>internal/database</code><p>PostgreSQL 业务表、迁移、访客账号与 Agent 交互记录。</p></div>
       <div class="code-card"><code>internal/chat</code><p>消息结构与严格校验；字符数用 rune，回复上限用 byte。</p></div>
       <div class="code-card"><code>internal/config</code><p>环境变量、<code>.env</code>、CORS、DSH 路径自动发现、参数校验。</p></div>
       <div class="code-card"><code>internal/relationship</code><p>2 分钟有效的解锁 HMAC proof。</p></div>
@@ -987,9 +990,9 @@
     <div class="section-head">
       <div>
         <span class="kicker">07 · Boundaries</span>
-        <h2>当前边界：什么已经跑通，什么还没做</h2>
+        <h2>当前边界：生产已跑通，剩下什么</h2>
       </div>
-      <p>这是本地 M1，不是生产替换。生产级准入、配额和部署仍留给下一阶段。</p>
+      <p>生产已使用 Go 控制面。以下是线上已验证能力和仍需补的可选项。</p>
     </div>
     <ul class="checklist">
       <li><span class="ok">✓</span><span>Go 直连真实 dsh，非流式回复成功</span></li>
@@ -998,10 +1001,13 @@
       <li><span class="ok">✓</span><span>取消后 dsh 进程组被回收</span></li>
       <li><span class="ok">✓</span><span>Next 代理指向 Go 后聊天正常</span></li>
       <li><span class="ok">✓</span><span><code>go test ./... -race</code> 与 <code>go vet</code> 通过</span></li>
-      <li><span class="todo">○</span><span>生产 FIFO 准入、AttemptGuard、SQLite 配额</span></li>
-      <li><span class="todo">○</span><span>systemd、Docker、dsh 二进制分发与校验</span></li>
+      <li><span class="ok">✓</span><span>Redis FIFO、全局并发槽、滚动配额、AttemptGuard</span></li>
+      <li><span class="ok">✓</span><span>PostgreSQL 业务表、交互记录与每日备份</span></li>
+      <li><span class="ok">✓</span><span>访客登录、应用 shell/assets、data/files</span></li>
+      <li><span class="ok">✓</span><span>systemd、dsh 独立 runtime、生产公网验收</span></li>
       <li><span class="todo">○</span><span>完整彩蛋浏览器流程与 Python/Go 差分测试</span></li>
-      <li><span class="todo">○</span><span>Postgres 可选层（当前没有实际业务表）</span></li>
+      <li><span class="todo">○</span><span>Docker 镜像（当前用 systemd 发布）</span></li>
+      <li><span class="todo">○</span><span>更多访客账号/应用（按邀请配置）</span></li>
     </ul>
   </section>
 

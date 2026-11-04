@@ -1,6 +1,6 @@
 # Production deployment
 
-The production site requires a Next.js server and the FastAPI / DeepSeek Harness backend. GitHub Pages and other static-only hosts cannot run its API routes or protected relationship endpoints.
+The production site currently uses a Next.js server plus the Go control plane and the Node DeepSeek Harness runtime. The Python FastAPI backend is retained for rollback and protocol comparison. GitHub Pages and other static-only hosts cannot run its API routes or protected relationship endpoints.
 
 ## Public repository boundary
 
@@ -23,7 +23,10 @@ Run the frontend and backend as dedicated non-root users. Bind both services to 
 
 ## Build
 
-Requirements: Node.js 20.9 or newer and Python 3.11 or 3.12.
+Requirements: Node.js 20.9 or newer, Go 1.26+ for the current backend, and Python 3.11/3.12 only for the rollback backend.
+
+The commands below build the Python rollback backend. For the current Go
+release, use `scripts/build-go-release.sh` and the Go section at the end:
 
 ```bash
 python3 -m venv backend/.venv
@@ -36,7 +39,7 @@ cp -R public/. .next/standalone/public/
 cp -R .next/static/. .next/standalone/.next/static/
 ```
 
-Set `PYTHON_API_URL` to the loopback FastAPI endpoint. Set `SITE_ORIGIN` to the exact public HTTPS origin and enable trusted-proxy handling only when requests can reach the app exclusively through that proxy. Do not place a model key or internal token in any `NEXT_PUBLIC_*` variable.
+Set `PYTHON_API_URL` to the loopback Go control-plane endpoint (`http://127.0.0.1:8011`). Set `SITE_ORIGIN` to the exact public HTTPS origin and enable trusted-proxy handling only when requests can reach the app exclusively through that proxy. Do not place a model key or internal token in any `NEXT_PUBLIC_*` variable.
 
 ## Private relationship data
 
@@ -76,17 +79,18 @@ The Go backend shares rolling quotas, the FIFO waiting room, the global concurre
 
 See [agent-protection.md](agent-protection.md) for admission limits, quota accounting, attack handling and the Cloudflare boundary. Deploy frontend and backend together: the frontend normalizes trusted client addresses and rejects abusive traffic before reading a body, while the backend owns the bounded queue and persistent usage counters. Keep the existing quota database; a release must not clear already-consumed usage.
 
-## Go backend release (feat/go-backend)
+## Go backend release (current production)
 
-The Go control plane is an alternative to the FastAPI backend. It still needs
-the official Node `dsh` runtime; it is not a pure-Go agent runtime.
+The Go control plane is the current production backend. It still needs the
+official Node `dsh` runtime; it is not a pure-Go agent runtime. The FastAPI
+backend remains available for rollback.
 
 ### Prerequisites
 
 - Redis 6+ reachable at `REDIS_URL` (required in production).
 - PostgreSQL 14+ reachable at `DATABASE_URL`; migrations run on startup.
-- The Linux `dsh` runtime already installed with the Python environment, or an
-  equivalent runtime path in `DSH_BIN`.
+- The Linux `dsh` runtime at `DSH_BIN` (current production uses
+  `/srv/nekoweb/tools/dsh/deepseek-harness-sdk-runtime-linux-x64`).
 - A long random `INTERNAL_API_TOKEN` shared by
   `/etc/nekoweb/backend-go.env` and `/etc/nekoweb/frontend.env`.
 - `/var/lib/nekoweb-private/relationship.json` and
